@@ -5,9 +5,40 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 26 Dec 2018 16:34:37 +0100</pubDate>
-    <lastBuildDate>Wed, 26 Dec 2018 16:34:37 +0100</lastBuildDate>
+    <pubDate>Wed, 02 Jan 2019 10:15:40 +0100</pubDate>
+    <lastBuildDate>Wed, 02 Jan 2019 10:15:40 +0100</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
+    
+      <item>
+        <title>Starting a blog for my future self</title>
+        <description>&lt;p&gt;My name is Luis Ruiz. I’m a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain. I never really thought that I would start a blog in english, but I decided to start for two main reasons:&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;First, to remember to my future self things that I’ve done before and I don’t want you to waste time looking for a solution and also help people with similar problems sharing my experiencies. Of course, I’m glad to learn from you and your comments are welcome!&lt;/li&gt;
+  &lt;li&gt;Second, to improve my english through this blog trying to write a lot of post and also reach to more people through this language. It’s a fact that English is the main language where you can find a lot information and one of my challengues is to attend an international conference as speaker, so I’m trying to achieve it.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;What are you going to find in this blog?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;I’m focused principally in Microsoft Technologies such us C#, ASP.NET Core, Azure, Azure DevOps… so most of the content will be related with these topics but I never close the door on write about other techonologies. I’ll try to share with you real problems in my daily work life, so I hope you find it interesting.&lt;/p&gt;
+
+&lt;p&gt;Happy blogging!&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 01 Jan 2019 00:00:00 +0100</pubDate>
+        <link>/starting-a-blog-for-my-future-self</link>
+        <guid isPermaLink="true">/starting-a-blog-for-my-future-self</guid>
+        
+        <category>Career</category>
+        
+        <category>Blog</category>
+        
+        <category>Self</category>
+        
+        
+      </item>
     
   </channel>
 </rss>

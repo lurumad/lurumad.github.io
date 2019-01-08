@@ -5,15 +5,154 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 02 Jan 2019 13:30:51 +0100</pubDate>
-    <lastBuildDate>Wed, 02 Jan 2019 13:30:51 +0100</lastBuildDate>
+    <pubDate>Tue, 08 Jan 2019 09:43:23 +0100</pubDate>
+    <lastBuildDate>Tue, 08 Jan 2019 09:43:23 +0100</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
+    
+      <item>
+        <title>Continous delivery to Azure API Management using Azure DevOps pipelines</title>
+        <description>&lt;p&gt;A while ago, one of our customers, a spanish insurance company, contact us with one ambitous project: Expose many of their internal APIs to their ISV ecosystem using &lt;a href=&quot;https://azure.microsoft.com/en-us/services/api-management/&quot;&gt;Azure API Management&lt;/a&gt;. So, we accepted the challengue and we began to work together to achive the objective.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;Actually, we have three environments in Azure API Management, Dev &amp;amp; Pre (Developer tier) and Pro (Premium tier). We choosen Developer and Premium tiers because we need Virtual Network support (One of the most annoing thing about pricing details in apim is why Basic and Standard doesn’t have support for Virtual Network). Our customer have more than 90 apis ready to expose through Azure API Management and you will thinking about how we are going to publish this APIs, because &lt;strong&gt;3 environments * 90 APIs = 180 APIs&lt;/strong&gt; to deploy in apim. So if we have deploy manually this APIs we could have several problems like time-consuming and error prone. So we need to automate this process.&lt;/p&gt;
+
+&lt;p&gt;All source code of theses APIs is managed by &lt;a href=&quot;https://azure.microsoft.com/en-us/services/devops/&quot;&gt;Azure DevOps&lt;/a&gt; through several team projects. So our first thought was to create a set of powershell scripts to automate this process, because if you know or not Azure API Management like other services in Azure provides a REST API for performing operations on selected entities, such us apis, products, users, groups… but this approach has severral cons:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;We don’t have an user interface, is a powershell script with many input parameters and things like choose in which azure subscription we want to deploy, which resource group, the name op the service… we want to specify through variables.&lt;/li&gt;
+  &lt;li&gt;We can publish these scripts as a build artifacts but we can’t share between team projects so we have to store in some place accesible from Azure DevOps.&lt;/li&gt;
+  &lt;li&gt;We can version the scripts but we don’t have feedback about which things have been changed (Rename parameters, remove, update)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So for these reasons we decided to create an Azure DevOps custom tasks for this purpose. But after that we decided to search in the Azure DevOps marketplace if there were some extension available and we found this &lt;a href=&quot;https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim&quot;&gt;API Management Suite&lt;/a&gt;. A full suite of tasks to manage Azure Api Management from Azure DevOps developed by &lt;a href=&quot;https://twitter.com/stephaneeyskens&quot;&gt;Stephane Eyskens&lt;/a&gt;. We have several tasks available:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Create or update product.&lt;/li&gt;
+  &lt;li&gt;Create or Update Api from OpenApi specificacion.&lt;/li&gt;
+  &lt;li&gt;Create or Update Api from WSDL.&lt;/li&gt;
+  &lt;li&gt;Create or Update versioned API.&lt;/li&gt;
+  &lt;li&gt;Create or Update (versioned) API on Azure Functions&lt;/li&gt;
+  &lt;li&gt;API security checker.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This extension is open source released in &lt;a href=&quot;https://github.com/stephaneey/azure-apim-extension&quot;&gt;Github&lt;/a&gt; and I have been contributing with all requirements that our customer had. We look forward to your PR!&lt;/p&gt;
+
+&lt;h1 id=&quot;publish-your-first-api-using-azure-devops&quot;&gt;Publish your first API using Azure DevOps&lt;/h1&gt;
+
+&lt;p&gt;I’m going to show you how to create a new product (If you want to know more about products in Azure API Management, I recommend you the official documentation https://docs.microsoft.com/en-us/azure/api-management/api-management-key-concepts#a-nameproducts-a-products) and how to publish a new API from an “OpenAPI specification” using a Release Pipeline and how to associate to the product.&lt;/p&gt;
+
+&lt;h4 id=&quot;1-install-the-extension&quot;&gt;1. Install the extension&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Click on this &lt;a href=&quot;https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim&quot;&gt;link&lt;/a&gt; to go to the Azure DevOps marketplace.&lt;/li&gt;
+  &lt;li&gt;Click on “Get it free” button&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim1.png&quot; alt=&quot;Get if free&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Select your organization and then click on “Install” button.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim2.png&quot; alt=&quot;Install the extension&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;We have the suite ready to use in our Azure DevOps Pipelines. So we are going create a new Release Pipeline:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim5.png&quot; alt=&quot;New release pipeline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Select an &lt;strong&gt;Empty job&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim6.png&quot; alt=&quot;Empty job&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Change the name of the stage whatever you want, in my case &lt;strong&gt;Development&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim7.png&quot; alt=&quot;Change stage name&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Click on the &lt;strong&gt;Development&lt;/strong&gt; stage tasks:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim8.png&quot; alt=&quot;View stage tasks&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Add APIM DevOps tasks to the pipeline:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim9.png&quot; alt=&quot;Add tasks&quot; /&gt;
+&lt;img src=&quot;./assets/images/posts/2019/apim10.png&quot; alt=&quot;Add product&quot; /&gt;
+&lt;img src=&quot;./assets/images/posts/2019/apim11.png&quot; alt=&quot;Add api&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Out pipeline should be like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim12.png&quot; alt=&quot;Pipeline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Click on the &lt;strong&gt;Create/Update product&lt;/strong&gt; task in order the configure the required properties:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim13.png&quot; alt=&quot;Configure product task&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Click on the &lt;strong&gt;Create/Update API&lt;/strong&gt; task in order the configure the required properties:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim14.png&quot; alt=&quot;Configure api task&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;You can associate to the API the product created by previous task/s (You can add more than one product task and API task can be associated with all of them) and you can reduce error prone.&lt;/p&gt;
+
+&lt;p&gt;Once the pipeline is configured, we can can create a new Release:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim15.png&quot; alt=&quot;Create a release&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim16.png&quot; alt=&quot;Create a release 2&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And if you have followed all these steps you should be something like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim17.png&quot; alt=&quot;Deploy logs&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Navigate to the &lt;a href=&quot;https://portal.azure.com&quot;&gt;Azure Portal&lt;/a&gt; and open your API Management resource, you should see the new API and it should be associated with the &lt;strong&gt;Blog&lt;/strong&gt; product:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim18.png&quot; alt=&quot;Azure Portal&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Also, you can configure products and API’s policies using these tasks. You can choose a starting policy template and modify as you want. The list of templates availables are:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;None(Default): Choose if you want to override your policies in API Management.&lt;/li&gt;
+  &lt;li&gt;Custom&lt;/li&gt;
+  &lt;li&gt;Basic&lt;/li&gt;
+  &lt;li&gt;JWT&lt;/li&gt;
+  &lt;li&gt;IP&lt;/li&gt;
+  &lt;li&gt;Rate and Quota&lt;/li&gt;
+  &lt;li&gt;Rate by key&lt;/li&gt;
+  &lt;li&gt;Quota by key&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For example, imagine that you can restrict the product by IP. Select the IP template and fill the required information:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim19.png&quot; alt=&quot;Policies&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;The purpose of the post is give you a brief introduction of how you can automate Azure API Management tasks from Azure DevOps using a suite of open source tasks, so from this moment you can go deeper more and of course collaborate adding more functionallity or new features.&lt;/p&gt;
+
+&lt;h1 id=&quot;links&quot;&gt;Links&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim&quot;&gt;API Management Suite&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/stephaneey/azure-apim-extension&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Wed, 02 Jan 2019 00:00:00 +0100</pubDate>
+        <link>/continous-delivery-to-azure-api-management-using-azure-devops-pipelines</link>
+        <guid isPermaLink="true">/continous-delivery-to-azure-api-management-using-azure-devops-pipelines</guid>
+        
+        <category>Azure</category>
+        
+        <category>DevOps</category>
+        
+        <category>apim</category>
+        
+        
+      </item>
     
       <item>
         <title>Starting a blog for my future self</title>
         <description>&lt;p&gt;My name is Luis Ruiz. I’m a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain. I never really thought that I would start a blog in english, but I decided to start for two main reasons:&lt;/p&gt;
-
-&lt;!--more--&gt;
 
 &lt;ul&gt;
   &lt;li&gt;First, to remember to my future self things that I’ve done before and I don’t want you to waste time looking for a solution and also help people with similar problems sharing my experiencies. Of course, I’m glad to learn from you and your comments are welcome!&lt;/li&gt;

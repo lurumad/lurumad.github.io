@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <!-- Page Info -->
-    <title>Starting a blog for my future self | Luru</title>
+    <title>Continous delivery to Azure API Management using Azure DevOps pipelines | Luru</title>
     
     <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
     
@@ -54,50 +54,162 @@
         <article class="post-full inner">
             <header class="post-header">
                 <div class="post-meta">
-                    <time class="post-date" datetime="2019-01-01">January 1,
+                    <time class="post-date" datetime="2019-01-02">January 2,
                         2019</time>
                 </div><!-- .post-meta -->
-                <h1 class="posttitle">Starting a blog for my future self</h1>
+                <h1 class="posttitle">Continous delivery to Azure API Management using Azure DevOps pipelines</h1>
             </header><!-- .post-header -->
             
-            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/7.jpg"
-                    alt="Starting a blog for my future self"></div>
+            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/cd.jpg"
+                    alt="Continous delivery to Azure API Management using Azure DevOps pipelines"></div>
             
             <div class="post-content">
-                <p>My name is Luis Ruiz. I’m a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain. I never really thought that I would start a blog in english, but I decided to start for two main reasons:</p>
+                <p>A while ago, one of our customers, a spanish insurance company, contact us with one ambitous project: Expose many of their internal APIs to their ISV ecosystem using <a href="https://azure.microsoft.com/en-us/services/api-management/">Azure API Management</a>. So, we accepted the challengue and we began to work together to achive the objective.</p>
+
+<!--more-->
+
+<p>Actually, we have three environments in Azure API Management, Dev &amp; Pre (Developer tier) and Pro (Premium tier). We choosen Developer and Premium tiers because we need Virtual Network support (One of the most annoing thing about pricing details in apim is why Basic and Standard doesn’t have support for Virtual Network). Our customer have more than 90 apis ready to expose through Azure API Management and you will thinking about how we are going to publish this APIs, because <strong>3 environments * 90 APIs = 180 APIs</strong> to deploy in apim. So if we have deploy manually this APIs we could have several problems like time-consuming and error prone. So we need to automate this process.</p>
+
+<p>All source code of theses APIs is managed by <a href="https://azure.microsoft.com/en-us/services/devops/">Azure DevOps</a> through several team projects. So our first thought was to create a set of powershell scripts to automate this process, because if you know or not Azure API Management like other services in Azure provides a REST API for performing operations on selected entities, such us apis, products, users, groups… but this approach has severral cons:</p>
 
 <ul>
-  <li>First, to remember to my future self things that I’ve done before and I don’t want you to waste time looking for a solution and also help people with similar problems sharing my experiencies. Of course, I’m glad to learn from you and your comments are welcome!</li>
-  <li>Second, to improve my english through this blog trying to write a lot of post and also reach to more people through this language. It’s a fact that English is the main language where you can find a lot information and one of my challengues is to attend an international conference as speaker, so I’m trying to achieve it.</li>
+  <li>We don’t have an user interface, is a powershell script with many input parameters and things like choose in which azure subscription we want to deploy, which resource group, the name op the service… we want to specify through variables.</li>
+  <li>We can publish these scripts as a build artifacts but we can’t share between team projects so we have to store in some place accesible from Azure DevOps.</li>
+  <li>We can version the scripts but we don’t have feedback about which things have been changed (Rename parameters, remove, update)</li>
 </ul>
 
-<p><strong>What are you going to find in this blog?</strong></p>
+<p>So for these reasons we decided to create an Azure DevOps custom tasks for this purpose. But after that we decided to search in the Azure DevOps marketplace if there were some extension available and we found this <a href="https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim">API Management Suite</a>. A full suite of tasks to manage Azure Api Management from Azure DevOps developed by <a href="https://twitter.com/stephaneeyskens">Stephane Eyskens</a>. We have several tasks available:</p>
 
-<p>I’m focused principally in Microsoft Technologies such us C#, ASP.NET Core, Azure, Azure DevOps… so most of the content will be related with these topics but I never close the door on write about other techonologies. I’ll try to share with you real problems in my daily work life, so I hope you find it interesting.</p>
+<ul>
+  <li>Create or update product.</li>
+  <li>Create or Update Api from OpenApi specificacion.</li>
+  <li>Create or Update Api from WSDL.</li>
+  <li>Create or Update versioned API.</li>
+  <li>Create or Update (versioned) API on Azure Functions</li>
+  <li>API security checker.</li>
+</ul>
 
-<p>Happy blogging!</p>
+<p>This extension is open source released in <a href="https://github.com/stephaneey/azure-apim-extension">Github</a> and I have been contributing with all requirements that our customer had. We look forward to your PR!</p>
 
+<h1 id="publish-your-first-api-using-azure-devops">Publish your first API using Azure DevOps</h1>
+
+<p>I’m going to show you how to create a new product (If you want to know more about products in Azure API Management, I recommend you the official documentation https://docs.microsoft.com/en-us/azure/api-management/api-management-key-concepts#a-nameproducts-a-products) and how to publish a new API from an “OpenAPI specification” using a Release Pipeline and how to associate to the product.</p>
+
+<h4 id="1-install-the-extension">1. Install the extension</h4>
+
+<ul>
+  <li>Click on this <a href="https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim">link</a> to go to the Azure DevOps marketplace.</li>
+  <li>Click on “Get it free” button</li>
+</ul>
+
+<p><img src="./assets/images/posts/2019/apim1.png" alt="Get if free" /></p>
+
+<ul>
+  <li>Select your organization and then click on “Install” button.</li>
+</ul>
+
+<p><img src="./assets/images/posts/2019/apim2.png" alt="Install the extension" /></p>
+
+<ul>
+  <li>We have the suite ready to use in our Azure DevOps Pipelines. So we are going create a new Release Pipeline:</li>
+</ul>
+
+<p><img src="./assets/images/posts/2019/apim5.png" alt="New release pipeline" /></p>
+
+<p>Select an <strong>Empty job</strong>:</p>
+
+<p><img src="./assets/images/posts/2019/apim6.png" alt="Empty job" /></p>
+
+<p>Change the name of the stage whatever you want, in my case <strong>Development</strong></p>
+
+<p><img src="./assets/images/posts/2019/apim7.png" alt="Change stage name" /></p>
+
+<p>Click on the <strong>Development</strong> stage tasks:</p>
+
+<p><img src="./assets/images/posts/2019/apim8.png" alt="View stage tasks" /></p>
+
+<p>Add APIM DevOps tasks to the pipeline:</p>
+
+<p><img src="./assets/images/posts/2019/apim9.png" alt="Add tasks" />
+<img src="./assets/images/posts/2019/apim10.png" alt="Add product" />
+<img src="./assets/images/posts/2019/apim11.png" alt="Add api" /></p>
+
+<p>Out pipeline should be like this:</p>
+
+<p><img src="./assets/images/posts/2019/apim12.png" alt="Pipeline" /></p>
+
+<p>Click on the <strong>Create/Update product</strong> task in order the configure the required properties:</p>
+
+<p><img src="./assets/images/posts/2019/apim13.png" alt="Configure product task" /></p>
+
+<p>Click on the <strong>Create/Update API</strong> task in order the configure the required properties:</p>
+
+<p><img src="./assets/images/posts/2019/apim14.png" alt="Configure api task" /></p>
+
+<p>You can associate to the API the product created by previous task/s (You can add more than one product task and API task can be associated with all of them) and you can reduce error prone.</p>
+
+<p>Once the pipeline is configured, we can can create a new Release:</p>
+
+<p><img src="./assets/images/posts/2019/apim15.png" alt="Create a release" /></p>
+
+<p><img src="./assets/images/posts/2019/apim16.png" alt="Create a release 2" /></p>
+
+<p>And if you have followed all these steps you should be something like this:</p>
+
+<p><img src="./assets/images/posts/2019/apim17.png" alt="Deploy logs" /></p>
+
+<p>Navigate to the <a href="https://portal.azure.com">Azure Portal</a> and open your API Management resource, you should see the new API and it should be associated with the <strong>Blog</strong> product:</p>
+
+<p><img src="./assets/images/posts/2019/apim18.png" alt="Azure Portal" /></p>
+
+<p>Also, you can configure products and API’s policies using these tasks. You can choose a starting policy template and modify as you want. The list of templates availables are:</p>
+
+<ul>
+  <li>None(Default): Choose if you want to override your policies in API Management.</li>
+  <li>Custom</li>
+  <li>Basic</li>
+  <li>JWT</li>
+  <li>IP</li>
+  <li>Rate and Quota</li>
+  <li>Rate by key</li>
+  <li>Quota by key</li>
+</ul>
+
+<p>For example, imagine that you can restrict the product by IP. Select the IP template and fill the required information:</p>
+
+<p><img src="./assets/images/posts/2019/apim19.png" alt="Policies" /></p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>The purpose of the post is give you a brief introduction of how you can automate Azure API Management tasks from Azure DevOps using a suite of open source tasks, so from this moment you can go deeper more and of course collaborate adding more functionallity or new features.</p>
+
+<h1 id="links">Links</h1>
+
+<ul>
+  <li><a href="https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim">API Management Suite</a></li>
+  <li><a href="https://github.com/stephaneey/azure-apim-extension">Github</a></li>
+</ul>
 
             </div>
             <footer class="post-footer">
                 
                 <p class="post-tags">
                      
-                    <a href='tag/career/'>Career</a>
+                    <a href='tag/azure/'>Azure</a>
                     
                      
-                    <a href='tag/blog/'>Blog</a>
+                    <a href='tag/devops/'>DevOps</a>
                     
                      
-                    <a href='tag/self/'>Self</a>
+                    <a href='tag/apim/'>apim</a>
                     
                     
                 </p>
                 
                 <div class="post-share">
                     <span class="post-share-title">Share:</span>
-                    <a target="_blank" href="https://twitter.com/share?text=Starting+a+blog+for+my+future+self&amp;url=https://lurumad.github.io/starting-a-blog-for-my-future-self">Twitter</a>
-                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/starting-a-blog-for-my-future-self">Facebook</a>
+                    <a target="_blank" href="https://twitter.com/share?text=Continous+delivery+to+Azure+API+Management+using+Azure+DevOps+pipelines&amp;url=https://lurumad.github.io/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">Twitter</a>
+                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">Facebook</a>
                 </div><!-- .share-post -->
             </footer>
             <div class="author-box">
@@ -139,37 +251,37 @@
         <section class="read-next inner">
             <h2 class="read-next-title">Read Next</h2>
             
-            
             <article class="post">
                 <header class="post-header">
                     <div class="post-meta">
-                        <time class="published" datetime="January 2, 2019">January 2, 2019</time>
+                        <time class="published" datetime="January 1, 2019">January 1, 2019</time>
                     </div>
-                    <h3 class="post-title"><a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">Continous delivery to Azure API Management using Azure DevOps pipelines</a></h3>
+                    <h3 class="post-title"><a href="/starting-a-blog-for-my-future-self">Starting a blog for my future self</a></h3>
                     <p class="post-tags">
                         
                         
                         
-                        <a href='/tag/azure/'>Azure</a>
+                        <a href='/tag/career/'>Career</a>
                         
                         
                         
-                        <a href='/tag/devops/'>Devops</a>
+                        <a href='/tag/blog/'>Blog</a>
                         
                         
                         
-                        <a href='/tag/apim/'>Apim</a>
+                        <a href='/tag/self/'>Self</a>
                         
                         
                         
                     </p>
                 </header>
                 
-                <a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/cd_thumbnail.jpg" alt="Continous delivery to Azure API Management using Azure DevOps pipelines" />
+                <a href="/starting-a-blog-for-my-future-self" class="post-thumbnail">
+                    <img src="assets/images/posts/2019/7_thumbnail.jpg" alt="Starting a blog for my future self" />
                 </a>
                 
             </article>
+            
             
         </section><!-- .read-next -->
     </main><!-- .site-main -->

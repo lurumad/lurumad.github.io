@@ -5,8 +5,8 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 08 Jan 2019 09:47:09 +0100</pubDate>
-    <lastBuildDate>Tue, 08 Jan 2019 09:47:09 +0100</lastBuildDate>
+    <pubDate>Tue, 08 Jan 2019 10:00:03 +0100</pubDate>
+    <lastBuildDate>Tue, 08 Jan 2019 10:00:03 +0100</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
     
       <item>
@@ -40,7 +40,7 @@
 
 &lt;h1 id=&quot;publish-your-first-api-using-azure-devops&quot;&gt;Publish your first API using Azure DevOps&lt;/h1&gt;
 
-&lt;p&gt;I’m going to show you how to create a new product (If you want to know more about products in Azure API Management, I recommend you the official documentation https://docs.microsoft.com/en-us/azure/api-management/api-management-key-concepts#a-nameproducts-a-products) and how to publish a new API from an “OpenAPI specification” using a Release Pipeline and how to associate to the product.&lt;/p&gt;
+&lt;p&gt;I’m going to show you how to create a new product (If you want to know more about products in Azure API Management, I recommend you the official documentation https://docs.microsoft.com/en-us/azure/api-management/api-management-key-concepts#a-nameproducts-a-products and how to publish a new API from an “OpenAPI specification” using a Release Pipeline and how to associate to the product.&lt;/p&gt;
 
 &lt;h4 id=&quot;1-install-the-extension&quot;&gt;1. Install the extension&lt;/h4&gt;
 

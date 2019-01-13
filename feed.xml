@@ -5,13 +5,60 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 08 Jan 2019 10:00:03 +0100</pubDate>
-    <lastBuildDate>Tue, 08 Jan 2019 10:00:03 +0100</lastBuildDate>
+    <pubDate>Sun, 13 Jan 2019 19:27:53 +0100</pubDate>
+    <lastBuildDate>Sun, 13 Jan 2019 19:27:53 +0100</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
     
       <item>
+        <title>Set output variables in Azure DevOps pipelines tasks</title>
+        <description>&lt;p&gt;Currently I am building a pipeline that deploys a microservices solution in &lt;a href=&quot;https://azure.microsoft.com/en-us/services/kubernetes-service/&quot;&gt;Azure Kubernetes Service (AKS)&lt;/a&gt;. For example, I need to parse a kubectl output in a task to extract the cluster service ip dinamically in order to &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/aks/ingress-static-ip#configure-a-dns-name&quot;&gt;configure a DNS name&lt;/a&gt; for an nginx ingress controller. I want to return this cluster service ip back into a variable, so I can use in another task.&lt;/p&gt;
+
+&lt;h1 id=&quot;configuring-our-build-or-release-pipeline-to-test-it&quot;&gt;Configuring our Build or Release pipeline to test it&lt;/h1&gt;
+
+&lt;p&gt;Add two bash script tasks to your build or release pipeline:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/setoutputvariable.png&quot; alt=&quot;Add two bash script tasks&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Configure the first bash script task as shown in the image below:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/setoutputvariable1.png&quot; alt=&quot;Set output variable in bash&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Look at the following command:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;##vso[task.setvariable variable=AKS_Cluster_Service_Ip;]&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$ip&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;This will make the variable &lt;strong&gt;AKS_Cluster_Service_Ip&lt;/strong&gt; to be consumed in the next bash script taks via the &lt;strong&gt;$(AKS_Cluster_Service_Ip)&lt;/strong&gt; sintax:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/setoutputvariable2.png&quot; alt=&quot;Consume the output variable in bash&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Run your build or create a new release depend what you choosen in the first step, and you should see in the logs the value of the output variable:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/setoutputvariable3.png&quot; alt=&quot;Consume the output variable in bash&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;links&quot;&gt;Links&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/Microsoft/azure-pipelines-tasks/blob/master/docs/authoring/commands.md&quot;&gt;Azure Pipeline tasks&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Sun, 13 Jan 2019 00:00:00 +0100</pubDate>
+        <link>/set-output-variables-in-azuredevops-pipelines-tasks</link>
+        <guid isPermaLink="true">/set-output-variables-in-azuredevops-pipelines-tasks</guid>
+        
+        <category>Azure</category>
+        
+        <category>DevOps</category>
+        
+        <category>Pipelines</category>
+        
+        
+      </item>
+    
+      <item>
         <title>Continous delivery to Azure API Management using Azure DevOps pipelines</title>
-        <description>&lt;p&gt;A while ago, one of our customers, a spanish insurance company, contact us with one ambitous project: Expose many of their internal APIs to their ISV ecosystem using &lt;a href=&quot;https://azure.microsoft.com/en-us/services/api-management/&quot;&gt;Azure API Management&lt;/a&gt;. So, we accepted the challengue and we began to work together to achive the objective.&lt;/p&gt;
+        <description>&lt;p&gt;A while ago, one of our customers, a spanish insurance company, contact us with one ambitous project: Expose many of their internal APIs to their ISV ecosystem using &lt;a href=&quot;https://azure.microsoft.com/en-us/services/api-management/&quot;&gt;Azure API Management&lt;/a&gt;. So, we accepted the challengue and we began to work together to achieve the objective.&lt;/p&gt;
 
 &lt;!--more--&gt;
 

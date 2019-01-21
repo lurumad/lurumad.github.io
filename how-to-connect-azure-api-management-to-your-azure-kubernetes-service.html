@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <!-- Page Info -->
-    <title>Starting a blog for my future self | Luru</title>
+    <title>How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS) | Luru</title>
     
     <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
     
@@ -54,50 +54,165 @@
         <article class="post-full inner">
             <header class="post-header">
                 <div class="post-meta">
-                    <time class="post-date" datetime="2019-01-01">January 1,
+                    <time class="post-date" datetime="2019-01-21">January 21,
                         2019</time>
                 </div><!-- .post-meta -->
-                <h1 class="posttitle">Starting a blog for my future self</h1>
+                <h1 class="posttitle">How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)</h1>
             </header><!-- .post-header -->
             
-            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/7.jpg"
-                    alt="Starting a blog for my future self"></div>
+            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/thomas-jensen-596085-unsplash.jpg"
+                    alt="How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)"></div>
             
             <div class="post-content">
-                <p>My name is Luis Ruiz. I’m a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain. I never really thought that I would start a blog in english, but I decided to start for two main reasons:</p>
+                <p><strong>DISCLAIMER</strong>: I’m assuming you are familiar with Kubernetes, well in this post we are not going to explain it. So if you are not familiar, I recommend you to visit the official <a href="https://kubernetes.io/">documentation</a>.</p>
+
+<p>If you have read my previous <a href="https://lurumad.github.io/set-output-variables-in-azuredevops-pipelines-tasks">post</a> you’ll know that currently I’m building a microservices architecture using <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">Azure Kubernetes Service (AKS)</a>. The context here is that we have a set of microservices that exposes API endpoints and we need a solution for publishing APIs to external and internal customers and clients applications, so we don´t want customers and client applications access directly to these microservices. We are talking to production ready API, so we have to take some considerations:</p>
+
+<!--more-->
 
 <ul>
-  <li>First, to remember to my future self things that I’ve done before and I don’t want you to waste time looking for a solution and also help people with similar problems sharing my experiencies. Of course, I’m glad to learn from you and your comments are welcome!</li>
-  <li>Second, to improve my english through this blog trying to write a lot of post and also reach to more people through this language. It’s a fact that English is the main language where you can find a lot information and one of my challengues is to attend an international conference as speaker, so I’m trying to achieve it.</li>
+  <li>Single entry point (Gateway)</li>
+  <li>Usage</li>
+  <li>Analytics</li>
+  <li>Monitoring</li>
+  <li>Cache</li>
+  <li>Throttling</li>
+  <li>Authorization</li>
+  <li>And much more…</li>
 </ul>
 
-<p><strong>What are you going to find in this blog?</strong></p>
+<p>For these reasons we have decided to use <a href="https://azure.microsoft.com/en-us/services/api-management/">Azure Api Management</a>. Api Management provides us a way to expose all APIs behind a single static IP and domain using a suscription key.</p>
 
-<p>I’m focused principally in Microsoft Technologies such us C#, ASP.NET Core, Azure, Azure DevOps… so most of the content will be related with these topics but I never close the door on write about other techonologies. I’ll try to share with you real problems in my daily work life, so I hope you find it interesting.</p>
+<h1 id="accessing-services-running-on-the-cluster">Accessing services running on the cluster</h1>
 
-<p>Happy blogging!</p>
+<p>To use a REST service that is deployed on Kubernetes, you need to define a <a href="https://kubernetes.io/docs/concepts/services-networking/service/">service</a>. There are several kinds of services:</p>
 
+<ul>
+  <li>ClusterIP</li>
+  <li>NodePort</li>
+  <li>LoadBalacer</li>
+</ul>
+
+<h3 id="clusterip">ClusterIP</h3>
+
+<p>A ClusterIP is the default service in Kubernetes. Expose the service on a cluster-internal IP, so if you choosing this kind of service will be only reachable within the Kubernetes cluster so Azure API Management won’t be able to access.</p>
+
+<h3 id="nodeport">NodePort</h3>
+
+<p>Another option is to use a NodePort, Kubernetes will open a static port on each node (VM) of the cluster so you’ll be able to contact the NodePort outside the cluster using NodeIP:NodePort. The problem of using NodePort is that you are accesing directly to the node (VM), so if your Node/VM IP change, you’ll need to deal with it. <strong>It’s not the recommended way to expose services in production</strong>.</p>
+
+<h3 id="loadbalancer">LoadBalancer</h3>
+
+<p>This is the standard way to expose your services to the outside world from a Kubernetes cluster. This service type will leverage the cloud provider to provision and configure the load balancer. In Azure, this will provision an <a href="https://docs.microsoft.com/en-us/azure/load-balancer/">Azure Load Balancer</a> configuring all stuffs related with it.</p>
+
+<p>The problem with this type of service is by default provision a Public Azure Load Balancer and we don’t want to expose our APIs publicly, we want to expose them through Azure Api Management. However we can also provision an <a href="https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/internal-lb.md">Internal Load Balancer</a> to expose our APIs internally in Azure, so it seems to fit with our requirements to not expose publicly our services.</p>
+
+<p>To create an Internal Load Balancer, create a service manifest with the service type to <em>LoadBalancer</em> and the <em>azure-load-balancer-internal annotation</em> as shown in the following code:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="s">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="s">metadata</span><span class="pi">:</span>
+  <span class="s">name</span><span class="pi">:</span> <span class="s">todo-app-service</span>
+  <span class="s">annotations</span><span class="pi">:</span>
+    <span class="s">service.beta.kubernetes.io/azure-load-balancer-internal</span><span class="pi">:</span> <span class="s2">"</span><span class="s">true"</span>
+<span class="s">spec</span><span class="pi">:</span>
+  <span class="s">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
+  <span class="s">ports</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">port</span><span class="pi">:</span> <span class="s">80</span>
+  <span class="s">selector</span><span class="pi">:</span>
+    <span class="s">app</span><span class="pi">:</span> <span class="s">todo-app</span>
+</code></pre>
+</div>
+
+<p>Once we have apply the manifest in our AKS cluster, we should see EXTERNAL-IP that belongs to same subnet of the nodes of the cluster:</p>
+
+<pre><code class="language-txt">kubectl get services
+NAME               TYPE           CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
+todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
+</code></pre>
+
+<h1 id="connect-azure-api-management-to-your-aks-cluster">Connect Azure Api Management to your AKS cluster</h1>
+
+<p>When we create an AKS cluster in Azure, the process creates another resource group as shown in the following image:</p>
+
+<p><img src="./assets/images/posts/2019/apimaks1.png" alt="Resource group create by Azure" /></p>
+
+<p>This by design, this second resource group is a “cluster resource group” and is used to represent all the resources that belong to the cluster: VMs, Virtual Network…</p>
+
+<p><img src="./assets/images/posts/2019/apimaks2.png" alt="Resource group" /></p>
+
+<p>Within the virtual network there are a number of VMs (Nodes) usually one master and few agents (depends of the size of your cluster). We can connect Azure Api Management to this subnet in order to be able to consume the services within the cluster. To connect our Azure Api Management to our AKS cluster we need to create a subnet within this virtual network:</p>
+
+<p><img src="./assets/images/posts/2019/apimaks4.png" alt="Virtual Network 1" /></p>
+
+<p>You can use a small range op IPs (In our case 3 directions is enough)</p>
+
+<p><img src="./assets/images/posts/2019/apimaks3.png" alt="Virtual Network 2" /></p>
+
+<p><img src="./assets/images/posts/2019/apimaks5.png" alt="Virtual Network 3" /></p>
+
+<p>Once we have created our subnet, go to your Azure Api Management instance in Azure portal and configure virtual network. Mark Virtual network as External.</p>
+
+<p><img src="./assets/images/posts/2019/apimaks6.png" alt="Virtual Network APIM 1" /></p>
+
+<p>Select your AKS virtual network and the subnet that we have created previous:</p>
+
+<p><img src="./assets/images/posts/2019/apimaks7.png" alt="Virtual Network APIM 2" /></p>
+
+<p>Save your changes, take it easy and relax because Azure Api Management will take 15/30 minutes to apply these changes :)</p>
+
+<h1 id="import-and-publish-our-services-in-azure-api-management">Import and publish our services in Azure Api Management</h1>
+
+<p>Now that we have to service listening within the virtual network, it’s time to <a href="https://docs.microsoft.com/en-us/azure/api-management/import-and-publish">import and publish</a> in our Azure Api Management. In my case, I’ve configured my API to generate an OpenApi  specification using a library called <a href="https://github.com/domaindrivendev/Swashbuckle">Swashbuckle</a>. It analyzes your API and generates an OpenApi specification that allows us to import from the Azure Portal using the next url:</p>
+
+<pre><code class="language-txt">http://EXTERNAL-IP/swagger/v1/swagger.json
+</code></pre>
+
+<p><img src="./assets/images/posts/2019/apimaks8.png" alt="APIM 1" /></p>
+
+<p>But Azure Api Management can’t reach our service beceause is not a public url and therefor can’t be imported:</p>
+
+<p><img src="./assets/images/posts/2019/apimaks9.png" alt="APIM 2" /></p>
+
+<p>The right way to resolve it is using a CD pipeline as I wrote in this <a href="https://lurumad.github.io/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">post</a>. Once you have created your CD pipeline, create a new release and the API should be imported:</p>
+
+<p><img src="./assets/images/posts/2019/apimaks11.png" alt="APIM CD 1" /></p>
+
+<p><img src="./assets/images/posts/2019/apimaks12.png" alt="APIM CD 2" /></p>
+
+<p><img src="./assets/images/posts/2019/apimaks10.png" alt="APIM CD 3" /></p>
+
+<p>Now we can test it:</p>
+
+<p><img src="./assets/images/posts/2019/apimaks13.png" alt="APIM" /></p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>The purpose of the post is to show you how to connect Azure services such as Azure Api Management to your AKS cluster in order to manage the access to your services in a more convinient way and take advantage of all the benefits of use an Api Management in your microservices architecture.</p>
 
             </div>
             <footer class="post-footer">
                 
                 <p class="post-tags">
                      
-                    <a href='tag/career/'>Career</a>
+                    <a href='tag/azure/'>Azure</a>
                     
                      
-                    <a href='tag/blog/'>Blog</a>
+                    <a href='tag/apim/'>apim</a>
                     
                      
-                    <a href='tag/self/'>Self</a>
+                    <a href='tag/k8s/'>k8s</a>
+                    
+                     
+                    <a href='tag/aks/'>aks</a>
                     
                     
                 </p>
                 
                 <div class="post-share">
                     <span class="post-share-title">Share:</span>
-                    <a target="_blank" href="https://twitter.com/share?text=Starting+a+blog+for+my+future+self&amp;url=https://lurumad.github.io/starting-a-blog-for-my-future-self">Twitter</a>
-                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/starting-a-blog-for-my-future-self">Facebook</a>
+                    <a target="_blank" href="https://twitter.com/share?text=How+to+connect+Azure+Api+Management+%28APIM%29+to+your+Azure+Kubernetes+Service+%28AKS%29&amp;url=https://lurumad.github.io/how-to-connect-azure-api-management-to-your-azure-kubernetes-service">Twitter</a>
+                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/how-to-connect-azure-api-management-to-your-azure-kubernetes-service">Facebook</a>
                 </div><!-- .share-post -->
             </footer>
             <div class="author-box">
@@ -139,13 +254,12 @@
         <section class="read-next inner">
             <h2 class="read-next-title">Read Next</h2>
             
-            
             <article class="post">
                 <header class="post-header">
                     <div class="post-meta">
-                        <time class="published" datetime="January 8, 2019">January 8, 2019</time>
+                        <time class="published" datetime="January 13, 2019">January 13, 2019</time>
                     </div>
-                    <h3 class="post-title"><a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">Continous delivery to Azure API Management using Azure DevOps pipelines</a></h3>
+                    <h3 class="post-title"><a href="/set-output-variables-in-azuredevops-pipelines-tasks">Set output variables in Azure DevOps pipelines tasks</a></h3>
                     <p class="post-tags">
                         
                         
@@ -158,18 +272,19 @@
                         
                         
                         
-                        <a href='/tag/apim/'>Apim</a>
+                        <a href='/tag/pipelines/'>Pipelines</a>
                         
                         
                         
                     </p>
                 </header>
                 
-                <a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/cd_thumbnail.jpg" alt="Continous delivery to Azure API Management using Azure DevOps pipelines" />
+                <a href="/set-output-variables-in-azuredevops-pipelines-tasks" class="post-thumbnail">
+                    <img src="assets/images/posts/2019/input-cable_thumbnail.jpg" alt="Set output variables in Azure DevOps pipelines tasks" />
                 </a>
                 
             </article>
+            
             
         </section><!-- .read-next -->
     </main><!-- .site-main -->

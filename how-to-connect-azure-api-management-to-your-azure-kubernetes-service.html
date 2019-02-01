@@ -95,19 +95,19 @@
 
 <h3 id="clusterip">ClusterIP</h3>
 
-<p>A ClusterIP is the default service in Kubernetes. Expose the service on a cluster-internal IP, so if you choosing this kind of service will be only reachable within the Kubernetes cluster so Azure API Management won’t be able to access.</p>
+<p>A ClusterIP is the default service in Kubernetes. Expose the service on a cluster-internal IP, so if you choose this kind of service it will be only reachable within the Kubernetes cluster so Azure API Management won’t be able to access.</p>
 
 <h3 id="nodeport">NodePort</h3>
 
-<p>Another option is to use a NodePort, Kubernetes will open a static port on each node (VM) of the cluster so you’ll be able to contact the NodePort outside the cluster using NodeIP:NodePort. The problem of using NodePort is that you are accesing directly to the node (VM), so if your Node/VM IP change, you’ll need to deal with it. <strong>It’s not the recommended way to expose services in production</strong>.</p>
+<p>Another option is to use a NodePort, Kubernetes will open a static port on each node (VM) of the cluster so you’ll be able to contact the NodePort outside the cluster using NodeIP:NodePort. The problem when using NodePort is that you are accesing directly to the node (VM), so if your Node/VM IP changed, you’ll need to deal with it. <strong>It’s not the recommended way to expose services in production</strong>.</p>
 
 <h3 id="loadbalancer">LoadBalancer</h3>
 
-<p>This is the standard way to expose your services to the outside world from a Kubernetes cluster. This service type will leverage the cloud provider to provision and configure the load balancer. In Azure, this will provision an <a href="https://docs.microsoft.com/en-us/azure/load-balancer/">Azure Load Balancer</a> configuring all stuffs related with it.</p>
+<p>This is the standard way to expose your services to the outside world from a Kubernetes cluster. This service type will leverage the cloud provider to provision and configure the load balancer. In Azure, this will provision an <a href="https://docs.microsoft.com/en-us/azure/load-balancer/">Azure Load Balancer</a> configuring all the things related with it.</p>
 
-<p>The problem with this type of service is by default provision a Public Azure Load Balancer and we don’t want to expose our APIs publicly, we want to expose them through Azure Api Management. However we can also provision an <a href="https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/internal-lb.md">Internal Load Balancer</a> to expose our APIs internally in Azure, so it seems to fit with our requirements to not expose publicly our services.</p>
+<p>The problem with this type of service is by default provision a Public Azure Load Balancer and we don’t want to expose our APIs publicly, we want to expose them through Azure Api Management. However we can also provision an <a href="https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/internal-lb.md">Internal Load Balancer</a> to expose our APIs internally in Azure, so it seems to fit with our requirements not to expose our services publicly.</p>
 
-<p>To create an Internal Load Balancer, create a service manifest with the service type to <em>LoadBalancer</em> and the <em>azure-load-balancer-internal annotation</em> as shown in the following code:</p>
+<p>To create an Internal Load Balancer, create a service manifest with the service type <em>LoadBalancer</em> and the <em>azure-load-balancer-internal annotation</em> as shown in the following code:</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
 <span class="s">kind</span><span class="pi">:</span> <span class="s">Service</span>
@@ -124,7 +124,7 @@
 </code></pre>
 </div>
 
-<p>Once we have apply the manifest in our AKS cluster, we should see EXTERNAL-IP that belongs to same subnet of the nodes of the cluster:</p>
+<p>Once we have applied the manifest in our AKS cluster, we should see EXTERNAL-IP that belongs to same subnet of the cluster nodes:</p>
 
 <pre><code class="language-txt">kubectl get services
 NAME               TYPE           CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
@@ -141,21 +141,21 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
 
 <p><img src="./assets/images/posts/2019/apimaks2.png" alt="Resource group" /></p>
 
-<p>Within the virtual network there are a number of VMs (Nodes) usually one master and few agents (depends of the size of your cluster). We can connect Azure Api Management to this subnet in order to be able to consume the services within the cluster. To connect our Azure Api Management to our AKS cluster we need to create a subnet within this virtual network:</p>
+<p>Within the virtual network there are a number of VMs (Nodes) usually one master and a few agents (depends on the size of your cluster). We can connect Azure Api Management to this subnet in order to be able to consume the services within the cluster. To connect our Azure Api Management to our AKS cluster we need to create a subnet within this virtual network:</p>
 
 <p><img src="./assets/images/posts/2019/apimaks4.png" alt="Virtual Network 1" /></p>
 
-<p>You can use a small range op IPs (In our case 3 directions is enough)</p>
+<p>You can use a small range of IPs (In our case 3 directions is enough)</p>
 
 <p><img src="./assets/images/posts/2019/apimaks3.png" alt="Virtual Network 2" /></p>
 
 <p><img src="./assets/images/posts/2019/apimaks5.png" alt="Virtual Network 3" /></p>
 
-<p>Once we have created our subnet, go to your Azure Api Management instance in Azure portal and configure virtual network. Mark Virtual network as External.</p>
+<p>Once we have created our subnet, go to your Azure Api Management instance in the Azure portal and configure the virtual network. Mark the Virtual network as External.</p>
 
 <p><img src="./assets/images/posts/2019/apimaks6.png" alt="Virtual Network APIM 1" /></p>
 
-<p>Select your AKS virtual network and the subnet that we have created previous:</p>
+<p>Select your AKS virtual network and the subnet that we have created previously:</p>
 
 <p><img src="./assets/images/posts/2019/apimaks7.png" alt="Virtual Network APIM 2" /></p>
 
@@ -170,7 +170,7 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
 
 <p><img src="./assets/images/posts/2019/apimaks8.png" alt="APIM 1" /></p>
 
-<p>But Azure Api Management can’t reach our service beceause is not a public url and therefor can’t be imported:</p>
+<p>But Azure Api Management can’t reach our service beceause is not a public url and therefore can’t be imported:</p>
 
 <p><img src="./assets/images/posts/2019/apimaks9.png" alt="APIM 2" /></p>
 
@@ -188,7 +188,7 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
 
 <h1 id="conclusion">Conclusion</h1>
 
-<p>The purpose of the post is to show you how to connect Azure services such as Azure Api Management to your AKS cluster in order to manage the access to your services in a more convinient way and take advantage of all the benefits of use an Api Management in your microservices architecture.</p>
+<p>The purpose of the post is to show you how to connect Azure services such as Azure Api Management to your AKS cluster in order to manage the access to your services in a more convinient way and take advantage of all the benefits of using an Api Management in your microservices architecture.</p>
 
             </div>
             <footer class="post-footer">
@@ -286,6 +286,33 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
             </article>
             
             
+            <article class="post">
+                <header class="post-header">
+                    <div class="post-meta">
+                        <time class="published" datetime="February 1, 2019">February 1, 2019</time>
+                    </div>
+                    <h3 class="post-title"><a href="/an-opinionated-approach-of-using-an-async-suffix-in-methods">An opinionated approach of using an async suffix in methods</a></h3>
+                    <p class="post-tags">
+                        
+                        
+                        
+                        <a href='/tag/c#/'>C#</a>
+                        
+                        
+                        
+                        <a href='/tag/async/'>Async</a>
+                        
+                        
+                        
+                    </p>
+                </header>
+                
+                <a href="/an-opinionated-approach-of-using-an-async-suffix-in-methods" class="post-thumbnail">
+                    <img src="assets/images/posts/2019/bird-wing-sky-fly-aircraft-formation-640571-pxhere.com_thumbnail.jpg" alt="An opinionated approach of using an async suffix in methods" />
+                </a>
+                
+            </article>
+            
         </section><!-- .read-next -->
     </main><!-- .site-main -->
 </div><!-- .site-content -->
@@ -367,6 +394,23 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
         <li>
             <div class="post-header">
                 <div class="post-meta">
+                    <time class="published" datetime="??">February 1, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/an-opinionated-approach-of-using-an-async-suffix-in-methods">An opinionated approach of using an async suffix in methods</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/an-opinionated-approach-of-using-an-async-suffix-in-methods">
+                <img src="/assets/images/posts/2019/bird-wing-sky-fly-aircraft-formation-640571-pxhere.com_thumbnail.jpg"
+                    alt="An opinionated approach of using an async suffix in methods">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
                     <time class="published" datetime="??">January 21, 2019</time>
                 </div>
                 <div class="post-title">
@@ -398,23 +442,6 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
             
         </li>
         
-        <li>
-            <div class="post-header">
-                <div class="post-meta">
-                    <time class="published" datetime="??">January 8, 2019</time>
-                </div>
-                <div class="post-title">
-                    <a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">Continous delivery to Azure API Management using Azure DevOps pipelines</a>
-                </div>
-            </div>
-            
-            <a class="post-thumbnail" href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">
-                <img src="/assets/images/posts/2019/cd_thumbnail.jpg"
-                    alt="Continous delivery to Azure API Management using Azure DevOps pipelines">
-            </a>
-            
-        </li>
-        
     </ul>
 </section>
 
@@ -428,6 +455,8 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
         
         <a href='https://lurumad.github.io/tag/blog/'>Blog</a>
         
+        <a href='https://lurumad.github.io/tag/c#/'>C#</a>
+        
         <a href='https://lurumad.github.io/tag/career/'>Career</a>
         
         <a href='https://lurumad.github.io/tag/devops/'>DevOps</a>
@@ -439,6 +468,8 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
         <a href='https://lurumad.github.io/tag/aks/'>aks</a>
         
         <a href='https://lurumad.github.io/tag/apim/'>apim</a>
+        
+        <a href='https://lurumad.github.io/tag/async/'>async</a>
         
         <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
         

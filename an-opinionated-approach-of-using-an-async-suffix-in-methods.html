@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <!-- Page Info -->
-    <title>Set output variables in Azure DevOps pipelines tasks | Luru</title>
+    <title>An opinionated approach of using an async suffix in methods | Luru</title>
     
     <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
     
@@ -54,68 +54,99 @@
         <article class="post-full inner">
             <header class="post-header">
                 <div class="post-meta">
-                    <time class="post-date" datetime="2019-01-13">January 13,
+                    <time class="post-date" datetime="2019-02-01">February 1,
                         2019</time>
                 </div><!-- .post-meta -->
-                <h1 class="posttitle">Set output variables in Azure DevOps pipelines tasks</h1>
+                <h1 class="posttitle">An opinionated approach of using an async suffix in methods</h1>
             </header><!-- .post-header -->
             
-            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/input-cable.jpg"
-                    alt="Set output variables in Azure DevOps pipelines tasks"></div>
+            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/bird-wing-sky-fly-aircraft-formation-640571-pxhere.com.jpg"
+                    alt="An opinionated approach of using an async suffix in methods"></div>
             
             <div class="post-content">
-                <p>Currently I am building a pipeline that deploys a microservices solution in <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">Azure Kubernetes Service (AKS)</a>. For example, I need to parse a kubectl output in a task to extract the cluster service ip dinamically in order to <a href="https://docs.microsoft.com/en-us/azure/aks/ingress-static-ip#configure-a-dns-name">configure a DNS name</a> for an nginx ingress controller. I want to return this cluster service ip back into a variable, so I can use in another task.</p>
+                <p>I’m not a huge fan of when anything that returns <strong>Task</strong> has the async suffix, but if I’m honest, sometines it can help you to avoid some strange behaviours.</p>
 
-<h1 id="configuring-our-build-or-release-pipeline-to-test-it">Configuring our Build or Release pipeline to test it</h1>
+<p>Last week, I was delivering a workshop about how to test ASP.NET Core HTTP API’s effectively. We talked about strategies for isolating databases in tests in order to avoid shared state between them. My approach is to always reset the database before each test. In order to facilitate this job, I use <a href="https://www.nuget.org/packages/Respawn/">Respawn</a> an amazing library created by <a href="https://twitter.com/jbogard">Jimmy Bogard</a> that helps us to reset test databases to a clean state.</p>
 
-<p>Add two bash script tasks to your build or release pipeline:</p>
+<p>To use Respawn you must create a Checkpoint and initialize with some configuration, depending on what you want to do: tables to skip, reseed, schemas to keep or skip, etc. I usually create a static method called <strong>ResetDatabase</strong> in my xunit fixtures as shown in the following code:</p>
 
-<p><img src="./assets/images/posts/2019/setoutputvariable.png" alt="Add two bash script tasks" /></p>
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">ResetDatabase</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">var</span> <span class="n">configuration</span> <span class="p">=</span> <span class="nf">CreateTestConfiguration</span><span class="p">(</span>
+        <span class="k">new</span> <span class="nf">ConfigurationBuilder</span><span class="p">()).</span><span class="nf">Build</span><span class="p">();</span>
 
-<p>Configure the first bash script task as shown in the image below:</p>
-
-<p><img src="./assets/images/posts/2019/setoutputvariable1.png" alt="Set output variable in bash" /></p>
-
-<p>Look at the following command:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"##vso[task.setvariable variable=AKS_Cluster_Service_Ip;]</span><span class="nv">$ip</span><span class="s2">"</span>
+    <span class="n">_checkpoint</span><span class="p">.</span><span class="nf">Reset</span><span class="p">(</span>
+      <span class="n">configuration</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">ConnectionStrings</span><span class="p">&gt;().</span><span class="n">DefaultConnection</span><span class="p">);</span>
+<span class="p">}</span>
 </code></pre>
 </div>
 
-<p>This will make the variable <strong>AKS_Cluster_Service_Ip</strong> to be consumed in the next bash script taks via the <strong>$(AKS_Cluster_Service_Ip)</strong> sintax:</p>
+<p>Put attention at the <strong>Reset</strong> method, later we’ll talk about it.</p>
 
-<p><img src="./assets/images/posts/2019/setoutputvariable2.png" alt="Consume the output variable in bash" /></p>
+<p>Then, I create a xunit attribute to decorate tests that depends in the database and I want to clean before it executes:</p>
 
-<p>Run your build or create a new release depend what you choosen in the first step, and you should see in the logs the value of the output variable:</p>
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">ResetDatabaseAttribute</span> <span class="p">:</span> <span class="n">BeforeAfterTestAttribute</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Before</span><span class="p">(</span><span class="n">MethodInfo</span> <span class="n">methodUnderTest</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">ServerFixture</span><span class="p">.</span><span class="nf">ResetDatabase</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
 
-<p><img src="./assets/images/posts/2019/setoutputvariable3.png" alt="Consume the output variable in bash" /></p>
+<p><strong>If you want to learn deeper about effective testing of HTTP APIs in .NET Core, I recommend you to visit our <a href="https://github.com/Xabaril/ManualEffectiveTestingHttpAPI">Github repo</a>. We are going to translate all the documentation to English.</strong></p>
 
-<h1 id="links">Links</h1>
+<p>When I was doing the demo, something strange happened: the database wasn’t reseting before the test execution. This wasn’t the expected behaviour, we wanted reset the database before each test (run in isolation). It wasn’t the first time happended to me, I remembered that one day speaking in a conference it happened again.</p>
 
-<ul>
-  <li><a href="https://github.com/Microsoft/azure-pipelines-tasks/blob/master/docs/authoring/commands.md">Azure Pipeline tasks</a></li>
-</ul>
+<h1 id="the-problem">The problem</h1>
+
+<p>The <strong>Reset</strong> method is asynchronous and during my demo I forgot to use <strong>await</strong> clause, so when the Visual Studio debugger stops in the first breakpoint the database hadn’t been cleaned as you can see in the images below:</p>
+
+<p><img src="./assets/images/posts/2019/async1.png" alt="Async1" /></p>
+
+<p><img src="./assets/images/posts/2019/async2.png" alt="Async2" /></p>
+
+<p>During the execution, when some async/await Task executes, then <strong>Reset</strong> method was called:</p>
+
+<p><img src="./assets/images/posts/2019/async3.png" alt="Async3" /></p>
+
+<p>When our test is executing, our database has a previous state (Not complaying the rule of run in isolation) so if possible to have an unwanted results, sometimes tests pass and sometimes not. This an annoying behaviour can make us to waste lot of time, for this reason sometimes it’s good to see the async suffix.</p>
+
+<p>To fix this, I changed the <strong>ResetDatabase</strong> method to wait the Task:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">ResetDatabase</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">var</span> <span class="n">configuration</span> <span class="p">=</span> <span class="nf">CreateTestConfiguration</span><span class="p">(</span>
+        <span class="k">new</span> <span class="nf">ConfigurationBuilder</span><span class="p">()).</span><span class="nf">Build</span><span class="p">();</span>
+
+    <span class="n">_checkpoint</span><span class="p">.</span><span class="nf">Reset</span><span class="p">(</span>
+      <span class="n">configuration</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">ConnectionStrings</span><span class="p">&gt;().</span><span class="n">DefaultConnection</span><span class="p">).</span><span class="nf">Wait</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>If the <strong>Reset</strong> method had the async suffix maybe I wouldn’t have forgotten adding <strong>await</strong> before the method.</p>
+
+<p>My two cents.</p>
 
             </div>
             <footer class="post-footer">
                 
                 <p class="post-tags">
                      
-                    <a href='tag/azure/'>Azure</a>
+                    <a href='tag/c#/'>C#</a>
                     
                      
-                    <a href='tag/devops/'>DevOps</a>
-                    
-                     
-                    <a href='tag/pipelines/'>Pipelines</a>
+                    <a href='tag/async/'>async</a>
                     
                     
                 </p>
                 
                 <div class="post-share">
                     <span class="post-share-title">Share:</span>
-                    <a target="_blank" href="https://twitter.com/share?text=Set+output+variables+in+Azure+DevOps+pipelines+tasks&amp;url=https://lurumad.github.io/set-output-variables-in-azuredevops-pipelines-tasks">Twitter</a>
-                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/set-output-variables-in-azuredevops-pipelines-tasks">Facebook</a>
+                    <a target="_blank" href="https://twitter.com/share?text=An+opinionated+approach+of+using+an+async+suffix+in+methods&amp;url=https://lurumad.github.io/an-opinionated-approach-of-using-an-async-suffix-in-methods">Twitter</a>
+                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/an-opinionated-approach-of-using-an-async-suffix-in-methods">Facebook</a>
                 </div><!-- .share-post -->
             </footer>
             <div class="author-box">
@@ -160,38 +191,6 @@
             <article class="post">
                 <header class="post-header">
                     <div class="post-meta">
-                        <time class="published" datetime="January 8, 2019">January 8, 2019</time>
-                    </div>
-                    <h3 class="post-title"><a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">Continous delivery to Azure API Management using Azure DevOps pipelines</a></h3>
-                    <p class="post-tags">
-                        
-                        
-                        
-                        <a href='/tag/azure/'>Azure</a>
-                        
-                        
-                        
-                        <a href='/tag/devops/'>Devops</a>
-                        
-                        
-                        
-                        <a href='/tag/apim/'>Apim</a>
-                        
-                        
-                        
-                    </p>
-                </header>
-                
-                <a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/cd_thumbnail.jpg" alt="Continous delivery to Azure API Management using Azure DevOps pipelines" />
-                </a>
-                
-            </article>
-            
-            
-            <article class="post">
-                <header class="post-header">
-                    <div class="post-meta">
                         <time class="published" datetime="January 21, 2019">January 21, 2019</time>
                     </div>
                     <h3 class="post-title"><a href="/how-to-connect-azure-api-management-to-your-azure-kubernetes-service">How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)</a></h3>
@@ -223,6 +222,7 @@
                 </a>
                 
             </article>
+            
             
         </section><!-- .read-next -->
     </main><!-- .site-main -->

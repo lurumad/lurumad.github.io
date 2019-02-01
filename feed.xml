@@ -5,9 +5,88 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 21 Jan 2019 22:43:03 +0100</pubDate>
-    <lastBuildDate>Mon, 21 Jan 2019 22:43:03 +0100</lastBuildDate>
+    <pubDate>Fri, 01 Feb 2019 09:02:43 +0100</pubDate>
+    <lastBuildDate>Fri, 01 Feb 2019 09:02:43 +0100</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
+    
+      <item>
+        <title>An opinionated approach of using an async suffix in methods</title>
+        <description>&lt;p&gt;I’m not a huge fan of when anything that returns &lt;strong&gt;Task&lt;/strong&gt; has the async suffix, but if I’m honest, sometines it can help you to avoid some strange behaviours.&lt;/p&gt;
+
+&lt;p&gt;Last week, I was delivering a workshop about how to test ASP.NET Core HTTP API’s effectively. We talked about strategies for isolating databases in tests in order to avoid shared state between them. My approach is to always reset the database before each test. In order to facilitate this job, I use &lt;a href=&quot;https://www.nuget.org/packages/Respawn/&quot;&gt;Respawn&lt;/a&gt; an amazing library created by &lt;a href=&quot;https://twitter.com/jbogard&quot;&gt;Jimmy Bogard&lt;/a&gt; that helps us to reset test databases to a clean state.&lt;/p&gt;
+
+&lt;p&gt;To use Respawn you must create a Checkpoint and initialize with some configuration, depending on what you want to do: tables to skip, reseed, schemas to keep or skip, etc. I usually create a static method called &lt;strong&gt;ResetDatabase&lt;/strong&gt; in my xunit fixtures as shown in the following code:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ResetDatabase&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CreateTestConfiguration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ConfigurationBuilder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;_checkpoint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Reset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ConnectionStrings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DefaultConnection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Put attention at the &lt;strong&gt;Reset&lt;/strong&gt; method, later we’ll talk about it.&lt;/p&gt;
+
+&lt;p&gt;Then, I create a xunit attribute to decorate tests that depends in the database and I want to clean before it executes:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ResetDatabaseAttribute&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BeforeAfterTestAttribute&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Before&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MethodInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;methodUnderTest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;ServerFixture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;ResetDatabase&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;If you want to learn deeper about effective testing of HTTP APIs in .NET Core, I recommend you to visit our &lt;a href=&quot;https://github.com/Xabaril/ManualEffectiveTestingHttpAPI&quot;&gt;Github repo&lt;/a&gt;. We are going to translate all the documentation to English.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;When I was doing the demo, something strange happened: the database wasn’t reseting before the test execution. This wasn’t the expected behaviour, we wanted reset the database before each test (run in isolation). It wasn’t the first time happended to me, I remembered that one day speaking in a conference it happened again.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-problem&quot;&gt;The problem&lt;/h1&gt;
+
+&lt;p&gt;The &lt;strong&gt;Reset&lt;/strong&gt; method is asynchronous and during my demo I forgot to use &lt;strong&gt;await&lt;/strong&gt; clause, so when the Visual Studio debugger stops in the first breakpoint the database hadn’t been cleaned as you can see in the images below:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/async1.png&quot; alt=&quot;Async1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/async2.png&quot; alt=&quot;Async2&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;During the execution, when some async/await Task executes, then &lt;strong&gt;Reset&lt;/strong&gt; method was called:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/async3.png&quot; alt=&quot;Async3&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;When our test is executing, our database has a previous state (Not complaying the rule of run in isolation) so if possible to have an unwanted results, sometimes tests pass and sometimes not. This an annoying behaviour can make us to waste lot of time, for this reason sometimes it’s good to see the async suffix.&lt;/p&gt;
+
+&lt;p&gt;To fix this, I changed the &lt;strong&gt;ResetDatabase&lt;/strong&gt; method to wait the Task:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ResetDatabase&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CreateTestConfiguration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ConfigurationBuilder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;_checkpoint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Reset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ConnectionStrings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DefaultConnection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Wait&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;If the &lt;strong&gt;Reset&lt;/strong&gt; method had the async suffix maybe I wouldn’t have forgotten adding &lt;strong&gt;await&lt;/strong&gt; before the method.&lt;/p&gt;
+
+&lt;p&gt;My two cents.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 01 Feb 2019 00:00:00 +0100</pubDate>
+        <link>/an-opinionated-approach-of-using-an-async-suffix-in-methods</link>
+        <guid isPermaLink="true">/an-opinionated-approach-of-using-an-async-suffix-in-methods</guid>
+        
+        <category>C#</category>
+        
+        <category>async</category>
+        
+        
+      </item>
     
       <item>
         <title>How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)</title>
@@ -42,19 +121,19 @@
 
 &lt;h3 id=&quot;clusterip&quot;&gt;ClusterIP&lt;/h3&gt;
 
-&lt;p&gt;A ClusterIP is the default service in Kubernetes. Expose the service on a cluster-internal IP, so if you choosing this kind of service will be only reachable within the Kubernetes cluster so Azure API Management won’t be able to access.&lt;/p&gt;
+&lt;p&gt;A ClusterIP is the default service in Kubernetes. Expose the service on a cluster-internal IP, so if you choose this kind of service it will be only reachable within the Kubernetes cluster so Azure API Management won’t be able to access.&lt;/p&gt;
 
 &lt;h3 id=&quot;nodeport&quot;&gt;NodePort&lt;/h3&gt;
 
-&lt;p&gt;Another option is to use a NodePort, Kubernetes will open a static port on each node (VM) of the cluster so you’ll be able to contact the NodePort outside the cluster using NodeIP:NodePort. The problem of using NodePort is that you are accesing directly to the node (VM), so if your Node/VM IP change, you’ll need to deal with it. &lt;strong&gt;It’s not the recommended way to expose services in production&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Another option is to use a NodePort, Kubernetes will open a static port on each node (VM) of the cluster so you’ll be able to contact the NodePort outside the cluster using NodeIP:NodePort. The problem when using NodePort is that you are accesing directly to the node (VM), so if your Node/VM IP changed, you’ll need to deal with it. &lt;strong&gt;It’s not the recommended way to expose services in production&lt;/strong&gt;.&lt;/p&gt;
 
 &lt;h3 id=&quot;loadbalancer&quot;&gt;LoadBalancer&lt;/h3&gt;
 
-&lt;p&gt;This is the standard way to expose your services to the outside world from a Kubernetes cluster. This service type will leverage the cloud provider to provision and configure the load balancer. In Azure, this will provision an &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/load-balancer/&quot;&gt;Azure Load Balancer&lt;/a&gt; configuring all stuffs related with it.&lt;/p&gt;
+&lt;p&gt;This is the standard way to expose your services to the outside world from a Kubernetes cluster. This service type will leverage the cloud provider to provision and configure the load balancer. In Azure, this will provision an &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/load-balancer/&quot;&gt;Azure Load Balancer&lt;/a&gt; configuring all the things related with it.&lt;/p&gt;
 
-&lt;p&gt;The problem with this type of service is by default provision a Public Azure Load Balancer and we don’t want to expose our APIs publicly, we want to expose them through Azure Api Management. However we can also provision an &lt;a href=&quot;https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/internal-lb.md&quot;&gt;Internal Load Balancer&lt;/a&gt; to expose our APIs internally in Azure, so it seems to fit with our requirements to not expose publicly our services.&lt;/p&gt;
+&lt;p&gt;The problem with this type of service is by default provision a Public Azure Load Balancer and we don’t want to expose our APIs publicly, we want to expose them through Azure Api Management. However we can also provision an &lt;a href=&quot;https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/internal-lb.md&quot;&gt;Internal Load Balancer&lt;/a&gt; to expose our APIs internally in Azure, so it seems to fit with our requirements not to expose our services publicly.&lt;/p&gt;
 
-&lt;p&gt;To create an Internal Load Balancer, create a service manifest with the service type to &lt;em&gt;LoadBalancer&lt;/em&gt; and the &lt;em&gt;azure-load-balancer-internal annotation&lt;/em&gt; as shown in the following code:&lt;/p&gt;
+&lt;p&gt;To create an Internal Load Balancer, create a service manifest with the service type &lt;em&gt;LoadBalancer&lt;/em&gt; and the &lt;em&gt;azure-load-balancer-internal annotation&lt;/em&gt; as shown in the following code:&lt;/p&gt;
 
 &lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;s&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
 &lt;span class=&quot;s&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Service&lt;/span&gt;
@@ -71,7 +150,7 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;Once we have apply the manifest in our AKS cluster, we should see EXTERNAL-IP that belongs to same subnet of the nodes of the cluster:&lt;/p&gt;
+&lt;p&gt;Once we have applied the manifest in our AKS cluster, we should see EXTERNAL-IP that belongs to same subnet of the cluster nodes:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;language-txt&quot;&gt;kubectl get services
 NAME               TYPE           CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
@@ -88,21 +167,21 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks2.png&quot; alt=&quot;Resource group&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Within the virtual network there are a number of VMs (Nodes) usually one master and few agents (depends of the size of your cluster). We can connect Azure Api Management to this subnet in order to be able to consume the services within the cluster. To connect our Azure Api Management to our AKS cluster we need to create a subnet within this virtual network:&lt;/p&gt;
+&lt;p&gt;Within the virtual network there are a number of VMs (Nodes) usually one master and a few agents (depends on the size of your cluster). We can connect Azure Api Management to this subnet in order to be able to consume the services within the cluster. To connect our Azure Api Management to our AKS cluster we need to create a subnet within this virtual network:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks4.png&quot; alt=&quot;Virtual Network 1&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;You can use a small range op IPs (In our case 3 directions is enough)&lt;/p&gt;
+&lt;p&gt;You can use a small range of IPs (In our case 3 directions is enough)&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks3.png&quot; alt=&quot;Virtual Network 2&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks5.png&quot; alt=&quot;Virtual Network 3&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Once we have created our subnet, go to your Azure Api Management instance in Azure portal and configure virtual network. Mark Virtual network as External.&lt;/p&gt;
+&lt;p&gt;Once we have created our subnet, go to your Azure Api Management instance in the Azure portal and configure the virtual network. Mark the Virtual network as External.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks6.png&quot; alt=&quot;Virtual Network APIM 1&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Select your AKS virtual network and the subnet that we have created previous:&lt;/p&gt;
+&lt;p&gt;Select your AKS virtual network and the subnet that we have created previously:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks7.png&quot; alt=&quot;Virtual Network APIM 2&quot; /&gt;&lt;/p&gt;
 
@@ -117,7 +196,7 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks8.png&quot; alt=&quot;APIM 1&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;But Azure Api Management can’t reach our service beceause is not a public url and therefor can’t be imported:&lt;/p&gt;
+&lt;p&gt;But Azure Api Management can’t reach our service beceause is not a public url and therefore can’t be imported:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks9.png&quot; alt=&quot;APIM 2&quot; /&gt;&lt;/p&gt;
 
@@ -135,7 +214,7 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
 
 &lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
 
-&lt;p&gt;The purpose of the post is to show you how to connect Azure services such as Azure Api Management to your AKS cluster in order to manage the access to your services in a more convinient way and take advantage of all the benefits of use an Api Management in your microservices architecture.&lt;/p&gt;
+&lt;p&gt;The purpose of the post is to show you how to connect Azure services such as Azure Api Management to your AKS cluster in order to manage the access to your services in a more convinient way and take advantage of all the benefits of using an Api Management in your microservices architecture.&lt;/p&gt;
 </description>
         <pubDate>Mon, 21 Jan 2019 00:00:00 +0100</pubDate>
         <link>/how-to-connect-azure-api-management-to-your-azure-kubernetes-service</link>

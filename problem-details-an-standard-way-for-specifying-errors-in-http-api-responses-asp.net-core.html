@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <!-- Page Info -->
+    <title>Problem Details: An standard way for specifying errors in HTTP API responses | Luru</title>
+    
+    <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Site Favicon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/png" />
+
+    <!-- Font Embed Code -->
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
+
+    <!-- CSS Styles -->
+    <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+
+<body class="layout-post">
+    <div id="page" class="site">
+
+        
+        <header id="masthead" class="site-header outer">
+    <div class="site-header-inside">
+        <div class="site-branding">
+            
+                <p class="site-logo"><a href="/" rel="home"><img src="/assets/images/logo.png" alt="Luru" /></a></p>
+                <h1 class="site-title screen-reader-text"><a href="" rel="home"></a></h1>
+            
+        </div><!-- .site-branding -->
+        <nav id="main-navigation" class="site-navigation" aria-label="Primary Navigation">
+            <ul class="menu">
+            
+                <li class="menu-item"><a href="/about.html">About</a></li>
+            
+                <li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+            
+            </ul>
+            <button id="sidebar-show" class="sidebar-toggle"><span class="screen-reader-text">Open Sidebar</span><span class="icon-more" aria-hidden="true"></span></button>
+        </nav><!-- .site-navigation -->
+    </div><!-- .site-header-inside -->
+</header><!-- .site-header -->
+        
+
+        <div id="content" class="site-content fadeInDown delay_075s">
+    <main id="main" class="site-main outer">
+        <article class="post-full inner">
+            <header class="post-header">
+                <div class="post-meta">
+                    <time class="post-date" datetime="2019-02-25">February 25,
+                        2019</time>
+                </div><!-- .post-meta -->
+                <h1 class="posttitle">Problem Details: An standard way for specifying errors in HTTP API responses</h1>
+            </header><!-- .post-header -->
+            
+            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/rawpixel-761477-unsplash.jpg"
+                    alt="Problem Details: An standard way for specifying errors in HTTP API responses"></div>
+            
+            <div class="post-content">
+                <h1 id="a-brief-introduction-of-problem-details">A brief introduction of Problem details</h1>
+
+<p>If you have developed HTTP APIs, I’m sure that many times you had have the need to define new error response formats for HTTP APIs to return to your clients. The most common way to do this if using <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">HTTP Status Codes</a> but sometimes are not sufficient to communicate enough information to the clients. For example, imagine a banking HTTP API that allows customers to make online transactions and this call could returns a Forbidden (403) response telling the client that the customer isn’t allow to make this transaction, but why? Maybe the customer doesn’t have enough credit? or he has a maximum limit of money to transfer?</p>
+
+<p>To provide additional information to our clients we would need to extend the response body with some kind of document (JSON or XML). The problem I’ve seen in many HTTP APIs is that these documents usually are not the same. It’s very frustating for a client that consume many HTTP APIs because there isn’t a standard way to deal with these errors and it would need to implement many ways to work with them.</p>
+
+<p>Due to need to standarize an error response format for HTTP APIs, the <a href="https://tools.ietf.org/">Internet Engineering Task Force (IETF)</a> published in March 2016 a <a href="https://tools.ietf.org/html/rfc7807">document</a> that defines a “problem detail” as a way to carry machine-readable details of errors in a HTTP response to avoid the need to define new error response formats for HTTP APIs (Not reinvent the wheel).</p>
+
+<p>For example, an HTTP response of JSON problem details</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="err">HTTP/</span><span class="mf">1.1</span><span class="w"> </span><span class="mi">403</span><span class="w"> </span><span class="err">Forbidden</span><span class="w">
+</span><span class="err">Content-Type:</span><span class="w"> </span><span class="err">application/problem+json</span><span class="w">
+</span><span class="err">Content-Language:</span><span class="w"> </span><span class="err">en</span><span class="w">
+
+</span><span class="p">{</span><span class="w">
+    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/probs/out-of-credit"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"You do not have enough credit."</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Your current balance is 30, but that costs 50."</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"instance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/account/12345/msgs/abc"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"balance"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"accounts"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"/account/12345"</span><span class="p">,</span><span class="s2">"/account/67890"</span><span class="p">],</span><span class="w">
+    </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="mi">403</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+<p>The format of the message is application/problem+json media type (It could be application/problem+xml also) and we have several members in the response body:</p>
+
+<ul>
+  <li>type (string): An URI that identifies the pronlem detail type. In this case “out-of-credit”.</li>
+  <li>title (string): A short human-readable summary about the problem.</li>
+  <li>detail (string): A human-readable explanation about the problem.</li>
+  <li>status (number): HTTP Status Coode.</li>
+  <li>instance (string): A URI reference that identifies the specific occurrence of the problem.</li>
+</ul>
+
+<p>We can extend the problem details object with additional members, for example the previous message defines two members “balance” and “accounts” to communicate additional information to the customer.</p>
+
+<h1 id="problem-details-in-aspnet-core-21">Problem details in ASP.NET Core 2.1</h1>
+
+<p>When ASP.NET Core 2.1 came out, the ASP.NET Core team added support for problems details. The class that represents a problem details object is <a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails?view=aspnetcore-2.2">ProblemDetails</a></p>
+
+<p>An example of use:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="na">[HttpPost]</span>
+<span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Transfer</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">try</span>
+    <span class="p">{</span>
+        <span class="c1">/// Make a transfer
+</span>    <span class="p">}</span>
+    <span class="k">catch</span> <span class="p">(</span><span class="n">OutOfCreditException</span> <span class="n">ex</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="kt">var</span> <span class="n">problemDetails</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ProblemDetails</span>
+        <span class="p">{</span>
+            <span class="n">Status</span> <span class="p">=</span> <span class="n">StatusCodes</span><span class="p">.</span><span class="n">Status403Forbidden</span><span class="p">,</span>
+            <span class="n">Type</span> <span class="p">=</span> <span class="s">"https://example.com/probs/out-of-credit"</span><span class="p">,</span>
+            <span class="n">Title</span> <span class="p">=</span> <span class="s">"You do not have enough credit."</span><span class="p">,</span>
+            <span class="n">Detail</span> <span class="p">=</span> <span class="s">"Your current balance is 30, but that costs 50."</span><span class="p">,</span>
+            <span class="n">Instance</span> <span class="p">=</span> <span class="n">HttpContext</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Path</span>
+        <span class="p">};</span>
+
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">ObjectResult</span><span class="p">(</span><span class="n">problemDetails</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">ContentTypes</span> <span class="p">=</span> <span class="p">{</span> <span class="s">"application/problem+json"</span> <span class="p">},</span>
+            <span class="n">StatusCode</span> <span class="p">=</span> <span class="m">403</span><span class="p">,</span>
+        <span class="p">};</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nf">Ok</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p><img src="./assets/images/posts/2019/problemdetails1.png" alt="Problem Details 1" /></p>
+
+<p>We have also <a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.validationproblemdetails?view=aspnetcore-2.2">ValidationProblemDetails</a> class for validation errors. This class inherits from <a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails?view=aspnetcore-2.2">ProblemDetails</a> and you can see an example in the following code:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="na">[HttpPost]</span>
+<span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Transfer</span><span class="p">(</span><span class="n">TransferInfo</span> <span class="n">model</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(!</span><span class="n">ModelState</span><span class="p">.</span><span class="n">IsValid</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="kt">var</span> <span class="n">problemDetails</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">ValidationProblemDetails</span><span class="p">(</span><span class="n">ModelState</span><span class="p">);</span>
+
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">ObjectResult</span><span class="p">(</span><span class="n">problemDetails</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">ContentTypes</span> <span class="p">=</span> <span class="p">{</span> <span class="s">"application/problem+json"</span> <span class="p">},</span>
+            <span class="n">StatusCode</span> <span class="p">=</span> <span class="m">403</span><span class="p">,</span>
+        <span class="p">};</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nf">Ok</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p><img src="./assets/images/posts/2019/problemdetails2.png" alt="Problem Details 2" /></p>
+
+<p>The two previous examples have the same problem: They polluting our controllers (Put your controllers on a diet). IMHO controllers act as mediator: receive the request, transform into a command, send it and response to client. Let’s see how to move this validations out of controllers in a centralized place.</p>
+
+<h2 id="model-validations">Model validations</h2>
+
+<p>For model validations we need to configure <a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.apibehavioroptions?view=aspnetcore-2.2">ApiBehaviorOptions</a> in our ConfigureServices:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">services</span>
+        <span class="p">.</span><span class="nf">AddMvc</span><span class="p">()</span>
+        <span class="p">.</span><span class="nf">SetCompatibilityVersion</span><span class="p">(</span><span class="n">CompatibilityVersion</span><span class="p">.</span><span class="n">Version_2_2</span><span class="p">);</span>
+
+    <span class="n">services</span><span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">ApiBehaviorOptions</span><span class="p">&gt;(</span><span class="n">options</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">InvalidModelStateResponseFactory</span> <span class="p">=</span> <span class="n">context</span> <span class="p">=&gt;</span>
+        <span class="p">{</span>
+            <span class="kt">var</span> <span class="n">problemDetails</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">ValidationProblemDetails</span><span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">ModelState</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">Instance</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Path</span><span class="p">,</span>
+                <span class="n">Status</span> <span class="p">=</span> <span class="n">StatusCodes</span><span class="p">.</span><span class="n">Status400BadRequest</span><span class="p">,</span>
+                <span class="n">Type</span> <span class="p">=</span> <span class="err">$</span><span class="s">"https://httpstatuses.com/400"</span><span class="p">,</span>
+                <span class="n">Detail</span> <span class="p">=</span> <span class="n">ApiConstants</span><span class="p">.</span><span class="n">Messages</span><span class="p">.</span><span class="n">ModelStateValidation</span>
+            <span class="p">};</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="nf">BadRequestObjectResult</span><span class="p">(</span><span class="n">problemDetails</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">ContentTypes</span> <span class="p">=</span>
+                <span class="p">{</span>
+                    <span class="n">ApiConstants</span><span class="p">.</span><span class="n">ContentTypes</span><span class="p">.</span><span class="n">ProblemJson</span><span class="p">,</span>
+                    <span class="n">ApiConstants</span><span class="p">.</span><span class="n">ContentTypes</span><span class="p">.</span><span class="n">ProblemXml</span>
+                <span class="p">}</span>
+            <span class="p">};</span>
+        <span class="p">};</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>We have to remarks two things:</p>
+
+<ul>
+  <li>The order in which you register de services matter, you must register AddMvc() before configure ApiBehaviorOptions otherwise you won’t see the correct response.</li>
+</ul>
+
+<p><img src="./assets/images/posts/2019/problemdetails3.png" alt="Problem Details 3" /></p>
+
+<ul>
+  <li>Your controllers must be decorated with <a href="">[ApiController]</a> attribute:</li>
+</ul>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="na">[Route("api/[controller]</span><span class="s">")]
+</span><span class="na">[ApiController]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">BankController</span> <span class="p">:</span> <span class="n">ControllerBase</span>
+</code></pre>
+</div>
+
+<h2 id="handle-errors">Handle errors</h2>
+
+<p>We have seen how to validations error works, but we still need how to handle exceptions in our application and returns a problem details messages. Thankfully <a href="https://twitter.com/khellang">Kristian Hellang</a> we already have a NuGet package for this purpose <a href="https://www.nuget.org/packages/Hellang.Middleware.ProblemDetails">Hellang.Middleware.ProblemDetails</a>.</p>
+
+<pre><code class="language-txt">Install-Package Hellang.Middleware.ProblemDetails -Version 3.0.0
+</code></pre>
+
+<p>Once we have installed it, we need to configure it. Open your Startup class and add the following code to the ConfigureServices method:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">services</span>
+        <span class="p">.</span><span class="nf">AddProblemDetails</span><span class="p">(</span><span class="n">setup</span> <span class="p">=&gt;</span>
+        <span class="p">{</span>
+            <span class="n">setup</span><span class="p">.</span><span class="n">IncludeExceptionDetails</span> <span class="p">=</span> <span class="n">_</span> <span class="p">=&gt;</span> <span class="n">Environment</span><span class="p">.</span><span class="nf">IsDevelopment</span><span class="p">();</span>
+        <span class="p">})</span>
+
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>We only include exception details in the problem details messages when we are running in Development mode. It’ll help us to diagnostic our HTTP API while development.</p>
+
+<p>And finally we need to add problem details to the ASP.NET Core pipeline in Configure methos in out Startup class:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">Configure</span><span class="p">(</span><span class="n">IApplicationBuilder</span> <span class="n">app</span><span class="p">,</span> <span class="n">IHostingEnvironment</span> <span class="n">env</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">app</span>
+        <span class="p">.</span><span class="nf">UseProblemDetails</span><span class="p">()</span>
+        <span class="p">.</span><span class="nf">UseMvc</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>If you want to test it, throws an exception in your action controller:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="na">[HttpPost]</span>
+<span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Transfer</span><span class="p">(</span><span class="n">TransferInfo</span> <span class="n">model</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nf">Exception</span><span class="p">(</span><span class="s">"Testing problem details"</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="nf">Ok</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>Run your application and executes the action, you should see the following message:</p>
+
+<p><img src="./assets/images/posts/2019/problemdetails4.png" alt="Problem Details 4" /></p>
+
+<p>As you can see (In Development mode) we have available all the information related with the exception but if we run our application in non-Development mode all this additional info dissapear:</p>
+
+<p><img src="./assets/images/posts/2019/problemdetails5.png" alt="Problem Details 5" /></p>
+
+<p>We only need one more thing: What happen if I want to throw my own exceptions and map with my custom problem details objects? No problem, You have a method to map exceptions when custom problem details. Let me show you:</p>
+
+<p>I’ve created a custom OutOfCreditException (This code must be in a service out of our controllers):</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="na">[HttpPost]</span>
+<span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Transfer</span><span class="p">(</span><span class="n">TransferInfo</span> <span class="n">model</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nf">OutOfCreditException</span><span class="p">(</span>
+        <span class="s">"You do not have enough credit."</span><span class="p">,</span>
+        <span class="n">balance</span><span class="p">:</span> <span class="m">30</span><span class="p">,</span>
+        <span class="n">cost</span><span class="p">:</span> <span class="m">50</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="nf">Ok</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>I’ve created also my custom porblem details object:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">internal</span> <span class="k">class</span> <span class="nc">OutOfCreditProblemDetails</span> <span class="p">:</span> <span class="n">ProblemDetails</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">decimal</span> <span class="n">Balance</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>The only need we thing is to tell ProblemDetails how to map this exception with his problem details object. Open Startup.cs and change the method ConfigureServices:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">services</span>
+        <span class="p">.</span><span class="nf">AddProblemDetails</span><span class="p">(</span><span class="n">setup</span> <span class="p">=&gt;</span>
+        <span class="p">{</span>
+            <span class="n">setup</span><span class="p">.</span><span class="n">IncludeExceptionDetails</span> <span class="p">=</span> <span class="n">_</span> <span class="p">=&gt;</span> <span class="p">!</span><span class="n">Environment</span><span class="p">.</span><span class="nf">IsDevelopment</span><span class="p">();</span>
+            <span class="n">setup</span><span class="p">.</span><span class="n">Map</span><span class="p">&lt;</span><span class="n">OutOfCreditException</span><span class="p">&gt;(</span><span class="n">exception</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="n">OutOfCreditProblemDetails</span>
+            <span class="p">{</span>
+                <span class="n">Title</span> <span class="p">=</span> <span class="n">exception</span><span class="p">.</span><span class="n">Message</span><span class="p">,</span>
+                <span class="n">Detail</span> <span class="p">=</span> <span class="n">exception</span><span class="p">.</span><span class="n">Description</span><span class="p">,</span>
+                <span class="n">Balance</span> <span class="p">=</span> <span class="n">exception</span><span class="p">.</span><span class="n">Balance</span><span class="p">,</span>
+                <span class="n">Status</span> <span class="p">=</span> <span class="n">StatusCodes</span><span class="p">.</span><span class="n">Status403Forbidden</span><span class="p">,</span>
+                <span class="n">Type</span> <span class="p">=</span> <span class="n">exception</span><span class="p">.</span><span class="n">Type</span>
+            <span class="p">});</span>
+        <span class="p">})</span>
+    
+    <span class="p">...</span>
+
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>Run you app and call the controller action and you should see the following message:</p>
+
+<p><img src="./assets/images/posts/2019/problemdetails6.png" alt="Problem Details 6" /></p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In this post I’ve tried to show you a way for specifying errors in HTTP API responses using Problem details and how to avoid to reinvent the wheel in every HTTP API, making easier to our clients handle these messages in a simple and standard way.</p>
+
+<h1 id="links">Links</h1>
+
+<p><a href="https://github.com/khellang/Middleware">Github Hellang.Middleware.ProblemDetails</a></p>
+
+
+            </div>
+            <footer class="post-footer">
+                
+                <p class="post-tags">
+                     
+                    <a href='tag/apis/'>apis</a>
+                    
+                     
+                    <a href='tag/rest/'>rest</a>
+                    
+                     
+                    <a href='tag/aspnetcore/'>aspnetcore</a>
+                    
+                    
+                </p>
+                
+                <div class="post-share">
+                    <span class="post-share-title">Share:</span>
+                    <a target="_blank" href="https://twitter.com/share?text=Problem+Details%3A+An+standard+way+for+specifying+errors+in+HTTP+API+responses&amp;url=https://lurumad.github.io/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">Twitter</a>
+                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">Facebook</a>
+                </div><!-- .share-post -->
+            </footer>
+            <div class="author-box">
+                <div class="author-avatar"><img src="/assets/images/01-luis-ruiz-pavon.png" alt="Luis Ruiz Pavon's Picture"
+                        class="avatar"></div>
+                <div class="author-details">
+                    <h2 class="author-title">About Luis Ruiz Pavon</h2>
+                    <p class="author-description">Luis is a husband, father of two, developer, gamer, speaker, author of book about ASP.NET Core and the co-founder MsCoders Madrid Meetup.</p>
+                </div>
+            </div>
+            
+<section id="comments-area" class="comments-area">
+    <h2 class="comments-title">Comments</h2>
+    <div class="comments-inside">
+        <div id="disqus_thread"></div>
+    </div><!-- .comments-inside -->
+    <div id="comments-overlay" class="comments-overlay">
+        <a href="#" id="comments-show" class="comments-show">Show comments</a>
+    </div><!-- .comments-overlay -->
+    <script type="text/javascript">
+        var disqus_shortname = 'lurumad';
+        var disqus_developer = 0;
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+        </article>
+        
+        <section class="read-next inner">
+            <h2 class="read-next-title">Read Next</h2>
+            
+            <article class="post">
+                <header class="post-header">
+                    <div class="post-meta">
+                        <time class="published" datetime="February 1, 2019">February 1, 2019</time>
+                    </div>
+                    <h3 class="post-title"><a href="/an-opinionated-approach-of-using-an-async-suffix-in-methods">An opinionated approach of using an async suffix in methods</a></h3>
+                    <p class="post-tags">
+                        
+                        
+                        
+                        <a href='/tag/c#/'>C#</a>
+                        
+                        
+                        
+                        <a href='/tag/async/'>Async</a>
+                        
+                        
+                        
+                    </p>
+                </header>
+                
+                <a href="/an-opinionated-approach-of-using-an-async-suffix-in-methods" class="post-thumbnail">
+                    <img src="assets/images/posts/2019/bird-wing-sky-fly-aircraft-formation-640571-pxhere.com_thumbnail.jpg" alt="An opinionated approach of using an async suffix in methods" />
+                </a>
+                
+            </article>
+            
+            
+        </section><!-- .read-next -->
+    </main><!-- .site-main -->
+</div><!-- .site-content -->
+
+        
+
+        
+
+        <footer id="colophon" class="site-footer outer">
+            <div class="site-footer-inside">
+                <p class="social-links">
+    
+    <a href="https://twitter.com/luisruizpavon" target="_blank">
+        <span class="fa-twitter fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Twitter</span>
+    </a>
+    
+    
+    
+    <a href="https://github.com/lurumad" target="_blank">
+        <span class="fa-github fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">GitHub</span>
+    </a>
+    
+    
+    
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/luisruizpavon" target="_blank">
+        <span class="fa-linkedin fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Linkedin</span>
+    </a>
+    
+    
+</p>
+                <p class="site-info">
+                    <a href="#">Luru</a> &copy; 2019 . Horace theme by
+                    <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
+                    Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
+                </p>
+                <p class="back-to-top">
+                    <a id="top-button" class="top-button" href="#page">
+                        <span class="icon-arrow-up" aria-hidden="true"></span>
+                        <span class="screen-reader-text">Back to top</span>
+                    </a>
+                </p>
+            </div><!-- .site-footer-inside -->
+        </footer><!-- .site-footer -->
+    </div><!-- .site -->
+    <div id="site-overlay" class="site-overlay"></div>
+    <aside id="sidebar" class="sidebar">
+	<div class="sidebar-scrollable">
+		<div class="sidebar-inside">
+			<button id="sidebar-hide" class="sidebar-toggle"><span class="screen-reader-text">Close Sidebar</span><span
+				    aria-hidden="true" class="icon-close"></span></button>
+			<nav id="sidebar-navigation" class="widget site-navigation">
+				<h2 class="widget-title">Explore Site</h2>
+				<ul class="menu">
+					
+						<li class="menu-item"><a href="/about.html">About</a></li>
+					
+						<li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+					
+				</ul>
+			</nav>
+			
+<section class="widget widget-text">
+    <h2 class="widget-title">About Luru</h2>
+    <p>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</p>
+</section>
+
+
+<section class="widget widget-recent-posts">
+    <h2 class="widget-title">Recent Articles</h2>
+    <ul>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">February 25, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">Problem Details: An standard way for specifying errors in HTTP API responses</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">
+                <img src="/assets/images/posts/2019/rawpixel-761477-unsplash_thumbnail.jpg"
+                    alt="Problem Details: An standard way for specifying errors in HTTP API responses">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">February 1, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/an-opinionated-approach-of-using-an-async-suffix-in-methods">An opinionated approach of using an async suffix in methods</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/an-opinionated-approach-of-using-an-async-suffix-in-methods">
+                <img src="/assets/images/posts/2019/bird-wing-sky-fly-aircraft-formation-640571-pxhere.com_thumbnail.jpg"
+                    alt="An opinionated approach of using an async suffix in methods">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">January 21, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/how-to-connect-azure-api-management-to-your-azure-kubernetes-service">How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/how-to-connect-azure-api-management-to-your-azure-kubernetes-service">
+                <img src="/assets/images/posts/2019/thomas-jensen-596085-unsplash_thumbnail.jpg"
+                    alt="How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)">
+            </a>
+            
+        </li>
+        
+    </ul>
+</section>
+
+<!-- Create a sorted array of tags -->
+ 
+<section class="widget widget-tagcloud">
+    <h2 class="widget-title">Tags</h2>
+    <div class="tagcloud">
+        
+        <a href='https://lurumad.github.io/tag/azure/'>Azure</a>
+        
+        <a href='https://lurumad.github.io/tag/blog/'>Blog</a>
+        
+        <a href='https://lurumad.github.io/tag/c#/'>C#</a>
+        
+        <a href='https://lurumad.github.io/tag/career/'>Career</a>
+        
+        <a href='https://lurumad.github.io/tag/devops/'>DevOps</a>
+        
+        <a href='https://lurumad.github.io/tag/pipelines/'>Pipelines</a>
+        
+        <a href='https://lurumad.github.io/tag/self/'>Self</a>
+        
+        <a href='https://lurumad.github.io/tag/aks/'>aks</a>
+        
+        <a href='https://lurumad.github.io/tag/apim/'>apim</a>
+        
+        <a href='https://lurumad.github.io/tag/apis/'>apis</a>
+        
+        <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
+        
+        <a href='https://lurumad.github.io/tag/async/'>async</a>
+        
+        <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/rest/'>rest</a>
+        
+    </div>
+</section>
+
+
+		</div><!-- .sidebar-inside -->
+	</div><!-- .sidebar-scrollable -->
+</aside><!-- .sidebar -->
+    
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131316164-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-131316164-1', { 'anonymize_ip': true });
+  </script>
+
+    <!-- Javascript Assets -->
+    <script src="/assets/js/jquery-3.3.1.min.js"></script>
+    <script src="/assets/js/plugins.js"></script>
+    <script src="/assets/js/custom.js"></script>
+
+</body>
+
+</html>

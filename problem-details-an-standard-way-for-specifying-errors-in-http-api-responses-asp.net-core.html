@@ -68,9 +68,9 @@
 
 <p>If you have developed HTTP APIs, I’m sure that many times you had have the need to define new error response formats for HTTP APIs to return to your clients. The most common way to do this if using <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">HTTP Status Codes</a> but sometimes are not sufficient to communicate enough information to the clients. For example, imagine a banking HTTP API that allows customers to make online transactions and this call could returns a Forbidden (403) response telling the client that the customer isn’t allow to make this transaction, but why? Maybe the customer doesn’t have enough credit? or he has a maximum limit of money to transfer?</p>
 
-<p>To provide additional information to our clients we would need to extend the response body with some kind of document (JSON or XML). The problem I’ve seen in many HTTP APIs is that these documents usually are not the same. It’s very frustating for a client that consume many HTTP APIs because there isn’t a standard way to deal with these errors and it would need to implement many ways to work with them.</p>
+<p>To provide additional information to our clients we would need to extend the response body with some kind of document (JSON or XML). The problem I’ve seen in many HTTP APIs is that these documents usually are not the same. It’s very frustating for a client that consume many HTTP APIs because there isn’t a standard way to deal with these errors and it would need to implement different ways to work with them.</p>
 
-<p>Due to need to standarize an error response format for HTTP APIs, the <a href="https://tools.ietf.org/">Internet Engineering Task Force (IETF)</a> published in March 2016 a <a href="https://tools.ietf.org/html/rfc7807">document</a> that defines a “problem detail” as a way to carry machine-readable details of errors in a HTTP response to avoid the need to define new error response formats for HTTP APIs (Not reinvent the wheel).</p>
+<p>Due to need to standarize an error response format for HTTP APIs, the <a href="https://tools.ietf.org/">Internet Engineering Task Force (IETF)</a> published in March 2016 a <a href="https://tools.ietf.org/html/rfc7807">document</a> that defines a “problem details” as a way to carry machine-readable details of errors in a HTTP response to avoid the need to define new error response formats for HTTP APIs (Not reinvent the wheel).</p>
 
 <p>For example, an HTTP response of JSON problem details</p>
 
@@ -99,7 +99,7 @@
   <li>instance (string): A URI reference that identifies the specific occurrence of the problem.</li>
 </ul>
 
-<p>We can extend the problem details object with additional members, for example the previous message defines two members “balance” and “accounts” to communicate additional information to the customer.</p>
+<p>We can extend the problem details object with additional members, for example the previous message defines two members “balance” and “accounts” to communicate additional information to the client.</p>
 
 <h1 id="problem-details-in-aspnet-core-21">Problem details in ASP.NET Core 2.1</h1>
 
@@ -272,7 +272,7 @@
 
 <p><img src="./assets/images/posts/2019/problemdetails5.png" alt="Problem Details 5" /></p>
 
-<p>We only need one more thing: What happen if I want to throw my own exceptions and map with my custom problem details objects? No problem, You have a method to map exceptions when custom problem details. Let me show you:</p>
+<p>We only need one more thing: What happen if I want to throw my own exceptions and map with his custom problem details objects? No problem, You have a method call <strong>Map&lt;&gt;</strong> to map exceptions to theirs custom problem details. Let me show you:</p>
 
 <p>I’ve created a custom OutOfCreditException (This code must be in a service out of our controllers):</p>
 

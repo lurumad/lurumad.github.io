@@ -5,21 +5,21 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 28 Feb 2019 07:49:16 +0100</pubDate>
-    <lastBuildDate>Thu, 28 Feb 2019 07:49:16 +0100</lastBuildDate>
+    <pubDate>Thu, 28 Feb 2019 09:29:59 +0100</pubDate>
+    <lastBuildDate>Thu, 28 Feb 2019 09:29:59 +0100</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
     
       <item>
-        <title>Problem Details: An standard way for specifying errors in HTTP API responses</title>
+        <title>Problem Details: A standard way of specifying errors in HTTP API responses</title>
         <description>&lt;h1 id=&quot;a-brief-introduction-of-problem-details&quot;&gt;A brief introduction of Problem details&lt;/h1&gt;
 
-&lt;p&gt;If you have developed HTTP APIs, I’m sure that many times you had have the need to define new error response formats for HTTP APIs to return to your clients. The most common way to do this if using &lt;a href=&quot;https://en.wikipedia.org/wiki/List_of_HTTP_status_codes&quot;&gt;HTTP Status Codes&lt;/a&gt; but sometimes are not sufficient to communicate enough information to the clients. For example, imagine a banking HTTP API that allows customers to make online transactions and this call could returns a Forbidden (403) response telling the client that the customer isn’t allow to make this transaction, but why? Maybe the customer doesn’t have enough credit? or he has a maximum limit of money to transfer?&lt;/p&gt;
+&lt;p&gt;If you have developed HTTP APIs, I’m sure that many times you have had the need to define new error response formats for HTTP APIs to return to your clients. The most common way to do this is using &lt;a href=&quot;https://en.wikipedia.org/wiki/List_of_HTTP_status_codes&quot;&gt;HTTP Status Codes&lt;/a&gt; but sometimes is not sufficient to communicate enough information to the clients. For example, imagine a banking HTTP API that allows customers to make online transactions and this call returns Forbidden (403) response telling the client that the customer isn’t allowed to make this transaction, but why? Maybe the customer doesn’t have enough credit? or he has a maximum limit of money to transfer?&lt;/p&gt;
 
-&lt;p&gt;To provide additional information to our clients we would need to extend the response body with some kind of document (JSON or XML). The problem I’ve seen in many HTTP APIs is that these documents usually are not the same. It’s very frustating for a client that consume many HTTP APIs because there isn’t a standard way to deal with these errors and it would need to implement different ways to work with them.&lt;/p&gt;
+&lt;p&gt;To provide additional information to our clients we would need to extend the response body with some kind of document (JSON or XML). The problem I’ve seen in many HTTP APIs is that usually these documents are not the same. It’s very frustating for a client that consumes many HTTP APIs because there isn’t a standard way to deal with these errors and it would need to implement different ways to work with them.&lt;/p&gt;
 
-&lt;p&gt;Due to need to standarize an error response format for HTTP APIs, the &lt;a href=&quot;https://tools.ietf.org/&quot;&gt;Internet Engineering Task Force (IETF)&lt;/a&gt; published in March 2016 a &lt;a href=&quot;https://tools.ietf.org/html/rfc7807&quot;&gt;document&lt;/a&gt; that defines a “problem details” as a way to carry machine-readable details of errors in a HTTP response to avoid the need to define new error response formats for HTTP APIs (Not reinvent the wheel).&lt;/p&gt;
+&lt;p&gt;Due to the need to standarize an error response format for HTTP APIs, the &lt;a href=&quot;https://tools.ietf.org/&quot;&gt;Internet Engineering Task Force (IETF)&lt;/a&gt; published in March 2016 a &lt;a href=&quot;https://tools.ietf.org/html/rfc7807&quot;&gt;document&lt;/a&gt; that defines a “problem details” as a way to carry machine-readable details of errors in a HTTP response to avoid the need to define new error response formats for HTTP APIs (Not reinvent the wheel).&lt;/p&gt;
 
-&lt;p&gt;For example, an HTTP response of JSON problem details&lt;/p&gt;
+&lt;p&gt;Let me show you an example of HTTP response of JSON problem details&lt;/p&gt;
 
 &lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;err&quot;&gt;HTTP/&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.1&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;403&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;Forbidden&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
 &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;Content-Type:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;application/problem+json&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
@@ -39,10 +39,10 @@
 &lt;p&gt;The format of the message is application/problem+json media type (It could be application/problem+xml also) and we have several members in the response body:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;type (string): An URI that identifies the pronlem detail type. In this case “out-of-credit”.&lt;/li&gt;
+  &lt;li&gt;type (string): URI that identifies the problem detail type. In this case “out-of-credit”.&lt;/li&gt;
   &lt;li&gt;title (string): A short human-readable summary about the problem.&lt;/li&gt;
   &lt;li&gt;detail (string): A human-readable explanation about the problem.&lt;/li&gt;
-  &lt;li&gt;status (number): HTTP Status Coode.&lt;/li&gt;
+  &lt;li&gt;status (number): HTTP Status Code.&lt;/li&gt;
   &lt;li&gt;instance (string): A URI reference that identifies the specific occurrence of the problem.&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -50,7 +50,7 @@
 
 &lt;h1 id=&quot;problem-details-in-aspnet-core-21&quot;&gt;Problem details in ASP.NET Core 2.1&lt;/h1&gt;
 
-&lt;p&gt;When ASP.NET Core 2.1 came out, the ASP.NET Core team added support for problems details. The class that represents a problem details object is &lt;a href=&quot;https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails?view=aspnetcore-2.2&quot;&gt;ProblemDetails&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;When ASP.NET Core 2.1 came out, the ASP.NET Core team added support for problem details. The class that represents a problem details object is &lt;a href=&quot;https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails?view=aspnetcore-2.2&quot;&gt;ProblemDetails&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;An example of use:&lt;/p&gt;
 
@@ -86,7 +86,7 @@
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/problemdetails1.png&quot; alt=&quot;Problem Details 1&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;We have also &lt;a href=&quot;https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.validationproblemdetails?view=aspnetcore-2.2&quot;&gt;ValidationProblemDetails&lt;/a&gt; class for validation errors. This class inherits from &lt;a href=&quot;https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails?view=aspnetcore-2.2&quot;&gt;ProblemDetails&lt;/a&gt; and you can see an example in the following code:&lt;/p&gt;
+&lt;p&gt;We alse have the &lt;a href=&quot;https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.validationproblemdetails?view=aspnetcore-2.2&quot;&gt;ValidationProblemDetails&lt;/a&gt; class for validation errors. This class inherits from &lt;a href=&quot;https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails?view=aspnetcore-2.2&quot;&gt;ProblemDetails&lt;/a&gt; and you can see an example in the following code:&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;[HttpPost]&lt;/span&gt;
 &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ActionResult&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Transfer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TransferInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
@@ -109,7 +109,7 @@
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/problemdetails2.png&quot; alt=&quot;Problem Details 2&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;The two previous examples have the same problem: They polluting our controllers (Put your controllers on a diet). IMHO controllers act as mediator: receive the request, transform into a command, send it and response to client. Let’s see how to move this validations out of controllers in a centralized place.&lt;/p&gt;
+&lt;p&gt;The two previous examples have the same problem: They are polluting our controllers (Put your controllers on a diet). IMHO controllers act as mediators: receive the request from the client, transform into a command, send it and response to the client. Let’s see how to move these validations out of controllers into a centralized place.&lt;/p&gt;
 
 &lt;h2 id=&quot;model-validations&quot;&gt;Model validations&lt;/h2&gt;
 
@@ -146,16 +146,16 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;We have to remarks two things:&lt;/p&gt;
+&lt;p&gt;We have to remark on two things:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;The order in which you register de services matter, you must register AddMvc() before configure ApiBehaviorOptions otherwise you won’t see the correct response.&lt;/li&gt;
+  &lt;li&gt;The order in which you register the services matter, you must register AddMvc() before configure ApiBehaviorOptions otherwise you won’t see the correct response.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/problemdetails3.png&quot; alt=&quot;Problem Details 3&quot; /&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;Your controllers must be decorated with &lt;a href=&quot;&quot;&gt;[ApiController]&lt;/a&gt; attribute:&lt;/li&gt;
+  &lt;li&gt;Your controllers must be decorated with the &lt;a href=&quot;&quot;&gt;[ApiController]&lt;/a&gt; attribute:&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;[Route(&quot;api/[controller]&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;)]
@@ -166,7 +166,7 @@
 
 &lt;h2 id=&quot;handle-errors&quot;&gt;Handle errors&lt;/h2&gt;
 
-&lt;p&gt;We have seen how to validations error works, but we still need how to handle exceptions in our application and returns a problem details messages. Thankfully &lt;a href=&quot;https://twitter.com/khellang&quot;&gt;Kristian Hellang&lt;/a&gt; we already have a NuGet package for this purpose &lt;a href=&quot;https://www.nuget.org/packages/Hellang.Middleware.ProblemDetails&quot;&gt;Hellang.Middleware.ProblemDetails&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;We have seen how to the validation errors works, but we still need to see how to handle exceptions in our application in order to return a problem details message. Thankfully, &lt;a href=&quot;https://twitter.com/khellang&quot;&gt;Kristian Hellang&lt;/a&gt; has already created a NuGet package for this purpose &lt;a href=&quot;https://www.nuget.org/packages/Hellang.Middleware.ProblemDetails&quot;&gt;Hellang.Middleware.ProblemDetails&lt;/a&gt;.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;language-txt&quot;&gt;Install-Package Hellang.Middleware.ProblemDetails -Version 3.0.0
 &lt;/code&gt;&lt;/pre&gt;
@@ -186,9 +186,9 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;We only include exception details in the problem details messages when we are running in Development mode. It’ll help us to diagnostic our HTTP API while development.&lt;/p&gt;
+&lt;p&gt;We only include exception details in the problem details messages when we are running in Development mode. It’ll help us to diagnose our HTTP API while we develop.&lt;/p&gt;
 
-&lt;p&gt;And finally we need to add problem details to the ASP.NET Core pipeline in Configure methos in out Startup class:&lt;/p&gt;
+&lt;p&gt;And finally we need to add problem details to the ASP.NET Core pipeline in Configure method in our Startup class:&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IApplicationBuilder&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IHostingEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -199,7 +199,7 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;If you want to test it, throws an exception in your action controller:&lt;/p&gt;
+&lt;p&gt;If you want to test it, you can throw an exception in your action controller:&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;[HttpPost]&lt;/span&gt;
 &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ActionResult&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Transfer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TransferInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
@@ -211,15 +211,15 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;Run your application and executes the action, you should see the following message:&lt;/p&gt;
+&lt;p&gt;Run your application and execute the action, you should see the following message:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/problemdetails4.png&quot; alt=&quot;Problem Details 4&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;As you can see (In Development mode) we have available all the information related with the exception but if we run our application in non-Development mode all this additional info dissapear:&lt;/p&gt;
+&lt;p&gt;As you can see (In Development mode) we have all the information available related to the exception but if we run our application in non-Development mode all this additional information dissapears:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/problemdetails5.png&quot; alt=&quot;Problem Details 5&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;We only need one more thing: What happen if I want to throw my own exceptions and map with his custom problem details objects? No problem, You have a method call &lt;strong&gt;Map&amp;lt;&amp;gt;&lt;/strong&gt; to map exceptions to theirs custom problem details. Let me show you:&lt;/p&gt;
+&lt;p&gt;We only need one more thing: What happens if I want to throw my own exceptions and map to custom problem details objects? No problem, You have a method called &lt;strong&gt;Map&amp;lt;&amp;gt;&lt;/strong&gt; to map exceptions to custom problem details objects. Let me show you:&lt;/p&gt;
 
 &lt;p&gt;I’ve created a custom OutOfCreditException (This code must be in a service out of our controllers):&lt;/p&gt;
 
@@ -236,7 +236,7 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;I’ve created also my custom porblem details object:&lt;/p&gt;
+&lt;p&gt;I’ve created also my custom problem details object:&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;internal&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;OutOfCreditProblemDetails&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ProblemDetails&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -245,7 +245,7 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;The only need we thing is to tell ProblemDetails how to map this exception with his problem details object. Open Startup.cs and change the method ConfigureServices:&lt;/p&gt;
+&lt;p&gt;The only thing we need left is to configure ProblemDetails how to map this exception with the problem details object. Open Startup.cs and change the method ConfigureServices:&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ConfigureServices&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IServiceCollection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;services&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -275,7 +275,7 @@
 
 &lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
 
-&lt;p&gt;In this post I’ve tried to show you a way for specifying errors in HTTP API responses using Problem details and how to avoid to reinvent the wheel in every HTTP API, making easier to our clients handle these messages in a simple and standard way.&lt;/p&gt;
+&lt;p&gt;In this post I’ve tried to show you a way of specifying errors in HTTP API responses using Problem details and how to avoid to reinvent the wheel in every HTTP API, making easier to our clients handle these messages in a simple and standard way.&lt;/p&gt;
 
 &lt;h1 id=&quot;links&quot;&gt;Links&lt;/h1&gt;
 

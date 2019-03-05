@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <!-- Page Info -->
+    <title>Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider | Luru</title>
+    
+    <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Site Favicon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/png" />
+
+    <!-- Font Embed Code -->
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
+
+    <!-- CSS Styles -->
+    <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+
+<body class="layout-post">
+    <div id="page" class="site">
+
+        
+        <header id="masthead" class="site-header outer">
+    <div class="site-header-inside">
+        <div class="site-branding">
+            
+                <p class="site-logo"><a href="/" rel="home"><img src="/assets/images/logo.png" alt="Luru" /></a></p>
+                <h1 class="site-title screen-reader-text"><a href="" rel="home"></a></h1>
+            
+        </div><!-- .site-branding -->
+        <nav id="main-navigation" class="site-navigation" aria-label="Primary Navigation">
+            <ul class="menu">
+            
+                <li class="menu-item"><a href="/about.html">About</a></li>
+            
+                <li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+            
+            </ul>
+            <button id="sidebar-show" class="sidebar-toggle"><span class="screen-reader-text">Open Sidebar</span><span class="icon-more" aria-hidden="true"></span></button>
+        </nav><!-- .site-navigation -->
+    </div><!-- .site-header-inside -->
+</header><!-- .site-header -->
+        
+
+        <div id="content" class="site-content fadeInDown delay_075s">
+    <main id="main" class="site-main outer">
+        <article class="post-full inner">
+            <header class="post-header">
+                <div class="post-meta">
+                    <time class="post-date" datetime="2019-03-05">March 5,
+                        2019</time>
+                </div><!-- .post-meta -->
+                <h1 class="posttitle">Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider</h1>
+            </header><!-- .post-header -->
+            
+            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/agreement-arms-business-1081228.jpg"
+                    alt="Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider"></div>
+            
+            <div class="post-content">
+                <h1 id="a-brief-introduction-of-identityserver-4-and-saml-20">A brief introduction of IdentityServer 4 and SAML 2.0</h1>
+
+<p><a href="http://docs.identityserver.io/en/latest/">IdentityServer</a> 4 is an <a href="https://openid.net/connect/">OpenID Connect</a> and <a href="https://oauth.net/2/">OAuth 2.0</a> framework for ASP.NET 2.x. Actually, these two protocols are also very widely used in the industry to support the best authentication flows for moderns applications. Sometimes, when you are building products you can enable customers to sign in using theirs own corporate network credentials (Google, Azure AD, ADFS…) without having to enter their passwords again (single sign-on) or to avoid create another username/password. This scenario is commonly called “Federation” and enable organizations to have fine-grain control over theirs users accounts- It’s much simpler to manage one login per user than it’s to manage separate logins for each application (Help Desk, CRM, ERP…), for example, in case of one user decides to leave the company, only deleting/blocking his account you are limiting the access to the all federate apps instead of going one by one removing/bloking his account.</p>
+
+<p>Last week, one of our customers asked to me if it could be possible to connect IdentityServer 4 with Zendesk in order to use theirs own users. Zendesk support a variety of <a href="https://support.zendesk.com/hc/en-us/articles/203663826-SSO-single-sign-on-options-in-Zendesk#topic_v5q_hnm_yj">SSO options</a>. In our scenario we need Enterprise single sign-on and Zenddesk support two types:</p>
+
+<ul>
+  <li>JSON Web Token</li>
+  <li>Secure Assertion Markup Language (SAML)</li>
+</ul>
+
+<p>SAML is an open standard “legacy” protocol for exchanging authentication and authorization data between two parties, in our case between IdentityServer 4 (Identity Provider) and Zendesk (Service Provider). SAML is an XML-based markup language. If you want to read more about this protocol please visit the next <a href="https://wiki.oasis-open.org/security/FrontPage">link</a>.</p>
+
+<p>There are two types of SAML providers:</p>
+
+<ul>
+  <li>
+    <p>Identity Provider issues the authentication assertions and send the data with user’s access right to the Service Provider.</p>
+  </li>
+  <li>
+    <p>Service Provider accepts and recieves the authentication assertions from the Identity Provider.</p>
+  </li>
+</ul>
+
+<p><img src="./assets/images/posts/2019/saml2.jpg" alt="SAML 2.0" /></p>
+
+<p>IdentityServer 4 has a license component for <a href="https://www.identityserver.com/products/#SAML2P">SAML 2.0</a> integration (SAML2P in the Microsoft world). You can request a trial if you want to test it. Identity Server 4 can act as an Identity Provider or as a Service Provider:</p>
+
+<h1 id="project-setup">Project setup</h1>
+
+<p>I’m assuming that you have worked with IdentityServer 4. If not, please read this <a href="https://www.scottbrady91.com/Identity-Server/Getting-Started-with-IdentityServer-4">post</a> by <a href="https://github.com/scottbrady91">Scott Brady</a> in order to getting started with IdentityServer 4.</p>
+
+<p>The IdentityServer 4 SAML 2.0 is avaliable on NuGet:</p>
+
+<pre><code class="language-txt">Install-Package Rsk.IdentityServer4.Saml
+</code></pre>
+
+<h1 id="identityserver-4-as-a-saml-20-identity-provider">IdentityServer 4 as a SAML 2.0 Identity Provider</h1>
+
+<p>Once we have installed <strong>Rsk.IdentityServer4.Saml</strong> NuGet package, we need to configure it. In your <strong>ConfigureServices</strong> method, you call to IdentityServer 4:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="n">services</span>
+    <span class="p">.</span><span class="nf">AddMvc</span><span class="p">()</span>
+    <span class="p">.</span><span class="n">Services</span>
+    <span class="p">.</span><span class="nf">AddMemoryCache</span><span class="p">()</span>
+    <span class="p">.</span><span class="nf">AddIdentityServer</span><span class="p">()</span>
+    <span class="p">.</span><span class="nf">AddSigningCredential</span><span class="p">(</span>
+        <span class="k">new</span> <span class="nf">X509Certificate2</span><span class="p">(&lt;</span><span class="n">your</span> <span class="n">certificate</span><span class="p">&gt;))</span>
+    <span class="p">.</span><span class="nf">AddSamlPlugin</span><span class="p">(</span><span class="n">options</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">Licensee</span> <span class="p">=</span> <span class="s">"&lt;your licensee&gt;"</span><span class="p">;</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">LicenseKey</span> <span class="p">=</span> <span class="s">"&lt;your license key&gt;"</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">WantAuthenticationRequestsSigned</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+    <span class="p">})</span>
+</code></pre>
+</div>
+
+<p><strong>NOTE</strong> You can’t use <em>AddTemporarySigningCredential</em>. The pluging needs a full X509 certificate. If you are developing or testing the component, you can create your own self signed certificate using makecert, OpenSSL, or PowerShell:</p>
+
+<div class="language-powershell highlighter-rouge"><pre class="highlight"><code><span class="nv">$todaydt</span> <span class="o">=</span> <span class="nb">Get-Date</span>
+<span class="nv">$3years</span> <span class="o">=</span> <span class="nv">$todaydt</span>.AddYears<span class="o">(</span>3<span class="o">)</span>
+<span class="nv">$CertPassword</span> <span class="o">=</span> <span class="nb">ConvertTo-SecureString</span> -String <span class="s2">"mypassword"</span> -Force –AsPlainText
+New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">$3years</span> -CertStoreLocation cert:<span class="se">\L</span>ocalMachine<span class="se">\M</span>y -KeyUsage DigitalSignature
+</code></pre>
+</div>
+<p>You should see the following output:</p>
+
+<p><img src="./assets/images/posts/2019/saml2-2.jpg" alt="SAML 2.0" /></p>
+
+<p>Save the Thumbprint because you’ll need it when we configure our Zendes SSO.</p>
+
+<p><em>AddSamlPlugin</em> add the necessary services to start receiving SAML Requests and sending SAML Responses. You have to introduce your licensee and your license key, as I told you before you can request a trial of the component.</p>
+
+<p>Finally, we can Configure the pipeline.</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">UseIdentityServer</span><span class="p">()</span>
+   <span class="p">.</span><span class="nf">UseIdentityServerSamlPlugin</span><span class="p">();</span>
+</code></pre>
+</div>
+
+<p>If we run our application we should access to the SAML metadata endpoint visiting https://localhost:port/saml/metadata</p>
+
+<p><img src="./assets/images/posts/2019/saml2-3.jpg" alt="SAML 2.0" /></p>
+
+<p>We are going to configure our Zendesk SAML Provider, we need two things: create the client in IdentityServer 4 (as usual do) and next the create the Service Provider:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="p">.</span><span class="nf">AddInMemoryClients</span><span class="p">(</span><span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Client</span><span class="p">&gt;()</span>
+<span class="p">{</span>
+    <span class="k">new</span> <span class="n">Client</span> <span class="p">{</span>
+            <span class="n">ClientId</span> <span class="p">=</span> <span class="s">"https://&lt;yoursubdomain&gt;.zendesk.com"</span><span class="p">,</span>
+            <span class="n">ClientName</span> <span class="p">=</span> <span class="s">"RSK SAML2P Test Client"</span><span class="p">,</span>
+            <span class="n">ProtocolType</span> <span class="p">=</span> <span class="n">IdentityServerConstants</span><span class="p">.</span><span class="n">ProtocolTypes</span><span class="p">.</span><span class="n">Saml2p</span><span class="p">,</span>
+            <span class="n">AllowedScopes</span> <span class="p">=</span> <span class="p">{</span> <span class="s">"openid"</span><span class="p">,</span> <span class="s">"profile"</span><span class="p">,</span> <span class="s">"email"</span><span class="p">,</span> <span class="s">"zendesk"</span> <span class="p">},</span>
+            <span class="n">RedirectUris</span> <span class="p">=</span> <span class="p">{</span> <span class="s">"https://&lt;yoursubdomain&gt;.zendesk.com/access/saml"</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+<span class="p">.</span><span class="nf">AddInMemoryServiceProviders</span><span class="p">(</span><span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">IdentityServer4</span><span class="p">.</span><span class="n">Saml</span><span class="p">.</span><span class="n">Models</span><span class="p">.</span><span class="n">ServiceProvider</span><span class="p">&gt;()</span>
+<span class="p">{</span>
+    <span class="k">new</span> <span class="n">IdentityServer4</span><span class="p">.</span><span class="n">Saml</span><span class="p">.</span><span class="n">Models</span><span class="p">.</span><span class="n">ServiceProvider</span>
+    <span class="p">{</span>
+        <span class="n">EntityId</span> <span class="p">=</span> <span class="s">"https://&lt;yoursubdomain&gt;.zendesk.com"</span><span class="p">,</span>
+        <span class="n">SigningCertificates</span> <span class="p">=</span> <span class="p">{</span><span class="k">new</span> <span class="nf">X509Certificate2</span><span class="p">(</span><span class="n">Path</span><span class="p">.</span><span class="nf">Combine</span><span class="p">(</span><span class="n">Environment</span><span class="p">.</span><span class="n">ContentRootPath</span><span class="p">,</span> <span class="s">"zenddesk.cer"</span><span class="p">))},</span>
+        <span class="n">AssertionConsumerServices</span> <span class="p">=</span> <span class="p">{</span> <span class="k">new</span> <span class="nf">Service</span><span class="p">(</span><span class="n">SamlConstants</span><span class="p">.</span><span class="n">BindingTypes</span><span class="p">.</span><span class="n">HttpPost</span><span class="p">,</span> <span class="s">"https://&lt;yoursubdomain&gt;.zendesk.com/access/saml"</span><span class="p">)</span> <span class="p">},</span>
+        <span class="n">RequireSamlRequestDestination</span> <span class="p">=</span> <span class="k">false</span><span class="p">,</span>
+        <span class="n">ClaimsMapping</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="kt">string</span><span class="p">&gt;</span>
+        <span class="p">{</span>
+            <span class="p">{</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Role</span><span class="p">,</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Role</span> <span class="p">},</span>
+            <span class="p">{</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Email</span><span class="p">,</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Email</span> <span class="p">},</span>
+            <span class="p">{</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Name</span> <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</code></pre>
+</div>
+
+<p><em>Only for demo purpose we are going to store all information in memory, for production scenarios you should use a persistent store like a RDBMS or similar.</em></p>
+
+<p>The <strong>ClientId</strong> and <strong>EntityId</strong> should be the same and must be the equal to the EntityId used by Zendesk, in this case https://<yoursubdomain>.zendesk.com. We need the public key of the Service Provider (*.cer file). Maybe you are wonder about the scopes and claims mapping, we'll see it below when we add the **IdentityResources**:</yoursubdomain></p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="p">.</span><span class="nf">AddInMemoryIdentityResources</span><span class="p">(</span><span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">IdentityResource</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">new</span> <span class="n">IdentityResources</span><span class="p">.</span><span class="nf">OpenId</span><span class="p">(),</span>
+    <span class="k">new</span> <span class="n">IdentityResources</span><span class="p">.</span><span class="nf">Profile</span><span class="p">(),</span>
+    <span class="k">new</span> <span class="n">IdentityResources</span><span class="p">.</span><span class="nf">Email</span><span class="p">(),</span>
+    <span class="k">new</span> <span class="n">IdentityResource</span>
+    <span class="p">{</span>
+        <span class="n">Name</span> <span class="p">=</span> <span class="s">"zendesk"</span><span class="p">,</span>
+        <span class="n">UserClaims</span> <span class="p">=</span> <span class="p">{</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Email</span><span class="p">,</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Role</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</code></pre>
+</div>
+
+<p>As you can see we are adding a custom IdentityResource called “zendesk” with some user claims such us name, email and role because Zendesk need them:</p>
+
+<p><em>The only user data required by Support from your authentication system is the user’s name and email address.</em></p>
+
+<p>Additionally we are adding the claim role because by default if we not set it by default is set to “end-user” and they can experience some problems when try to access to Zendesk. The user’s role can be set to “user”, “agent”, or “admin”.</p>
+
+<p>It’s time to add our test users. If you are using <a href="https://github.com/IdentityServer/IdentityServer4.Quickstart.UI">IdentityServer 4 Quickstart</a> inside the Quicktstart folder there is a class called <strong>TestUsers.cs</strong>. We are going to add the claim role and set to “agent”:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">TestUsers</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">TestUser</span><span class="p">&gt;</span> <span class="n">Users</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">TestUser</span><span class="p">&gt;</span>
+    <span class="p">{</span>
+        <span class="k">new</span> <span class="n">TestUser</span><span class="p">{</span><span class="n">SubjectId</span> <span class="p">=</span> <span class="s">"818727"</span><span class="p">,</span> <span class="n">Username</span> <span class="p">=</span> <span class="s">"alice"</span><span class="p">,</span> <span class="n">Password</span> <span class="p">=</span> <span class="s">"alice"</span><span class="p">,</span> 
+            <span class="n">Claims</span> <span class="p">=</span> 
+            <span class="p">{</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span> <span class="s">"Alice Smith"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">GivenName</span><span class="p">,</span> <span class="s">"Alice"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">FamilyName</span><span class="p">,</span> <span class="s">"Smith"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Email</span><span class="p">,</span> <span class="s">"AliceSmith@email.com"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">EmailVerified</span><span class="p">,</span> <span class="s">"true"</span><span class="p">,</span> <span class="n">ClaimValueTypes</span><span class="p">.</span><span class="n">Boolean</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">WebSite</span><span class="p">,</span> <span class="s">"http://alice.com"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Address</span><span class="p">,</span> <span class="s">@"{ 'street_address': 'One Hacker Way', 'locality': 'Heidelberg', 'postal_code': 69118, 'country': 'Germany' }"</span><span class="p">,</span> <span class="n">IdentityServer4</span><span class="p">.</span><span class="n">IdentityServerConstants</span><span class="p">.</span><span class="n">ClaimValueTypes</span><span class="p">.</span><span class="n">Json</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Role</span><span class="p">,</span> <span class="s">"agent"</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="k">new</span> <span class="n">TestUser</span><span class="p">{</span><span class="n">SubjectId</span> <span class="p">=</span> <span class="s">"88421113"</span><span class="p">,</span> <span class="n">Username</span> <span class="p">=</span> <span class="s">"bob"</span><span class="p">,</span> <span class="n">Password</span> <span class="p">=</span> <span class="s">"bob"</span><span class="p">,</span> 
+            <span class="n">Claims</span> <span class="p">=</span> 
+            <span class="p">{</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span> <span class="s">"Bob Smith"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">GivenName</span><span class="p">,</span> <span class="s">"Bob"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">FamilyName</span><span class="p">,</span> <span class="s">"Smith"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Email</span><span class="p">,</span> <span class="s">"BobSmith@email.com"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">EmailVerified</span><span class="p">,</span> <span class="s">"true"</span><span class="p">,</span> <span class="n">ClaimValueTypes</span><span class="p">.</span><span class="n">Boolean</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">WebSite</span><span class="p">,</span> <span class="s">"http://bob.com"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Address</span><span class="p">,</span> <span class="s">@"{ 'street_address': 'One Hacker Way', 'locality': 'Heidelberg', 'postal_code': 69118, 'country': 'Germany' }"</span><span class="p">,</span> <span class="n">IdentityServer4</span><span class="p">.</span><span class="n">IdentityServerConstants</span><span class="p">.</span><span class="n">ClaimValueTypes</span><span class="p">.</span><span class="n">Json</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="s">"location"</span><span class="p">,</span> <span class="s">"somewhere"</span><span class="p">),</span>
+                <span class="k">new</span> <span class="nf">Claim</span><span class="p">(</span><span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Role</span><span class="p">,</span> <span class="s">"agent"</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">};</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>After this, we need to add these test users to IdentityServer 4 in our <strong>ConfigureServices</strong> method:</p>
+
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="p">.</span><span class="nf">AddTestUsers</span><span class="p">(</span><span class="n">TestUsers</span><span class="p">.</span><span class="n">Users</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>If you want to see our <strong>Startup.cs</strong> class complete please visit this <a href="https://github.com/lurumad/saml2pidsrv4zendesk/blob/master/Startup.cs">link</a>.</p>
+
+<h1 id="zendesk-as-a-saml-20-service-provider">Zendesk as a SAML 2.0 Service Provider</h1>
+
+<p>We are going to configure Zendesk as a SAML 2.0 Service Provider. I recommend you to read <a href="https://support.zendesk.com/hc/en-us/articles/203663676">Enabling SAML single sign-on (Professional and Enterprise)</a> article if you want to know more in depth.</p>
+
+<p>To enable SSO in Zendesk:</p>
+
+<ul>
+  <li>Click the Admin icon (<img src="./assets/images/posts/2019/saml2-4.jpg" alt="SAML 2.0" />) in the sidebar, then select <strong>Security</strong> from the <strong>Settings</strong> category.</li>
+</ul>
+
+<p><img src="./assets/images/posts/2019/saml2-5.jpg" alt="SAML 2.0" /></p>
+
+<ul>
+  <li>Select <strong>Admins &amp; Agents</strong> or <strong>End-users</strong> whatever you want enable and select the Single sign-on (SSO) option, then click on SAML checkbox:</li>
+</ul>
+
+<p><img src="./assets/images/posts/2019/saml2-6.jpg" alt="SAML 2.0" /></p>
+
+<p>And configure your settings:</p>
+
+<p><img src="./assets/images/posts/2019/saml2-7.jpg" alt="SAML 2.0" /></p>
+
+<p><em>For the Certificate fingerprint</em> field you should used the thumbprint of the certificate that we created in the previous steps*</p>
+
+<p>It’s time to test it! Let me show you:</p>
+
+<p><img src="./assets/images/posts/2019/saml.gif" alt="SAML 2.0" /></p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In this post I’ve tried to show you a way of configuring SSO between IdentityServer 4 and Zendesk using a “legacy” protocol like SAML 2.0.</p>
+
+<h1 id="links">Links</h1>
+
+<ul>
+  <li><a href="https://github.com/lurumad/saml2pidsrv4zendesk">Source code</a></li>
+  <li><a href="http://docs.identityserver.io/en/latest/">IdentityServer 4</a></li>
+  <li><a href="https://www.identityserver.com/products/#SAML2P">IdentityServer 4 SAML 2.0</a></li>
+</ul>
+
+
+            </div>
+            <footer class="post-footer">
+                
+                <p class="post-tags">
+                     
+                    <a href='tag/saml/'>saml</a>
+                    
+                     
+                    <a href='tag/oidc/'>oidc</a>
+                    
+                     
+                    <a href='tag/identityserver/'>identityserver</a>
+                    
+                    
+                </p>
+                
+                <div class="post-share">
+                    <span class="post-share-title">Share:</span>
+                    <a target="_blank" href="https://twitter.com/share?text=Connecting+Zendesk+and+IdentityServer+4+SAML+2.0+Identity+Provider&amp;url=https://lurumad.github.io/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">Twitter</a>
+                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">Facebook</a>
+                </div><!-- .share-post -->
+            </footer>
+            <div class="author-box">
+                <div class="author-avatar"><img src="/assets/images/01-luis-ruiz-pavon.png" alt="Luis Ruiz Pavon's Picture"
+                        class="avatar"></div>
+                <div class="author-details">
+                    <h2 class="author-title">About Luis Ruiz Pavon</h2>
+                    <p class="author-description">Luis is a husband, father of two, developer, gamer, speaker, author of book about ASP.NET Core and the co-founder MsCoders Madrid Meetup.</p>
+                </div>
+            </div>
+            
+<section id="comments-area" class="comments-area">
+    <h2 class="comments-title">Comments</h2>
+    <div class="comments-inside">
+        <div id="disqus_thread"></div>
+    </div><!-- .comments-inside -->
+    <div id="comments-overlay" class="comments-overlay">
+        <a href="#" id="comments-show" class="comments-show">Show comments</a>
+    </div><!-- .comments-overlay -->
+    <script type="text/javascript">
+        var disqus_shortname = 'lurumad';
+        var disqus_developer = 0;
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+        </article>
+        
+        <section class="read-next inner">
+            <h2 class="read-next-title">Read Next</h2>
+            
+            <article class="post">
+                <header class="post-header">
+                    <div class="post-meta">
+                        <time class="published" datetime="February 25, 2019">February 25, 2019</time>
+                    </div>
+                    <h3 class="post-title"><a href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">Problem Details: A standard way of specifying errors in HTTP API responses</a></h3>
+                    <p class="post-tags">
+                        
+                        
+                        
+                        <a href='/tag/apis/'>Apis</a>
+                        
+                        
+                        
+                        <a href='/tag/rest/'>Rest</a>
+                        
+                        
+                        
+                        <a href='/tag/aspnetcore/'>Aspnetcore</a>
+                        
+                        
+                        
+                    </p>
+                </header>
+                
+                <a href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core" class="post-thumbnail">
+                    <img src="assets/images/posts/2019/rawpixel-761477-unsplash_thumbnail.jpg" alt="Problem Details: A standard way of specifying errors in HTTP API responses" />
+                </a>
+                
+            </article>
+            
+            
+        </section><!-- .read-next -->
+    </main><!-- .site-main -->
+</div><!-- .site-content -->
+
+        
+
+        
+
+        <footer id="colophon" class="site-footer outer">
+            <div class="site-footer-inside">
+                <p class="social-links">
+    
+    <a href="https://twitter.com/luisruizpavon" target="_blank">
+        <span class="fa-twitter fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Twitter</span>
+    </a>
+    
+    
+    
+    <a href="https://github.com/lurumad" target="_blank">
+        <span class="fa-github fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">GitHub</span>
+    </a>
+    
+    
+    
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/luisruizpavon" target="_blank">
+        <span class="fa-linkedin fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Linkedin</span>
+    </a>
+    
+    
+</p>
+                <p class="site-info">
+                    <a href="#">Luru</a> &copy; 2019 . Horace theme by
+                    <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
+                    Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
+                </p>
+                <p class="back-to-top">
+                    <a id="top-button" class="top-button" href="#page">
+                        <span class="icon-arrow-up" aria-hidden="true"></span>
+                        <span class="screen-reader-text">Back to top</span>
+                    </a>
+                </p>
+            </div><!-- .site-footer-inside -->
+        </footer><!-- .site-footer -->
+    </div><!-- .site -->
+    <div id="site-overlay" class="site-overlay"></div>
+    <aside id="sidebar" class="sidebar">
+	<div class="sidebar-scrollable">
+		<div class="sidebar-inside">
+			<button id="sidebar-hide" class="sidebar-toggle"><span class="screen-reader-text">Close Sidebar</span><span
+				    aria-hidden="true" class="icon-close"></span></button>
+			<nav id="sidebar-navigation" class="widget site-navigation">
+				<h2 class="widget-title">Explore Site</h2>
+				<ul class="menu">
+					
+						<li class="menu-item"><a href="/about.html">About</a></li>
+					
+						<li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+					
+				</ul>
+			</nav>
+			
+<section class="widget widget-text">
+    <h2 class="widget-title">About Luru</h2>
+    <p>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</p>
+</section>
+
+
+<section class="widget widget-recent-posts">
+    <h2 class="widget-title">Recent Articles</h2>
+    <ul>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">March 5, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">
+                <img src="/assets/images/posts/2019/agreement-arms-business-1081228_thumbnail.jpg"
+                    alt="Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">February 25, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">Problem Details: A standard way of specifying errors in HTTP API responses</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">
+                <img src="/assets/images/posts/2019/rawpixel-761477-unsplash_thumbnail.jpg"
+                    alt="Problem Details: A standard way of specifying errors in HTTP API responses">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">February 1, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/an-opinionated-approach-of-using-an-async-suffix-in-methods">An opinionated approach of using an async suffix in methods</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/an-opinionated-approach-of-using-an-async-suffix-in-methods">
+                <img src="/assets/images/posts/2019/bird-wing-sky-fly-aircraft-formation-640571-pxhere.com_thumbnail.jpg"
+                    alt="An opinionated approach of using an async suffix in methods">
+            </a>
+            
+        </li>
+        
+    </ul>
+</section>
+
+<!-- Create a sorted array of tags -->
+ 
+<section class="widget widget-tagcloud">
+    <h2 class="widget-title">Tags</h2>
+    <div class="tagcloud">
+        
+        <a href='https://lurumad.github.io/tag/azure/'>Azure</a>
+        
+        <a href='https://lurumad.github.io/tag/blog/'>Blog</a>
+        
+        <a href='https://lurumad.github.io/tag/c#/'>C#</a>
+        
+        <a href='https://lurumad.github.io/tag/career/'>Career</a>
+        
+        <a href='https://lurumad.github.io/tag/devops/'>DevOps</a>
+        
+        <a href='https://lurumad.github.io/tag/pipelines/'>Pipelines</a>
+        
+        <a href='https://lurumad.github.io/tag/self/'>Self</a>
+        
+        <a href='https://lurumad.github.io/tag/aks/'>aks</a>
+        
+        <a href='https://lurumad.github.io/tag/apim/'>apim</a>
+        
+        <a href='https://lurumad.github.io/tag/apis/'>apis</a>
+        
+        <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
+        
+        <a href='https://lurumad.github.io/tag/async/'>async</a>
+        
+        <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
+        
+        <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
+        
+        <a href='https://lurumad.github.io/tag/rest/'>rest</a>
+        
+        <a href='https://lurumad.github.io/tag/saml/'>saml</a>
+        
+    </div>
+</section>
+
+
+		</div><!-- .sidebar-inside -->
+	</div><!-- .sidebar-scrollable -->
+</aside><!-- .sidebar -->
+    
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131316164-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-131316164-1', { 'anonymize_ip': true });
+  </script>
+
+    <!-- Javascript Assets -->
+    <script src="/assets/js/jquery-3.3.1.min.js"></script>
+    <script src="/assets/js/plugins.js"></script>
+    <script src="/assets/js/custom.js"></script>
+
+</body>
+
+</html>

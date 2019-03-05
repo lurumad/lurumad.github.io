@@ -5,15 +5,15 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 05 Mar 2019 20:41:20 +0100</pubDate>
-    <lastBuildDate>Tue, 05 Mar 2019 20:41:20 +0100</lastBuildDate>
+    <pubDate>Tue, 05 Mar 2019 20:53:46 +0100</pubDate>
+    <lastBuildDate>Tue, 05 Mar 2019 20:53:46 +0100</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
     
       <item>
         <title>Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider</title>
         <description>&lt;h1 id=&quot;a-brief-introduction-of-identityserver-4-and-saml-20&quot;&gt;A brief introduction of IdentityServer 4 and SAML 2.0&lt;/h1&gt;
 
-&lt;p&gt;&lt;a href=&quot;http://docs.identityserver.io/en/latest/&quot;&gt;IdentityServer&lt;/a&gt; 4 is an &lt;a href=&quot;https://openid.net/connect/&quot;&gt;OpenID Connect&lt;/a&gt; and &lt;a href=&quot;https://oauth.net/2/&quot;&gt;OAuth 2.0&lt;/a&gt; framework for ASP.NET 2.x. Actually, these two protocols are also very widely used in the industry to support the best authentication flows for moderns applications. Sometimes, when you are building products you can enable customers to sign in using theirs own corporate network credentials (Google, Azure AD, ADFS…) without having to enter their passwords again (single sign-on) or to avoid create another username/password. This scenario is commonly called “Federation” and enable organizations to have fine-grain control over theirs users accounts- It’s much simpler to manage one login per user than it’s to manage separate logins for each application (Help Desk, CRM, ERP…), for example, in case of one user decides to leave the company, only deleting/blocking his account you are limiting the access to the all federate apps instead of going one by one removing/bloking his account.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://docs.identityserver.io/en/latest/&quot;&gt;IdentityServer&lt;/a&gt; 4 is an &lt;a href=&quot;https://openid.net/connect/&quot;&gt;OpenID Connect&lt;/a&gt; and &lt;a href=&quot;https://oauth.net/2/&quot;&gt;OAuth 2.0&lt;/a&gt; framework for ASP.NET 2.x. Actually, these two protocols are very widely used in the industry to support the best authentication flows for moderns applications. Sometimes, when you are building products you can enable customers to sign in using theirs own corporate network credentials (Google, Azure AD, ADFS…) without having to enter their passwords again (single sign-on) or to avoid create another username/password. This scenario is commonly called “Federation” and enable organizations to have fine-grain control over theirs users accounts. It’s much simpler to manage one login per user than it’s to manage separate logins for each application (Help Desk, CRM, ERP…), for example, in case of one user decides to leave the company, only deleting/blocking his account you are limiting the access to the all federate apps instead of going one by one removing/bloking his account.&lt;/p&gt;
 
 &lt;p&gt;Last week, one of our customers asked to me if it could be possible to connect IdentityServer 4 with Zendesk in order to use theirs own users. Zendesk support a variety of &lt;a href=&quot;https://support.zendesk.com/hc/en-us/articles/203663826-SSO-single-sign-on-options-in-Zendesk#topic_v5q_hnm_yj&quot;&gt;SSO options&lt;/a&gt;. In our scenario we need Enterprise single sign-on and Zenddesk support two types:&lt;/p&gt;
 
@@ -80,7 +80,7 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter &lt;span class=&q
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/saml2-2.jpg&quot; alt=&quot;SAML 2.0&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Save the Thumbprint because you’ll need it when we configure our Zendes SSO.&lt;/p&gt;
+&lt;p&gt;Save the Thumbprint because you’ll need it when we configure our Zendesk SSO.&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;AddSamlPlugin&lt;/em&gt; add the necessary services to start receiving SAML Requests and sending SAML Responses. You have to introduce your licensee and your license key, as I told you before you can request a trial of the component.&lt;/p&gt;
 
@@ -91,11 +91,11 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter &lt;span class=&q
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;If we run our application we should access to the SAML metadata endpoint visiting https://localhost:port/saml/metadata&lt;/p&gt;
+&lt;p&gt;If we run our application we should access to the SAML metadata endpoint visiting &lt;strong&gt;https://localhost:port/saml/metadata&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/saml2-3.jpg&quot; alt=&quot;SAML 2.0&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;We are going to configure our Zendesk SAML Provider, we need two things: create the client in IdentityServer 4 (as usual do) and next the create the Service Provider:&lt;/p&gt;
+&lt;p&gt;We are going to configure our Zendesk SAML Provider, we need two things: create the client in IdentityServer 4 (as usual do) and the Service Provider:&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddInMemoryClients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;()&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -128,7 +128,7 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter &lt;span class=&q
 
 &lt;p&gt;&lt;em&gt;Only for demo purpose we are going to store all information in memory, for production scenarios you should use a persistent store like a RDBMS or similar.&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;The &lt;strong&gt;ClientId&lt;/strong&gt; and &lt;strong&gt;EntityId&lt;/strong&gt; should be the same and must be the equal to the EntityId used by Zendesk, in this case https://&lt;yoursubdomain&gt;.zendesk.com. We need the public key of the Service Provider (*.cer file). Maybe you are wonder about the scopes and claims mapping, we'll see it below when we add the **IdentityResources**:&lt;/yoursubdomain&gt;&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;ClientId&lt;/strong&gt; and &lt;strong&gt;EntityId&lt;/strong&gt; should be the same and must be the equal to the EntityId used by Zendesk, in this case https://yoursubdomain.zendesk.com. We need the public key of the Service Provider (*.cer file). Maybe you are wonder about the scopes and claims mapping, we’ll see it below when we add the &lt;strong&gt;IdentityResources&lt;/strong&gt;:&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddInMemoryIdentityResources&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IdentityResource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -144,13 +144,13 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter &lt;span class=&q
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;As you can see we are adding a custom IdentityResource called “zendesk” with some user claims such us name, email and role because Zendesk need them:&lt;/p&gt;
+&lt;p&gt;We have added a custom IdentityResource called “zendesk” with some user claims such us name, email and role because Zendesk need them:&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;The only user data required by Support from your authentication system is the user’s name and email address.&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;Additionally we are adding the claim role because by default if we not set it by default is set to “end-user” and they can experience some problems when try to access to Zendesk. The user’s role can be set to “user”, “agent”, or “admin”.&lt;/p&gt;
+&lt;p&gt;Additionally we have added the claim role because by default if we not set it, by default is set to “end-user” and they can experience some problems when try to access to Zendesk portal. The user’s role can be set to “user”, “agent”, or “admin”.&lt;/p&gt;
 
-&lt;p&gt;It’s time to add our test users. If you are using &lt;a href=&quot;https://github.com/IdentityServer/IdentityServer4.Quickstart.UI&quot;&gt;IdentityServer 4 Quickstart&lt;/a&gt; inside the Quicktstart folder there is a class called &lt;strong&gt;TestUsers.cs&lt;/strong&gt;. We are going to add the claim role and set to “agent”:&lt;/p&gt;
+&lt;p&gt;It’s time to add our test users. If you are using &lt;a href=&quot;https://github.com/IdentityServer/IdentityServer4.Quickstart.UI&quot;&gt;IdentityServer 4 Quickstart&lt;/a&gt; inside the Quicktstart folder, there is a class called &lt;strong&gt;TestUsers.cs&lt;/strong&gt;. We are going to add the claim role and set to “agent”:&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TestUsers&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -194,11 +194,11 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter &lt;span class=&q
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;If you want to see our &lt;strong&gt;Startup.cs&lt;/strong&gt; class complete please visit this &lt;a href=&quot;https://github.com/lurumad/saml2pidsrv4zendesk/blob/master/Startup.cs&quot;&gt;link&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;If you want to see the &lt;strong&gt;Startup.cs&lt;/strong&gt; class complete please visit this &lt;a href=&quot;https://github.com/lurumad/saml2pidsrv4zendesk/blob/master/Startup.cs&quot;&gt;link&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h1 id=&quot;zendesk-as-a-saml-20-service-provider&quot;&gt;Zendesk as a SAML 2.0 Service Provider&lt;/h1&gt;
 
-&lt;p&gt;We are going to configure Zendesk as a SAML 2.0 Service Provider. I recommend you to read &lt;a href=&quot;https://support.zendesk.com/hc/en-us/articles/203663676&quot;&gt;Enabling SAML single sign-on (Professional and Enterprise)&lt;/a&gt; article if you want to know more in depth.&lt;/p&gt;
+&lt;p&gt;It’s time to configure Zendesk as a SAML 2.0 Service Provider. I recommend you to read &lt;a href=&quot;https://support.zendesk.com/hc/en-us/articles/203663676&quot;&gt;Enabling SAML single sign-on (Professional and Enterprise)&lt;/a&gt; article if you want to know more in depth.&lt;/p&gt;
 
 &lt;p&gt;To enable SSO in Zendesk:&lt;/p&gt;
 

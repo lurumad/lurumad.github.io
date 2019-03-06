@@ -68,6 +68,8 @@
 
 <p>If you have developed HTTP APIs, I’m sure that many times you have had the need to define new error response formats for HTTP APIs to return to your clients. The most common way to do this is using <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">HTTP Status Codes</a> but sometimes is not sufficient to communicate enough information to the clients. For example, imagine a banking HTTP API that allows customers to make online transactions and this call returns Forbidden (403) response telling the client that the customer isn’t allowed to make this transaction, but why? Maybe the customer doesn’t have enough credit? or he has a maximum limit of money to transfer?</p>
 
+<!--more-->
+
 <p>To provide additional information to our clients we would need to extend the response body with some kind of document (JSON or XML). The problem I’ve seen in many HTTP APIs is that usually these documents are not the same. It’s very frustating for a client that consumes many HTTP APIs because there isn’t a standard way to deal with these errors and it would need to implement different ways to work with them.</p>
 
 <p>Due to the need to standarize an error response format for HTTP APIs, the <a href="https://tools.ietf.org/">Internet Engineering Task Force (IETF)</a> published in March 2016 a <a href="https://tools.ietf.org/html/rfc7807">document</a> that defines a “problem details” as a way to carry machine-readable details of errors in a HTTP response to avoid the need to define new error response formats for HTTP APIs (Not reinvent the wheel).</p>

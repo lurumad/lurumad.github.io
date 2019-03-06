@@ -68,6 +68,8 @@
 
 <p><a href="http://docs.identityserver.io/en/latest/">IdentityServer</a> 4 is an <a href="https://openid.net/connect/">OpenID Connect</a> and <a href="https://oauth.net/2/">OAuth 2.0</a> framework for ASP.NET 2.x. These two protocols are very widely used in the industry to support the best authentication flows for moderns applications. Sometimes, when you are building products you can enable customers to sign in using their own corporate network credentials (Google, Azure AD, ADFS…) without having to enter their password again (single sign-on) or to avoid create another username/password. This scenario is commonly called “Federation” and enable organizations to have fine-grain control over their users accounts. It’s much simpler to manage one login per user than it’s to manage separate logins for each application (Help Desk, CRM, ERP…), for example, in case of one user decides to leave the company, only deleting/blocking his account you are limiting the access to the all federate apps instead of going one by one removing/bloking his account.</p>
 
+<!--more-->
+
 <p>Last week, one of our customers asked to me if it could be possible to connect IdentityServer 4 with Zendesk in order to use their own users. Zendesk support a variety of <a href="https://support.zendesk.com/hc/en-us/articles/203663826-SSO-single-sign-on-options-in-Zendesk#topic_v5q_hnm_yj">SSO options</a>. In our scenario we need Enterprise single sign-on and Zenddesk supports two types:</p>
 
 <ul>

@@ -5,8 +5,8 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 06 Mar 2019 09:39:05 +0100</pubDate>
-    <lastBuildDate>Wed, 06 Mar 2019 09:39:05 +0100</lastBuildDate>
+    <pubDate>Wed, 06 Mar 2019 09:47:57 +0100</pubDate>
+    <lastBuildDate>Wed, 06 Mar 2019 09:47:57 +0100</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
     
       <item>
@@ -14,6 +14,8 @@
         <description>&lt;h1 id=&quot;a-brief-introduction-of-identityserver-4-and-saml-20&quot;&gt;A brief introduction of IdentityServer 4 and SAML 2.0&lt;/h1&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://docs.identityserver.io/en/latest/&quot;&gt;IdentityServer&lt;/a&gt; 4 is an &lt;a href=&quot;https://openid.net/connect/&quot;&gt;OpenID Connect&lt;/a&gt; and &lt;a href=&quot;https://oauth.net/2/&quot;&gt;OAuth 2.0&lt;/a&gt; framework for ASP.NET 2.x. These two protocols are very widely used in the industry to support the best authentication flows for moderns applications. Sometimes, when you are building products you can enable customers to sign in using their own corporate network credentials (Google, Azure AD, ADFS…) without having to enter their password again (single sign-on) or to avoid create another username/password. This scenario is commonly called “Federation” and enable organizations to have fine-grain control over their users accounts. It’s much simpler to manage one login per user than it’s to manage separate logins for each application (Help Desk, CRM, ERP…), for example, in case of one user decides to leave the company, only deleting/blocking his account you are limiting the access to the all federate apps instead of going one by one removing/bloking his account.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;p&gt;Last week, one of our customers asked to me if it could be possible to connect IdentityServer 4 with Zendesk in order to use their own users. Zendesk support a variety of &lt;a href=&quot;https://support.zendesk.com/hc/en-us/articles/203663826-SSO-single-sign-on-options-in-Zendesk#topic_v5q_hnm_yj&quot;&gt;SSO options&lt;/a&gt;. In our scenario we need Enterprise single sign-on and Zenddesk supports two types:&lt;/p&gt;
 
@@ -255,6 +257,8 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter &lt;span class=&q
         <description>&lt;h1 id=&quot;a-brief-introduction-of-problem-details&quot;&gt;A brief introduction of Problem details&lt;/h1&gt;
 
 &lt;p&gt;If you have developed HTTP APIs, I’m sure that many times you have had the need to define new error response formats for HTTP APIs to return to your clients. The most common way to do this is using &lt;a href=&quot;https://en.wikipedia.org/wiki/List_of_HTTP_status_codes&quot;&gt;HTTP Status Codes&lt;/a&gt; but sometimes is not sufficient to communicate enough information to the clients. For example, imagine a banking HTTP API that allows customers to make online transactions and this call returns Forbidden (403) response telling the client that the customer isn’t allowed to make this transaction, but why? Maybe the customer doesn’t have enough credit? or he has a maximum limit of money to transfer?&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;p&gt;To provide additional information to our clients we would need to extend the response body with some kind of document (JSON or XML). The problem I’ve seen in many HTTP APIs is that usually these documents are not the same. It’s very frustating for a client that consumes many HTTP APIs because there isn’t a standard way to deal with these errors and it would need to implement different ways to work with them.&lt;/p&gt;
 

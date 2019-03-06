@@ -54,7 +54,7 @@
         <article class="post-full inner">
             <header class="post-header">
                 <div class="post-meta">
-                    <time class="post-date" datetime="2019-03-05">March 5,
+                    <time class="post-date" datetime="2019-03-06">March 6,
                         2019</time>
                 </div><!-- .post-meta -->
                 <h1 class="posttitle">Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider</h1>
@@ -66,9 +66,9 @@
             <div class="post-content">
                 <h1 id="a-brief-introduction-of-identityserver-4-and-saml-20">A brief introduction of IdentityServer 4 and SAML 2.0</h1>
 
-<p><a href="http://docs.identityserver.io/en/latest/">IdentityServer</a> 4 is an <a href="https://openid.net/connect/">OpenID Connect</a> and <a href="https://oauth.net/2/">OAuth 2.0</a> framework for ASP.NET 2.x. Actually, these two protocols are very widely used in the industry to support the best authentication flows for moderns applications. Sometimes, when you are building products you can enable customers to sign in using theirs own corporate network credentials (Google, Azure AD, ADFS…) without having to enter their passwords again (single sign-on) or to avoid create another username/password. This scenario is commonly called “Federation” and enable organizations to have fine-grain control over theirs users accounts. It’s much simpler to manage one login per user than it’s to manage separate logins for each application (Help Desk, CRM, ERP…), for example, in case of one user decides to leave the company, only deleting/blocking his account you are limiting the access to the all federate apps instead of going one by one removing/bloking his account.</p>
+<p><a href="http://docs.identityserver.io/en/latest/">IdentityServer</a> 4 is an <a href="https://openid.net/connect/">OpenID Connect</a> and <a href="https://oauth.net/2/">OAuth 2.0</a> framework for ASP.NET 2.x. These two protocols are very widely used in the industry to support the best authentication flows for moderns applications. Sometimes, when you are building products you can enable customers to sign in using their own corporate network credentials (Google, Azure AD, ADFS…) without having to enter their password again (single sign-on) or to avoid create another username/password. This scenario is commonly called “Federation” and enable organizations to have fine-grain control over their users accounts. It’s much simpler to manage one login per user than it’s to manage separate logins for each application (Help Desk, CRM, ERP…), for example, in case of one user decides to leave the company, only deleting/blocking his account you are limiting the access to the all federate apps instead of going one by one removing/bloking his account.</p>
 
-<p>Last week, one of our customers asked to me if it could be possible to connect IdentityServer 4 with Zendesk in order to use theirs own users. Zendesk support a variety of <a href="https://support.zendesk.com/hc/en-us/articles/203663826-SSO-single-sign-on-options-in-Zendesk#topic_v5q_hnm_yj">SSO options</a>. In our scenario we need Enterprise single sign-on and Zenddesk support two types:</p>
+<p>Last week, one of our customers asked to me if it could be possible to connect IdentityServer 4 with Zendesk in order to use their own users. Zendesk support a variety of <a href="https://support.zendesk.com/hc/en-us/articles/203663826-SSO-single-sign-on-options-in-Zendesk#topic_v5q_hnm_yj">SSO options</a>. In our scenario we need Enterprise single sign-on and Zenddesk supports two types:</p>
 
 <ul>
   <li>JSON Web Token</li>
@@ -135,7 +135,7 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
 
 <p>Save the Thumbprint because you’ll need it when we configure our Zendesk SSO.</p>
 
-<p><em>AddSamlPlugin</em> add the necessary services to start receiving SAML Requests and sending SAML Responses. You have to introduce your licensee and your license key, as I told you before you can request a trial of the component.</p>
+<p><em>AddSamlPlugin</em> adds the necessary services to start receiving SAML Requests and sending SAML Responses. You have to introduce your licensee and your license key, as I told you before you can request a trial of the component.</p>
 
 <p>Finally, we can Configure the pipeline.</p>
 
@@ -144,7 +144,7 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
 </code></pre>
 </div>
 
-<p>If we run our application we should access to the SAML metadata endpoint visiting <strong>https://localhost:port/saml/metadata</strong></p>
+<p>If we run our application we access to the SAML metadata endpoint visiting <strong>https://localhost:port/saml/metadata</strong></p>
 
 <p><img src="./assets/images/posts/2019/saml2-3.jpg" alt="SAML 2.0" /></p>
 
@@ -201,7 +201,7 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
 
 <p><em>The only user data required by Support from your authentication system is the user’s name and email address.</em></p>
 
-<p>Additionally we have added the claim role because by default if we not set it, by default is set to “end-user” and they can experience some problems when try to access to Zendesk portal. The user’s role can be set to “user”, “agent”, or “admin”.</p>
+<p>Additionally we have added the claim role because by default if we don’t set it, by default is set to “end-user” and they can experience some problems when access to Zendesk portal. The user’s role can be set to “user”, “agent”, or “admin”.</p>
 
 <p>It’s time to add our test users. If you are using <a href="https://github.com/IdentityServer/IdentityServer4.Quickstart.UI">IdentityServer 4 Quickstart</a> inside the Quicktstart folder, there is a class called <strong>TestUsers.cs</strong>. We are going to add the claim role and set to “agent”:</p>
 
@@ -271,7 +271,7 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
 
 <p><img src="./assets/images/posts/2019/saml2-7.jpg" alt="SAML 2.0" /></p>
 
-<p><em>For the Certificate fingerprint</em> field you should used the thumbprint of the certificate that we created in the previous steps*</p>
+<p><em>For the Certificate fingerprint</em> field you should use the thumbprint of the certificate that we created in the previous steps*</p>
 
 <p>It’s time to test it! Let me show you:</p>
 
@@ -464,7 +464,7 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
         <li>
             <div class="post-header">
                 <div class="post-meta">
-                    <time class="published" datetime="??">March 5, 2019</time>
+                    <time class="published" datetime="??">March 6, 2019</time>
                 </div>
                 <div class="post-title">
                     <a href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider</a>

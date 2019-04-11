@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <!-- Page Info -->
-    <title>Continous delivery to Azure API Management using Azure DevOps pipelines | Luru</title>
+    <title>Integration Tests in ASP.NET Core SignalR | Luru</title>
     
     <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
     
@@ -54,162 +54,136 @@
         <article class="post-full inner">
             <header class="post-header">
                 <div class="post-meta">
-                    <time class="post-date" datetime="2019-01-08">January 8,
+                    <time class="post-date" datetime="2019-04-02">April 2,
                         2019</time>
                 </div><!-- .post-meta -->
-                <h1 class="posttitle">Continous delivery to Azure API Management using Azure DevOps pipelines</h1>
+                <h1 class="posttitle">Integration Tests in ASP.NET Core SignalR</h1>
             </header><!-- .post-header -->
             
-            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/cd.jpg"
-                    alt="Continous delivery to Azure API Management using Azure DevOps pipelines"></div>
+            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/agreement-arms-business-1081228.jpg"
+                    alt="Integration Tests in ASP.NET Core SignalR"></div>
             
             <div class="post-content">
-                <p>A while ago, one of our customers, a spanish insurance company, contact us with one ambitous project: Expose many of their internal APIs to their ISV ecosystem using <a href="https://azure.microsoft.com/en-us/services/api-management/">Azure API Management</a>. So, we accepted the challengue and we began to work together to achieve the objective.</p>
+                <p><a href="https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks">AspNetCore.Diagnostics.HealthChecks</a> is a powerfull liveness and readiness library built on top of ASP.NET Core Diagnostics. Last week I decided to create a new health check for <a href="https://www.nuget.org/packages/AspNetCore.HealthChecks.SignalR/">ASP.NET Core SignalR</a> in order to check if your hubs are healthy or not. We usually added unit/integration tests to all projects to ensure the quality of them, and <a href="https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks">AspNetCore.Diagnostics.HealthChecks</a> has a lot of as you can see in this <a href="https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks/tree/master/test/FunctionalTests">link</a>. As you know, ASP.NET Core provides an <a href="https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-2.2">in-memory web test server</a> that we can use in our integration test projects serving test requests without the need of real web host (Internet Information Server, nginx, etc.). My idea was to use this approach to test my SignalR Core health check, so I decided to create a PoC.</p>
 
 <!--more-->
 
-<p>Actually, we have three environments in Azure API Management, Dev &amp; Pre (Developer tier) and Pro (Premium tier). We choosen Developer and Premium tiers because we need Virtual Network support (One of the most annoing thing about pricing details in apim is why Basic and Standard doesn’t have support for Virtual Network). Our customer have more than 90 apis ready to expose through Azure API Management and you will thinking about how we are going to publish this APIs, because <strong>3 environments * 90 APIs = 180 APIs</strong> to deploy in apim. So if we have deploy manually this APIs we could have several problems like time-consuming and error prone. So we need to automate this process.</p>
+<h1 id="setting-up-the-test-project">Setting up the test project</h1>
 
-<p>All source code of theses APIs is managed by <a href="https://azure.microsoft.com/en-us/services/devops/">Azure DevOps</a> through several team projects. So our first thought was to create a set of powershell scripts to automate this process, because if you know or not Azure API Management like other services in Azure provides a REST API for performing operations on selected entities, such us apis, products, users, groups… but this approach has severral cons:</p>
+<p>First, we need to create a new xUnit Test project:</p>
 
-<ul>
-  <li>We don’t have an user interface, is a powershell script with many input parameters and things like choose in which azure subscription we want to deploy, which resource group, the name op the service… we want to specify through variables.</li>
-  <li>We can publish these scripts as a build artifacts but we can’t share between team projects so we have to store in some place accesible from Azure DevOps.</li>
-  <li>We can version the scripts but we don’t have feedback about which things have been changed (Rename parameters, remove, update)</li>
-</ul>
+<p><img src="./assets/images/posts/2019/signalrintegrationtests3.png" alt="SignalR Integration Tests" /></p>
 
-<p>So for these reasons we decided to create an Azure DevOps custom tasks for this purpose. But after that we decided to search in the Azure DevOps marketplace if there were some extension available and we found this <a href="https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim">API Management Suite</a>. A full suite of tasks to manage Azure Api Management from Azure DevOps developed by <a href="https://twitter.com/stephaneeyskens">Stephane Eyskens</a>. We have several tasks available:</p>
+<p>We’ll need to install some NuGet packages in our test project:</p>
 
-<ul>
-  <li>Create or update product.</li>
-  <li>Create or Update Api from OpenApi specificacion.</li>
-  <li>Create or Update Api from WSDL.</li>
-  <li>Create or Update versioned API.</li>
-  <li>Create or Update (versioned) API on Azure Functions</li>
-  <li>API security checker.</li>
-</ul>
+<pre><code class="language-txt">Install-Package Microsoft.AspNetCore.SignalR -Version 1.1.0
+Install-Package Microsoft.AspNetCore.SignalR.Client -Version 1.1.0
+Install-Package Microsoft.AspNetCore.TestHost -Version 2.2.0
+Install-Package FluentAssertions -Version 5.6.0
+</code></pre>
+<p>Next, we are going to add a Hub to the project:</p>
 
-<p>This extension is open source released in <a href="https://github.com/stephaneey/azure-apim-extension">Github</a> and I have been contributing with all requirements that our customer had. We look forward to your PR!</p>
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">EchoHub</span> <span class="p">:</span> <span class="n">Hub</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">Send</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">await</span> <span class="n">Clients</span>
+            <span class="p">.</span><span class="n">Caller</span>
+            <span class="p">.</span><span class="nf">SendAsync</span><span class="p">(</span><span class="s">"OnMessageRecieved"</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+<p>We are going to simulate an echo response, so we need to send to the caller the same message that we recieved.</p>
 
-<h1 id="publish-your-first-api-using-azure-devops">Publish your first API using Azure DevOps</h1>
+<p>I decided to move all the Startup code from ConfigureServices and Configure in order to make more clear the example. In a real world, you should leave this code in the Starup class:</p>
 
-<p>I’m going to show you how to create a new product (If you want to know more about products in Azure API Management, I recommend you the official documentation https://docs.microsoft.com/en-us/azure/api-management/api-management-key-concepts#a-nameproducts-a-products and how to publish a new API from an “OpenAPI specification” using a Release Pipeline and how to associate to the product.</p>
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">echo_hub_should</span>
+<span class="p">{</span>
+    <span class="p">[</span><span class="n">Fact</span><span class="p">]</span>
+    <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">reply_with_the_same_message_when_invoke_send_method</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">TestServer</span> <span class="n">server</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+        <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">"Integration Testing in Microsoft AspNetCore SignalR"</span><span class="p">;</span>
+        <span class="kt">var</span> <span class="n">echo</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span><span class="p">;</span>
+        <span class="kt">var</span> <span class="n">webHostBuilder</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">WebHostBuilder</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">services</span> <span class="p">=&gt;</span>
+            <span class="p">{</span>
+                <span class="n">services</span><span class="p">.</span><span class="nf">AddSignalR</span><span class="p">();</span>
+            <span class="p">})</span>
+            <span class="p">.</span><span class="nf">Configure</span><span class="p">(</span><span class="n">app</span> <span class="p">=&gt;</span>
+            <span class="p">{</span>
+                <span class="n">app</span><span class="p">.</span><span class="nf">UseSignalR</span><span class="p">(</span><span class="n">routes</span> <span class="p">=&gt;</span> <span class="n">routes</span><span class="p">.</span><span class="n">MapHub</span><span class="p">&lt;</span><span class="n">EchoHub</span><span class="p">&gt;(</span><span class="s">"/echo"</span><span class="p">));</span>
+            <span class="p">});</span>
 
-<h4 id="1-install-the-extension">1. Install the extension</h4>
+        <span class="n">server</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">TestServer</span><span class="p">(</span><span class="n">webHostBuilder</span><span class="p">);</span>
+        <span class="kt">var</span> <span class="n">connection</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HubConnectionBuilder</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">WithUrl</span><span class="p">(</span><span class="s">"http://localhost/echo"</span><span class="p">)</span>
+            <span class="p">.</span><span class="nf">Build</span><span class="p">();</span>
 
-<ul>
-  <li>Click on this <a href="https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim">link</a> to go to the Azure DevOps marketplace.</li>
-  <li>Click on “Get it free” button</li>
-</ul>
+        <span class="n">connection</span><span class="p">.</span><span class="n">On</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;(</span><span class="s">"OnMessageRecieved"</span><span class="p">,</span> <span class="n">msg</span> <span class="p">=&gt;</span>
+        <span class="p">{</span>
+            <span class="n">echo</span> <span class="p">=</span> <span class="n">msg</span><span class="p">;</span>
+        <span class="p">});</span>
 
-<p><img src="./assets/images/posts/2019/apim1.png" alt="Get if free" /></p>
+        <span class="k">await</span> <span class="n">connection</span><span class="p">.</span><span class="nf">StartAsync</span><span class="p">();</span>
+        <span class="k">await</span> <span class="n">connection</span><span class="p">.</span><span class="nf">InvokeAsync</span><span class="p">(</span><span class="s">"Send"</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>
 
-<ul>
-  <li>Select your organization and then click on “Install” button.</li>
-</ul>
+        <span class="n">echo</span><span class="p">.</span><span class="nf">Should</span><span class="p">().</span><span class="nf">Be</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+<p>In the test we are asserting that we are receving the same message as we sent.</p>
 
-<p><img src="./assets/images/posts/2019/apim2.png" alt="Install the extension" /></p>
+<p>If we run the test we should recieved an error as shown in the below image:</p>
 
-<ul>
-  <li>We have the suite ready to use in our Azure DevOps Pipelines. So we are going create a new Release Pipeline:</li>
-</ul>
+<p><img src="./assets/images/posts/2019/signalrintegrationtests.png" alt="SignalR Integration Tests" /></p>
 
-<p><img src="./assets/images/posts/2019/apim5.png" alt="New release pipeline" /></p>
+<p>So, appears that we can connect to our hub, but why are receiving this error if we have been configured all SignalR stuff in the right way in the WebHosBuilder?</p>
 
-<p>Select an <strong>Empty job</strong>:</p>
+<p>The answer is that <strong>TestServer</strong> requires <strong>HubConnectionBuilder</strong> to use the <strong>HttpMessageHandler</strong> created by it in order to be able to call our Hub(s). To provide the <strong>HttpMessageHandler</strong>, <strong>WithUrl</strong> method provides an oveload that accepts an Action<HttpConnectionOptions> configureHttpConnection as you can see in the code below;</HttpConnectionOptions></p>
 
-<p><img src="./assets/images/posts/2019/apim6.png" alt="Empty job" /></p>
+<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="n">server</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">TestServer</span><span class="p">(</span><span class="n">webHostBuilder</span><span class="p">);</span>
+<span class="kt">var</span> <span class="n">connection</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HubConnectionBuilder</span><span class="p">()</span>
+    <span class="p">.</span><span class="nf">WithUrl</span><span class="p">(</span>
+        <span class="s">"http://localhost/echo"</span><span class="p">,</span>
+        <span class="n">o</span> <span class="p">=&gt;</span> <span class="n">o</span><span class="p">.</span><span class="n">HttpMessageHandlerFactory</span> <span class="p">=</span> <span class="n">_</span> <span class="p">=&gt;</span> <span class="n">server</span><span class="p">.</span><span class="nf">CreateHandler</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">Build</span><span class="p">();</span>
+</code></pre>
+</div>
 
-<p>Change the name of the stage whatever you want, in my case <strong>Development</strong></p>
+<p>If we run our test again, we should see the green:</p>
 
-<p><img src="./assets/images/posts/2019/apim7.png" alt="Change stage name" /></p>
+<p><img src="./assets/images/posts/2019/signalrintegrationtests2.png" alt="SignalR Integration Tests" /></p>
 
-<p>Click on the <strong>Development</strong> stage tasks:</p>
-
-<p><img src="./assets/images/posts/2019/apim8.png" alt="View stage tasks" /></p>
-
-<p>Add APIM DevOps tasks to the pipeline:</p>
-
-<p><img src="./assets/images/posts/2019/apim9.png" alt="Add tasks" />
-<img src="./assets/images/posts/2019/apim10.png" alt="Add product" />
-<img src="./assets/images/posts/2019/apim11.png" alt="Add api" /></p>
-
-<p>Out pipeline should be like this:</p>
-
-<p><img src="./assets/images/posts/2019/apim12.png" alt="Pipeline" /></p>
-
-<p>Click on the <strong>Create/Update product</strong> task in order the configure the required properties:</p>
-
-<p><img src="./assets/images/posts/2019/apim13.png" alt="Configure product task" /></p>
-
-<p>Click on the <strong>Create/Update API</strong> task in order the configure the required properties:</p>
-
-<p><img src="./assets/images/posts/2019/apim14.png" alt="Configure api task" /></p>
-
-<p>You can associate to the API the product created by previous task/s (You can add more than one product task and API task can be associated with all of them) and you can reduce error prone.</p>
-
-<p>Once the pipeline is configured, we can can create a new Release:</p>
-
-<p><img src="./assets/images/posts/2019/apim15.png" alt="Create a release" /></p>
-
-<p><img src="./assets/images/posts/2019/apim16.png" alt="Create a release 2" /></p>
-
-<p>And if you have followed all these steps you should be something like this:</p>
-
-<p><img src="./assets/images/posts/2019/apim17.png" alt="Deploy logs" /></p>
-
-<p>Navigate to the <a href="https://portal.azure.com">Azure Portal</a> and open your API Management resource, you should see the new API and it should be associated with the <strong>Blog</strong> product:</p>
-
-<p><img src="./assets/images/posts/2019/apim18.png" alt="Azure Portal" /></p>
-
-<p>Also, you can configure products and API’s policies using these tasks. You can choose a starting policy template and modify as you want. The list of templates availables are:</p>
-
-<ul>
-  <li>None(Default): Choose if you want to override your policies in API Management.</li>
-  <li>Custom</li>
-  <li>Basic</li>
-  <li>JWT</li>
-  <li>IP</li>
-  <li>Rate and Quota</li>
-  <li>Rate by key</li>
-  <li>Quota by key</li>
-</ul>
-
-<p>For example, imagine that you can restrict the product by IP. Select the IP template and fill the required information:</p>
-
-<p><img src="./assets/images/posts/2019/apim19.png" alt="Policies" /></p>
+<p>From now, you can test your Hub as I did with my <a href="https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks/blob/master/test/FunctionalTests/HealthChecks.SignalR/SignalRHealthCheckTests.cs">Health Check</a></p>
 
 <h1 id="conclusion">Conclusion</h1>
 
-<p>The purpose of the post is give you a brief introduction of how you can automate Azure API Management tasks from Azure DevOps using a suite of open source tasks, so from this moment you can go deeper more and of course collaborate adding more functionallity or new features.</p>
+<p>In this post I’ve tried to show you how to make integration tests with AspNetCore SignalR.</p>
 
-<h1 id="links">Links</h1>
-
-<ul>
-  <li><a href="https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim">API Management Suite</a></li>
-  <li><a href="https://github.com/stephaneey/azure-apim-extension">Github</a></li>
-</ul>
 
             </div>
             <footer class="post-footer">
                 
                 <p class="post-tags">
                      
-                    <a href='tag/azure/'>Azure</a>
+                    <a href='tag/tests/'>tests</a>
                     
                      
-                    <a href='tag/devops/'>DevOps</a>
+                    <a href='tag/aspnetcore/'>aspnetcore</a>
                     
                      
-                    <a href='tag/apim/'>apim</a>
+                    <a href='tag/signalr/'>signalr</a>
                     
                     
                 </p>
                 
                 <div class="post-share">
                     <span class="post-share-title">Share:</span>
-                    <a target="_blank" href="https://twitter.com/share?text=Continous+delivery+to+Azure+API+Management+using+Azure+DevOps+pipelines&amp;url=https://lurumad.github.io/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">Twitter</a>
-                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">Facebook</a>
+                    <a target="_blank" href="https://twitter.com/share?text=Integration+Tests+in+ASP.NET+Core+SignalR&amp;url=https://lurumad.github.io/integration-tests-in-aspnet-core-signalr">Twitter</a>
+                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/integration-tests-in-aspnet-core-signalr">Facebook</a>
                 </div><!-- .share-post -->
             </footer>
             <div class="author-box">
@@ -254,65 +228,34 @@
             <article class="post">
                 <header class="post-header">
                     <div class="post-meta">
-                        <time class="published" datetime="January 1, 2019">January 1, 2019</time>
+                        <time class="published" datetime="March 6, 2019">March 6, 2019</time>
                     </div>
-                    <h3 class="post-title"><a href="/starting-a-blog-for-my-future-self">Starting a blog for my future self</a></h3>
+                    <h3 class="post-title"><a href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider</a></h3>
                     <p class="post-tags">
                         
                         
                         
-                        <a href='/tag/career/'>Career</a>
+                        <a href='/tag/saml/'>Saml</a>
                         
                         
                         
-                        <a href='/tag/blog/'>Blog</a>
+                        <a href='/tag/oidc/'>Oidc</a>
                         
                         
                         
-                        <a href='/tag/self/'>Self</a>
+                        <a href='/tag/identityserver/'>Identityserver</a>
                         
                         
                         
                     </p>
                 </header>
                 
-                <a href="/starting-a-blog-for-my-future-self" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/7_thumbnail.jpg" alt="Starting a blog for my future self" />
+                <a href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider" class="post-thumbnail">
+                    <img src="assets/images/posts/2019/agreement-arms-business-1081228_thumbnail.jpg" alt="Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider" />
                 </a>
                 
             </article>
             
-            
-            <article class="post">
-                <header class="post-header">
-                    <div class="post-meta">
-                        <time class="published" datetime="January 13, 2019">January 13, 2019</time>
-                    </div>
-                    <h3 class="post-title"><a href="/set-output-variables-in-azuredevops-pipelines-tasks">Set output variables in Azure DevOps pipelines tasks</a></h3>
-                    <p class="post-tags">
-                        
-                        
-                        
-                        <a href='/tag/azure/'>Azure</a>
-                        
-                        
-                        
-                        <a href='/tag/devops/'>Devops</a>
-                        
-                        
-                        
-                        <a href='/tag/pipelines/'>Pipelines</a>
-                        
-                        
-                        
-                    </p>
-                </header>
-                
-                <a href="/set-output-variables-in-azuredevops-pipelines-tasks" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/input-cable_thumbnail.jpg" alt="Set output variables in Azure DevOps pipelines tasks" />
-                </a>
-                
-            </article>
             
         </section><!-- .read-next -->
     </main><!-- .site-main -->

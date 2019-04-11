@@ -5,8 +5,8 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 11 Apr 2019 08:31:35 +0200</pubDate>
-    <lastBuildDate>Thu, 11 Apr 2019 08:31:35 +0200</lastBuildDate>
+    <pubDate>Thu, 11 Apr 2019 08:34:10 +0200</pubDate>
+    <lastBuildDate>Thu, 11 Apr 2019 08:34:10 +0200</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
     
       <item>
@@ -87,9 +87,9 @@ Install-Package FluentAssertions -Version 5.6.0
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/signalrintegrationtests.png&quot; alt=&quot;SignalR Integration Tests&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;So, appears that we can connect to our hub, but why are receiving this error if we have been configured all SignalR stuff in the right way in the WebHosBuilder?&lt;/p&gt;
+&lt;p&gt;Apparently we can connect to our hub, but why are receiving this error if we have been configured AspNetCore SignalR in the right way in the &lt;strong&gt;WebHosBuilder&lt;/strong&gt;?&lt;/p&gt;
 
-&lt;p&gt;The answer is that &lt;strong&gt;TestServer&lt;/strong&gt; requires &lt;strong&gt;HubConnectionBuilder&lt;/strong&gt; to use the &lt;strong&gt;HttpMessageHandler&lt;/strong&gt; created by it in order to be able to call our Hub(s). To provide the &lt;strong&gt;HttpMessageHandler&lt;/strong&gt;, &lt;strong&gt;WithUrl&lt;/strong&gt; method provides an oveload that accepts an Action&lt;HttpConnectionOptions&gt; configureHttpConnection as you can see in the code below;&lt;/HttpConnectionOptions&gt;&lt;/p&gt;
+&lt;p&gt;The answer is that &lt;strong&gt;TestServer&lt;/strong&gt; requires &lt;strong&gt;HubConnectionBuilder&lt;/strong&gt; to use the &lt;strong&gt;HttpMessageHandler&lt;/strong&gt; created by it in order to be able to call our Hub(s). To provide the &lt;strong&gt;HttpMessageHandler&lt;/strong&gt;, &lt;strong&gt;WithUrl()&lt;/strong&gt; method provides an oveload that accepts an Action«HttpConnectionOptions» configureHttpConnection as you can see in the code below;&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TestServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;webHostBuilder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
 &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;connection&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;HubConnectionBuilder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;

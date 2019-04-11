@@ -140,9 +140,9 @@ Install-Package FluentAssertions -Version 5.6.0
 
 <p><img src="./assets/images/posts/2019/signalrintegrationtests.png" alt="SignalR Integration Tests" /></p>
 
-<p>So, appears that we can connect to our hub, but why are receiving this error if we have been configured all SignalR stuff in the right way in the WebHosBuilder?</p>
+<p>Apparently we can connect to our hub, but why are receiving this error if we have been configured AspNetCore SignalR in the right way in the <strong>WebHosBuilder</strong>?</p>
 
-<p>The answer is that <strong>TestServer</strong> requires <strong>HubConnectionBuilder</strong> to use the <strong>HttpMessageHandler</strong> created by it in order to be able to call our Hub(s). To provide the <strong>HttpMessageHandler</strong>, <strong>WithUrl</strong> method provides an oveload that accepts an Action<HttpConnectionOptions> configureHttpConnection as you can see in the code below;</HttpConnectionOptions></p>
+<p>The answer is that <strong>TestServer</strong> requires <strong>HubConnectionBuilder</strong> to use the <strong>HttpMessageHandler</strong> created by it in order to be able to call our Hub(s). To provide the <strong>HttpMessageHandler</strong>, <strong>WithUrl()</strong> method provides an oveload that accepts an Action«HttpConnectionOptions» configureHttpConnection as you can see in the code below;</p>
 
 <div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="n">server</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">TestServer</span><span class="p">(</span><span class="n">webHostBuilder</span><span class="p">);</span>
 <span class="kt">var</span> <span class="n">connection</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HubConnectionBuilder</span><span class="p">()</span>

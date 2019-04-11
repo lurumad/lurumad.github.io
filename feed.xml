@@ -5,8 +5,8 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 11 Apr 2019 08:28:22 +0200</pubDate>
-    <lastBuildDate>Thu, 11 Apr 2019 08:28:22 +0200</lastBuildDate>
+    <pubDate>Thu, 11 Apr 2019 08:30:17 +0200</pubDate>
+    <lastBuildDate>Thu, 11 Apr 2019 08:30:17 +0200</lastBuildDate>
     <generator>Jekyll v3.4.0</generator>
     
       <item>
@@ -43,7 +43,7 @@ Install-Package FluentAssertions -Version 5.6.0
 &lt;/div&gt;
 &lt;p&gt;We are going to simulate an echo response, so we need to send to the caller the same message that we recieved.&lt;/p&gt;
 
-&lt;p&gt;I decided to move all the Startup code from ConfigureServices and Configure in order to make more clear the example. In a real world, you should leave this code in the Starup class:&lt;/p&gt;
+&lt;p&gt;I decided to move all the &lt;strong&gt;Startup&lt;/strong&gt; code from &lt;strong&gt;ConfigureServices&lt;/strong&gt; and &lt;strong&gt;Configure&lt;/strong&gt; in order to make more clear the example. In a real world, you should leave this code in the Startup class:&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;echo_hub_should&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;

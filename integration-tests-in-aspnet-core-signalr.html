@@ -96,7 +96,7 @@ Install-Package FluentAssertions -Version 5.6.0
 </div>
 <p>We are going to simulate an echo response, so we need to send to the caller the same message that we recieved.</p>
 
-<p>I decided to move all the Startup code from ConfigureServices and Configure in order to make more clear the example. In a real world, you should leave this code in the Starup class:</p>
+<p>I decided to move all the <strong>Startup</strong> code from <strong>ConfigureServices</strong> and <strong>Configure</strong> in order to make more clear the example. In a real world, you should leave this code in the Startup class:</p>
 
 <div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">echo_hub_should</span>
 <span class="p">{</span>

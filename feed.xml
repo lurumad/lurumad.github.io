@@ -5,8 +5,8 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 29 Oct 2019 09:20:57 +0100</pubDate>
-    <lastBuildDate>Tue, 29 Oct 2019 09:20:57 +0100</lastBuildDate>
+    <pubDate>Tue, 29 Oct 2019 14:24:05 +0100</pubDate>
+    <lastBuildDate>Tue, 29 Oct 2019 14:24:05 +0100</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
     
       <item>
@@ -17,7 +17,7 @@
 
 &lt;!--more--&gt;
 
-&lt;p&gt;One of the coolest features of &lt;a href=&quot;https://github.com/jbogard/MediatR&quot;&gt;MediatR&lt;/a&gt; is the concept of Behaviors. Behaviors allows you to build a pipeline, very similar to middlewares in ASP.NET Core.&lt;/p&gt;
+&lt;p&gt;One of the coolest features of &lt;a href=&quot;https://github.com/jbogard/MediatR&quot;&gt;MediatR&lt;/a&gt; is the concept of &lt;a href=&quot;https://github.com/jbogard/MediatR/wiki/Behaviors&quot;&gt;Behaviors&lt;/a&gt;. Behaviors allows you to build a pipeline, very similar to middlewares in ASP.NET Core.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/pipeline.png&quot; alt=&quot;MediatR pipeline&quot; /&gt;&lt;/p&gt;
 
@@ -158,6 +158,20 @@
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 &lt;p&gt;We are using two marker interfaces for our queries &lt;code class=&quot;highlighter-rouge&quot;&gt;ICacheableRequest&amp;lt;TResponse&amp;gt;&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;ICacheInvalidationRequest&lt;/code&gt; (Kudos to my partner &lt;a href=&quot;https://twitter.com/syncawait&quot;&gt;Marco&lt;/a&gt; for improve this behavior) in order to check if we have to cache the response or invalidate it.&lt;/p&gt;
+
+&lt;p&gt;We have to register in our dependency injection container. Below you can see an example of the registration using &lt;a href=&quot;https://github.com/khellang/Scrutor&quot;&gt;Scrutor&lt;/a&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IServiceCollection&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;AddCustomMediatR&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IServiceCollection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;services&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;services&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Scan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scan&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scan&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;FromAssembliesOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LoggerPipelineBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;,&amp;gt;))&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddClasses&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;@class&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;@class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AssignableTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IValidator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&amp;gt;)))&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AsImplementedInterfaces&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddMediatR&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LoggerPipelineBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;,&amp;gt;))&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddTransient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IPipelineBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;,&amp;gt;),&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LoggerPipelineBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;,&amp;gt;))&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddTransient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IPipelineBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;,&amp;gt;),&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ValidatorPipelineBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;,&amp;gt;))&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddTransient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IPipelineBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;,&amp;gt;),&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CachePipelineBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;,&amp;gt;))&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddTransient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IPipelineBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;,&amp;gt;),&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UnitOfWorkPipelineBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;,&amp;gt;));&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
 

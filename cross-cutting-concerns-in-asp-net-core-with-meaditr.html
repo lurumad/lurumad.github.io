@@ -70,7 +70,7 @@
 
 <!--more-->
 
-<p>One of the coolest features of <a href="https://github.com/jbogard/MediatR">MediatR</a> is the concept of Behaviors. Behaviors allows you to build a pipeline, very similar to middlewares in ASP.NET Core.</p>
+<p>One of the coolest features of <a href="https://github.com/jbogard/MediatR">MediatR</a> is the concept of <a href="https://github.com/jbogard/MediatR/wiki/Behaviors">Behaviors</a>. Behaviors allows you to build a pipeline, very similar to middlewares in ASP.NET Core.</p>
 
 <p><img src="./assets/images/posts/2019/pipeline.png" alt="MediatR pipeline" /></p>
 
@@ -211,6 +211,20 @@
 <span class="p">}</span>
 </code></pre></div></div>
 <p>We are using two marker interfaces for our queries <code class="highlighter-rouge">ICacheableRequest&lt;TResponse&gt;</code> and <code class="highlighter-rouge">ICacheInvalidationRequest</code> (Kudos to my partner <a href="https://twitter.com/syncawait">Marco</a> for improve this behavior) in order to check if we have to cache the response or invalidate it.</p>
+
+<p>We have to register in our dependency injection container. Below you can see an example of the registration using <a href="https://github.com/khellang/Scrutor">Scrutor</a>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">static</span> <span class="n">IServiceCollection</span> <span class="nf">AddCustomMediatR</span><span class="p">(</span><span class="k">this</span> <span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span> <span class="p">=&gt;</span>
+    <span class="n">services</span><span class="p">.</span><span class="nf">Scan</span><span class="p">(</span><span class="n">scan</span> <span class="p">=&gt;</span> <span class="n">scan</span>
+            <span class="p">.</span><span class="nf">FromAssembliesOf</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">LoggerPipelineBehavior</span><span class="p">&lt;,&gt;))</span>
+            <span class="p">.</span><span class="nf">AddClasses</span><span class="p">(</span><span class="n">@class</span> <span class="p">=&gt;</span> <span class="n">@class</span><span class="p">.</span><span class="nf">AssignableTo</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">IValidator</span><span class="p">&lt;&gt;)))</span>
+            <span class="p">.</span><span class="nf">AsImplementedInterfaces</span><span class="p">())</span>
+        <span class="p">.</span><span class="nf">AddMediatR</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">LoggerPipelineBehavior</span><span class="p">&lt;,&gt;))</span>
+        <span class="p">.</span><span class="nf">AddTransient</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">IPipelineBehavior</span><span class="p">&lt;,&gt;),</span> <span class="k">typeof</span><span class="p">(</span><span class="n">LoggerPipelineBehavior</span><span class="p">&lt;,&gt;))</span>
+        <span class="p">.</span><span class="nf">AddTransient</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">IPipelineBehavior</span><span class="p">&lt;,&gt;),</span> <span class="k">typeof</span><span class="p">(</span><span class="n">ValidatorPipelineBehavior</span><span class="p">&lt;,&gt;))</span>
+        <span class="p">.</span><span class="nf">AddTransient</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">IPipelineBehavior</span><span class="p">&lt;,&gt;),</span> <span class="k">typeof</span><span class="p">(</span><span class="n">CachePipelineBehavior</span><span class="p">&lt;,&gt;))</span>
+        <span class="p">.</span><span class="nf">AddTransient</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">IPipelineBehavior</span><span class="p">&lt;,&gt;),</span> <span class="k">typeof</span><span class="p">(</span><span class="n">UnitOfWorkPipelineBehavior</span><span class="p">&lt;,&gt;));</span>
+</code></pre></div></div>
 
 <h1 id="conclusion">Conclusion</h1>
 

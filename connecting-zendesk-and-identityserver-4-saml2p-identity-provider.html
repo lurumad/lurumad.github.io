@@ -107,7 +107,7 @@
 
 <p>Once we have installed <strong>Rsk.IdentityServer4.Saml</strong> NuGet package, we need to configure it. In your <strong>ConfigureServices</strong> method, you call to IdentityServer 4:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="n">services</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">services</span>
     <span class="p">.</span><span class="nf">AddMvc</span><span class="p">()</span>
     <span class="p">.</span><span class="n">Services</span>
     <span class="p">.</span><span class="nf">AddMemoryCache</span><span class="p">()</span>
@@ -120,17 +120,15 @@
         <span class="n">options</span><span class="p">.</span><span class="n">LicenseKey</span> <span class="p">=</span> <span class="s">"&lt;your license key&gt;"</span>
         <span class="n">options</span><span class="p">.</span><span class="n">WantAuthenticationRequestsSigned</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
     <span class="p">})</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><strong>NOTE</strong> You can’t use <em>AddTemporarySigningCredential</em>. The pluging needs a full X509 certificate. If you are developing or testing the component, you can create your own self signed certificate using makecert, OpenSSL, or PowerShell:</p>
 
-<div class="language-powershell highlighter-rouge"><pre class="highlight"><code><span class="nv">$todaydt</span> <span class="o">=</span> <span class="nb">Get-Date</span>
-<span class="nv">$3years</span> <span class="o">=</span> <span class="nv">$todaydt</span>.AddYears<span class="o">(</span>3<span class="o">)</span>
-<span class="nv">$CertPassword</span> <span class="o">=</span> <span class="nb">ConvertTo-SecureString</span> -String <span class="s2">"mypassword"</span> -Force –AsPlainText
-New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">$3years</span> -CertStoreLocation cert:<span class="se">\L</span>ocalMachine<span class="se">\M</span>y -KeyUsage DigitalSignature
-</code></pre>
-</div>
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$todaydt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">Get-Date</span><span class="w">
+</span><span class="nv">$3years</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">$todaydt</span><span class="o">.</span><span class="nf">AddYears</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w">
+</span><span class="nv">$CertPassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">ConvertTo-SecureString</span><span class="w"> </span><span class="nt">-String</span><span class="w"> </span><span class="s2">"mypassword"</span><span class="w"> </span><span class="nt">-Force</span><span class="w"> </span><span class="err">–</span><span class="nx">AsPlainText</span><span class="w">
+</span><span class="nf">New-SelfSignedCertificate</span><span class="w"> </span><span class="nt">-dnsname</span><span class="w"> </span><span class="nx">saml.zenddesk.com</span><span class="w"> </span><span class="nt">-notafter</span><span class="w"> </span><span class="nv">$3years</span><span class="w"> </span><span class="nt">-CertStoreLocation</span><span class="w"> </span><span class="nx">cert:\LocalMachine\My</span><span class="w"> </span><span class="nt">-KeyUsage</span><span class="w"> </span><span class="nx">DigitalSignature</span><span class="w">
+</span></code></pre></div></div>
 <p>You should see the following output:</p>
 
 <p><img src="./assets/images/posts/2019/saml2-2.jpg" alt="SAML 2.0" /></p>
@@ -141,10 +139,9 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
 
 <p>Finally, we can Configure the pipeline.</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">UseIdentityServer</span><span class="p">()</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">UseIdentityServer</span><span class="p">()</span>
    <span class="p">.</span><span class="nf">UseIdentityServerSamlPlugin</span><span class="p">();</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>If we run our application we access to the SAML metadata endpoint visiting <strong>https://localhost:port/saml/metadata</strong></p>
 
@@ -152,7 +149,7 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
 
 <p>We are going to configure our Zendesk SAML Provider, we need two things: create the client in IdentityServer 4 (as usual do) and the Service Provider:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="p">.</span><span class="nf">AddInMemoryClients</span><span class="p">(</span><span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Client</span><span class="p">&gt;()</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">.</span><span class="nf">AddInMemoryClients</span><span class="p">(</span><span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Client</span><span class="p">&gt;()</span>
 <span class="p">{</span>
     <span class="k">new</span> <span class="n">Client</span> <span class="p">{</span>
             <span class="n">ClientId</span> <span class="p">=</span> <span class="s">"https://&lt;yoursubdomain&gt;.zendesk.com"</span><span class="p">,</span>
@@ -178,14 +175,13 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">})</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><em>Only for demo purpose we are going to store all information in memory, for production scenarios you should use a persistent store like a RDBMS or similar.</em></p>
 
 <p>The <strong>ClientId</strong> and <strong>EntityId</strong> should be the same and must be the equal to the EntityId used by Zendesk, in this case https://yoursubdomain.zendesk.com. We need the public key of the Service Provider (*.cer file). Maybe you are wonder about the scopes and claims mapping, we’ll see it below when we add the <strong>IdentityResources</strong>:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="p">.</span><span class="nf">AddInMemoryIdentityResources</span><span class="p">(</span><span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">IdentityResource</span><span class="p">&gt;</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">.</span><span class="nf">AddInMemoryIdentityResources</span><span class="p">(</span><span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">IdentityResource</span><span class="p">&gt;</span>
 <span class="p">{</span>
     <span class="k">new</span> <span class="n">IdentityResources</span><span class="p">.</span><span class="nf">OpenId</span><span class="p">(),</span>
     <span class="k">new</span> <span class="n">IdentityResources</span><span class="p">.</span><span class="nf">Profile</span><span class="p">(),</span>
@@ -196,8 +192,7 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
         <span class="n">UserClaims</span> <span class="p">=</span> <span class="p">{</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Email</span><span class="p">,</span> <span class="n">JwtClaimTypes</span><span class="p">.</span><span class="n">Role</span> <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">})</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>We have added a custom IdentityResource called “zendesk” with some user claims such us name, email and role because Zendesk need them:</p>
 
@@ -207,7 +202,7 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
 
 <p>It’s time to add our test users. If you are using <a href="https://github.com/IdentityServer/IdentityServer4.Quickstart.UI">IdentityServer 4 Quickstart</a> inside the Quicktstart folder, there is a class called <strong>TestUsers.cs</strong>. We are going to add the claim role and set to “agent”:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">TestUsers</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">TestUsers</span>
 <span class="p">{</span>
     <span class="k">public</span> <span class="k">static</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">TestUser</span><span class="p">&gt;</span> <span class="n">Users</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">TestUser</span><span class="p">&gt;</span>
     <span class="p">{</span>
@@ -240,14 +235,12 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
         <span class="p">}</span>
     <span class="p">};</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>After this, we need to add these test users to IdentityServer 4 in our <strong>ConfigureServices</strong> method:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="p">.</span><span class="nf">AddTestUsers</span><span class="p">(</span><span class="n">TestUsers</span><span class="p">.</span><span class="n">Users</span><span class="p">);</span>
-</code></pre>
-</div>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">.</span><span class="nf">AddTestUsers</span><span class="p">(</span><span class="n">TestUsers</span><span class="p">.</span><span class="n">Users</span><span class="p">);</span>
+</code></pre></div></div>
 
 <p>If you want to see the <strong>Startup.cs</strong> class complete please visit this <a href="https://github.com/lurumad/saml2pidsrv4zendesk/blob/master/Startup.cs">link</a>.</p>
 
@@ -497,6 +490,23 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
         <li>
             <div class="post-header">
                 <div class="post-meta">
+                    <time class="published" datetime="??">October 23, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">
+                <img src="/assets/images/posts/2019/pills_thumbnail.jpg"
+                    alt="Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
                     <time class="published" datetime="??">April 2, 2019</time>
                 </div>
                 <div class="post-title">
@@ -524,23 +534,6 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
             <a class="post-thumbnail" href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">
                 <img src="/assets/images/posts/2019/agreement-arms-business-1081228_thumbnail.jpg"
                     alt="Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider">
-            </a>
-            
-        </li>
-        
-        <li>
-            <div class="post-header">
-                <div class="post-meta">
-                    <time class="published" datetime="??">February 25, 2019</time>
-                </div>
-                <div class="post-title">
-                    <a href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">Problem Details: A standard way of specifying errors in HTTP API responses</a>
-                </div>
-            </div>
-            
-            <a class="post-thumbnail" href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">
-                <img src="/assets/images/posts/2019/rawpixel-761477-unsplash_thumbnail.jpg"
-                    alt="Problem Details: A standard way of specifying errors in HTTP API responses">
             </a>
             
         </li>
@@ -574,13 +567,19 @@ New-SelfSignedCertificate -dnsname saml.zenddesk.com -notafter <span class="nv">
         
         <a href='https://lurumad.github.io/tag/apis/'>apis</a>
         
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
         <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
         
         <a href='https://lurumad.github.io/tag/async/'>async</a>
         
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
         <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
         
         <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
         
         <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
         

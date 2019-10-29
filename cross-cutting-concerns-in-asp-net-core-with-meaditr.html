@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <!-- Page Info -->
+    <title>Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors | Luru</title>
+    
+    <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Site Favicon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/png" />
+
+    <!-- Font Embed Code -->
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
+
+    <!-- CSS Styles -->
+    <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+
+<body class="layout-post">
+    <div id="page" class="site">
+
+        
+        <header id="masthead" class="site-header outer">
+    <div class="site-header-inside">
+        <div class="site-branding">
+            
+                <p class="site-logo"><a href="/" rel="home"><img src="/assets/images/logo.png" alt="Luru" /></a></p>
+                <h1 class="site-title screen-reader-text"><a href="" rel="home"></a></h1>
+            
+        </div><!-- .site-branding -->
+        <nav id="main-navigation" class="site-navigation" aria-label="Primary Navigation">
+            <ul class="menu">
+            
+                <li class="menu-item"><a href="/about.html">About</a></li>
+            
+                <li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+            
+            </ul>
+            <button id="sidebar-show" class="sidebar-toggle"><span class="screen-reader-text">Open Sidebar</span><span class="icon-more" aria-hidden="true"></span></button>
+        </nav><!-- .site-navigation -->
+    </div><!-- .site-header-inside -->
+</header><!-- .site-header -->
+        
+
+        <div id="content" class="site-content fadeInDown delay_075s">
+    <main id="main" class="site-main outer">
+        <article class="post-full inner">
+            <header class="post-header">
+                <div class="post-meta">
+                    <time class="post-date" datetime="2019-10-23">October 23,
+                        2019</time>
+                </div><!-- .post-meta -->
+                <h1 class="posttitle">Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors</h1>
+            </header><!-- .post-header -->
+            
+            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/pills.jpg"
+                    alt="Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors"></div>
+            
+            <div class="post-content">
+                <p><a href="https://github.com/jbogard/MediatR">MediatR</a> by <a href="https://twitter.com/jbogard">Jimmy Bogard</a> is a simple mediator implementation for .NET that allows you to process in-memory request (Commands) and notifications (Events). I’ve been using this library many years in my applications because allows me to follow the CQS (Command and Query separation) principle devised by <a href="https://en.wikipedia.org/wiki/Command%E2%80%93query_separation">Bertrand Meyer</a>. The main value for this principle is that you can clear separate methods that change the state (commands) from methods that don’t (queries).</p>
+
+<p>On the other hand, in our applications we have to deal with cross-cuttings concerns like logging, caching, validation, etc. Before using <a href="https://github.com/jbogard/MediatR">MediatR</a> I used to move these concerns to the composition root (In my case to the REST API) using middlewares or some piece of framework’s infrastructure (ASP.NET Core) to avoid to duplicate it in many parts of my code.</p>
+
+<!--more-->
+
+<p>One of the coolest features of <a href="https://github.com/jbogard/MediatR">MediatR</a> is the concept of Behaviors. Behaviors allows you to build a pipeline, very similar to middlewares in ASP.NET Core.</p>
+
+<p><img src="./assets/images/posts/2019/pipeline.png" alt="MediatR pipeline" /></p>
+
+<p>A pipeline behavior is built using IPipelineBehavior&lt;TRequest, TResponse&gt; nad needs to implement on method:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Task</span><span class="p">&lt;</span><span class="n">TResponse</span><span class="p">&gt;</span> <span class="nf">Handle</span><span class="p">(</span><span class="n">TRequest</span> <span class="n">request</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span><span class="p">,</span> <span class="n">RequestHandlerDelegate</span><span class="p">&lt;</span><span class="n">TResponse</span><span class="p">&gt;</span> <span class="n">next</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>So you have to register your behaviors in the dependency injection container and <a href="https://github.com/jbogard/MediatR">MediatR</a> will invoked in the order they were register and you can do some logic before/after each execution of the commands.</p>
+
+<h1 id="logging">Logging</h1>
+
+<p>We are going to implement our first behavior. We want to log every request in <a href="https://github.com/jbogard/MediatR">MediatR</a> in order to check if the request will be executed successfully. We are going to use <a href="[MediatR](https://github.com/jbogard/MediatR)">ILogging interface</a>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">LoggerPipelineBehavior</span><span class="p">&lt;</span><span class="n">TRequest</span><span class="p">,</span> <span class="n">TResponse</span><span class="p">&gt;</span>
+    <span class="p">:</span> <span class="n">IPipelineBehavior</span><span class="p">&lt;</span><span class="n">TRequest</span><span class="p">,</span> <span class="n">TResponse</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ILogger</span><span class="p">&lt;</span><span class="n">LoggerPipelineBehavior</span><span class="p">&lt;</span><span class="n">TRequest</span><span class="p">,</span> <span class="n">TResponse</span><span class="p">&gt;&gt;</span> <span class="n">logger</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">LoggerPipelineBehavior</span><span class="p">(</span><span class="n">ILogger</span><span class="p">&lt;</span><span class="n">LoggerPipelineBehavior</span><span class="p">&lt;</span><span class="n">TRequest</span><span class="p">,</span> <span class="n">TResponse</span><span class="p">&gt;&gt;</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">logger</span> <span class="p">=</span> <span class="n">logger</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">TResponse</span><span class="p">&gt;</span> <span class="nf">Handle</span><span class="p">(</span><span class="n">TRequest</span> <span class="n">request</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span><span class="p">,</span> <span class="n">RequestHandlerDelegate</span><span class="p">&lt;</span><span class="n">TResponse</span><span class="p">&gt;</span> <span class="n">next</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">Log</span><span class="p">.</span><span class="nf">ExecutingRequest</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="k">typeof</span><span class="p">(</span><span class="n">TRequest</span><span class="p">).</span><span class="n">Name</span><span class="p">);</span>
+
+        <span class="kt">var</span> <span class="n">response</span> <span class="p">=</span> <span class="k">await</span> <span class="nf">next</span><span class="p">();</span>
+
+        <span class="n">Log</span><span class="p">.</span><span class="nf">ExecutedRequest</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="k">typeof</span><span class="p">(</span><span class="n">TRequest</span><span class="p">).</span><span class="n">Name</span><span class="p">);</span>
+
+        <span class="k">return</span> <span class="n">response</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Just by implementing and registering this command into the <a href="https://github.com/jbogard/MediatR">MediatR</a> pipeline all requests will be logging information about the execution (Success or not).</p>
+
+<h1 id="validation">Validation</h1>
+
+<p>In my company we used to use <strong>Clean Architecture</strong> in our projects as a base architecture. (I’m assuming you are familiar with this architecture. So if you are not familiar, I recommend you this blog post <a href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html">Clean Architecture</a> by by Robert C. Martin).</p>
+
+<p><img src="./assets/images/posts/2019/CleanArchitecture.jpg" alt="Clean Architecture" /></p>
+
+<p>We like to do validation for our commands and queries in our <strong>Application bussines “layer”</strong> to avoid redundant validation in higher layers. For this reason we created a behavior using <a href="https://fluentvalidation.net/">FluentValidation</a>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">ValidatorPipelineBehavior</span><span class="p">&lt;</span><span class="n">TRequest</span><span class="p">,</span> <span class="n">TResponse</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">IPipelineBehavior</span><span class="p">&lt;</span><span class="n">TRequest</span><span class="p">,</span> <span class="n">TResponse</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">IValidator</span><span class="p">&lt;</span><span class="n">TRequest</span><span class="p">&gt;&gt;</span> <span class="n">validators</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">ValidatorPipelineBehavior</span><span class="p">(</span><span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">IValidator</span><span class="p">&lt;</span><span class="n">TRequest</span><span class="p">&gt;&gt;</span> <span class="n">validators</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">validators</span> <span class="p">=</span> <span class="n">validators</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">TResponse</span><span class="p">&gt;</span> <span class="nf">Handle</span><span class="p">(</span><span class="n">TRequest</span> <span class="n">request</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span><span class="p">,</span> <span class="n">RequestHandlerDelegate</span><span class="p">&lt;</span><span class="n">TResponse</span><span class="p">&gt;</span> <span class="n">next</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="kt">var</span> <span class="n">failures</span> <span class="p">=</span> <span class="n">validators</span>
+            <span class="p">.</span><span class="nf">Select</span><span class="p">(</span><span class="n">validator</span> <span class="p">=&gt;</span> <span class="n">validator</span><span class="p">.</span><span class="nf">Validate</span><span class="p">(</span><span class="n">request</span><span class="p">))</span>
+            <span class="p">.</span><span class="nf">SelectMany</span><span class="p">(</span><span class="n">result</span> <span class="p">=&gt;</span> <span class="n">result</span><span class="p">.</span><span class="n">Errors</span><span class="p">)</span>
+            <span class="p">.</span><span class="nf">Where</span><span class="p">(</span><span class="n">error</span> <span class="p">=&gt;</span> <span class="n">error</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+            <span class="p">.</span><span class="nf">ToList</span><span class="p">();</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">failures</span><span class="p">.</span><span class="nf">Any</span><span class="p">())</span>
+        <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">ValidationException</span><span class="p">(</span><span class="n">failures</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="nf">next</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>With this behavior we are ensuring that data reaches our <strong>Application bussines “layer”</strong> will be valid. Below you can see an example of command validator using <a href="https://fluentvalidation.net/">FluentValidation</a>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">CreateNewsRequestValidator</span> 
+    <span class="p">:</span> <span class="n">AbstractValidator</span><span class="p">&lt;</span><span class="n">CreateNewsRequest</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nf">CreateNewsRequestValidator</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="nf">RuleFor</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">Headline</span><span class="p">)</span>
+            <span class="p">.</span><span class="nf">NotEmpty</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">MaximumLength</span><span class="p">(</span><span class="n">Configuration</span><span class="p">.</span><span class="n">News</span><span class="p">.</span><span class="n">HeadLineLength</span><span class="p">);</span>
+        <span class="nf">RuleFor</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">Content</span><span class="p">)</span>
+            <span class="p">.</span><span class="nf">NotEmpty</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">MaximumLength</span><span class="p">(</span><span class="n">Configuration</span><span class="p">.</span><span class="n">News</span><span class="p">.</span><span class="n">ContentLength</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Of course, our business domain will use this data and will apply the business rules.</p>
+
+<p>If you want to do validation in high orders layer, for example ASP.NET Core API, you can reuse your <a href="https://fluentvalidation.net/custom-validators">custom validators</a>.</p>
+
+<h1 id="caching">Caching</h1>
+
+<p>The last concerns that I would like to talk is Caching.</p>
+
+<p><strong>Caching</strong> is one of the most important aspect when we want to improve the performance of our applications. There are a lot of information which is susceptible to cache and avoid to make a lot of queries to the database. Master tables are tables where data is seldom change, for example countries, states, postal codes… For data that frequently changed we can apply othe techniques such as caching data and invalidate when the data has changed and notified this changes using events (<a href="https://github.com/jbogard/MediatR/wiki#publishing">INotification</a>).</p>
+
+<p>Below you can see an example of this behavior:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">CachePipelineBehavior</span><span class="p">&lt;</span><span class="n">TRequest</span><span class="p">,</span> <span class="n">TResponse</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">IPipelineBehavior</span><span class="p">&lt;</span><span class="n">TRequest</span><span class="p">,</span> <span class="n">TResponse</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IDistributedCache</span> <span class="n">cache</span><span class="p">;</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ILogger</span><span class="p">&lt;</span><span class="n">SGUKClassActionClaimantPortal</span><span class="p">&gt;</span> <span class="n">logger</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">CachePipelineBehavior</span><span class="p">(</span><span class="n">IDistributedCache</span> <span class="n">cache</span><span class="p">,</span> <span class="n">ILogger</span><span class="p">&lt;</span><span class="n">SGUKClassActionClaimantPortal</span><span class="p">&gt;</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">Ensure</span><span class="p">.</span><span class="n">Argument</span><span class="p">.</span><span class="nf">NotNull</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="k">nameof</span><span class="p">(</span><span class="n">cache</span><span class="p">));</span>
+        <span class="n">Ensure</span><span class="p">.</span><span class="n">Argument</span><span class="p">.</span><span class="nf">NotNull</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="k">nameof</span><span class="p">(</span><span class="n">logger</span><span class="p">));</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">cache</span> <span class="p">=</span> <span class="n">cache</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">logger</span> <span class="p">=</span> <span class="n">logger</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">TResponse</span><span class="p">&gt;</span> <span class="nf">Handle</span><span class="p">(</span><span class="n">TRequest</span> <span class="n">request</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span><span class="p">,</span> <span class="n">RequestHandlerDelegate</span><span class="p">&lt;</span><span class="n">TResponse</span><span class="p">&gt;</span> <span class="n">next</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">request</span> <span class="k">is</span> <span class="n">ICacheableRequest</span><span class="p">&lt;</span><span class="n">TResponse</span><span class="p">&gt;</span> <span class="n">cacheableRequest</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">var</span> <span class="n">key</span> <span class="p">=</span> <span class="n">cacheableRequest</span><span class="p">.</span><span class="nf">GetCacheKey</span><span class="p">();</span>
+                
+            <span class="k">return</span> <span class="k">await</span> <span class="n">cache</span><span class="p">.</span><span class="nf">GetOrSet</span><span class="p">(</span>
+                <span class="n">key</span><span class="p">,</span>
+                <span class="n">miss</span><span class="p">:</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span> <span class="n">Log</span><span class="p">.</span><span class="nf">CacheMiss</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">key</span><span class="p">);</span> <span class="k">return</span> <span class="nf">next</span><span class="p">();</span> <span class="p">},</span>
+                <span class="n">hit</span><span class="p">:</span> <span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">Log</span><span class="p">.</span><span class="nf">CacheHit</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">key</span><span class="p">),</span>
+                <span class="n">cacheableRequest</span><span class="p">.</span><span class="nf">GetExpirationTime</span><span class="p">(),</span>
+                <span class="n">cancellationToken</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="kt">var</span> <span class="n">response</span> <span class="p">=</span> <span class="k">await</span> <span class="nf">next</span><span class="p">();</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">request</span> <span class="k">is</span> <span class="n">ICacheInvalidationRequest</span> <span class="n">cacheInvalidationRequest</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">await</span> <span class="n">cache</span><span class="p">.</span><span class="nf">Remove</span><span class="p">(</span><span class="n">cacheInvalidationRequest</span><span class="p">.</span><span class="nf">GetCacheKey</span><span class="p">(),</span> <span class="n">cancellationToken</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">response</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>We are using two marker interfaces for our queries <code class="highlighter-rouge">ICacheableRequest&lt;TResponse&gt;</code> and <code class="highlighter-rouge">ICacheInvalidationRequest</code> (Kudos to my partner <a href="https://twitter.com/syncawait">Marco</a> for improve this behavior) in order to check if we have to cache the response or invalidate it.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In this post I’ve tried to show you how to tackling cross-cutting concerns in our applications using the pipeline behaviors in MadiatR. We can create a lot of behaviors, for example an Unit of Work behavior to make our commands and events transactional.</p>
+
+
+            </div>
+            <footer class="post-footer">
+                
+                <p class="post-tags">
+                     
+                    <a href='tag/madiatr/'>madiatr</a>
+                    
+                     
+                    <a href='tag/aspnetcore/'>aspnetcore</a>
+                    
+                     
+                    <a href='tag/cross-cutting/'>cross-cutting</a>
+                    
+                     
+                    <a href='tag/architecture/'>architecture</a>
+                    
+                    
+                </p>
+                
+                <div class="post-share">
+                    <span class="post-share-title">Share:</span>
+                    <a target="_blank" href="https://twitter.com/share?text=Applying+cross-cutting+concerns+in+ASP.NET+Core+with+MediatR+using+behaviors&amp;url=https://lurumad.github.io/cross-cutting-concerns-in-asp-net-core-with-meaditr">Twitter</a>
+                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/cross-cutting-concerns-in-asp-net-core-with-meaditr">Facebook</a>
+                </div><!-- .share-post -->
+            </footer>
+            <div class="author-box">
+                <div class="author-avatar"><img src="/assets/images/01-luis-ruiz-pavon.png" alt="Luis Ruiz Pavon's Picture"
+                        class="avatar"></div>
+                <div class="author-details">
+                    <h2 class="author-title">About Luis Ruiz Pavon</h2>
+                    <p class="author-description">Luis is a husband, father of two, developer, gamer, speaker, author of book about ASP.NET Core and the co-founder MsCoders Madrid Meetup.</p>
+                </div>
+            </div>
+            
+<section id="comments-area" class="comments-area">
+    <h2 class="comments-title">Comments</h2>
+    <div class="comments-inside">
+        <div id="disqus_thread"></div>
+    </div><!-- .comments-inside -->
+    <div id="comments-overlay" class="comments-overlay">
+        <a href="#" id="comments-show" class="comments-show">Show comments</a>
+    </div><!-- .comments-overlay -->
+    <script type="text/javascript">
+        var disqus_shortname = 'lurumad';
+        var disqus_developer = 0;
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+        </article>
+        
+        <section class="read-next inner">
+            <h2 class="read-next-title">Read Next</h2>
+            
+            <article class="post">
+                <header class="post-header">
+                    <div class="post-meta">
+                        <time class="published" datetime="April 2, 2019">April 2, 2019</time>
+                    </div>
+                    <h3 class="post-title"><a href="/integration-tests-in-aspnet-core-signalr">Integration Tests in ASP.NET Core SignalR</a></h3>
+                    <p class="post-tags">
+                        
+                        
+                        
+                        <a href='/tag/tests/'>Tests</a>
+                        
+                        
+                        
+                        <a href='/tag/aspnetcore/'>Aspnetcore</a>
+                        
+                        
+                        
+                        <a href='/tag/signalr/'>Signalr</a>
+                        
+                        
+                        
+                    </p>
+                </header>
+                
+                <a href="/integration-tests-in-aspnet-core-signalr" class="post-thumbnail">
+                    <img src="assets/images/posts/2019/nicolas-thomas-540353-unsplash_thumbnail.jpg" alt="Integration Tests in ASP.NET Core SignalR" />
+                </a>
+                
+            </article>
+            
+            
+        </section><!-- .read-next -->
+    </main><!-- .site-main -->
+</div><!-- .site-content -->
+
+        
+
+        
+
+        <footer id="colophon" class="site-footer outer">
+            <div class="site-footer-inside">
+                <p class="social-links">
+    
+    <a href="https://twitter.com/luisruizpavon" target="_blank">
+        <span class="fa-twitter fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Twitter</span>
+    </a>
+    
+    
+    
+    <a href="https://github.com/lurumad" target="_blank">
+        <span class="fa-github fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">GitHub</span>
+    </a>
+    
+    
+    
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/luisruizpavon" target="_blank">
+        <span class="fa-linkedin fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Linkedin</span>
+    </a>
+    
+    
+</p>
+                <p class="site-info">
+                    <a href="#">Luru</a> &copy; 2019 . Horace theme by
+                    <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
+                    Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
+                </p>
+                <p class="back-to-top">
+                    <a id="top-button" class="top-button" href="#page">
+                        <span class="icon-arrow-up" aria-hidden="true"></span>
+                        <span class="screen-reader-text">Back to top</span>
+                    </a>
+                </p>
+            </div><!-- .site-footer-inside -->
+        </footer><!-- .site-footer -->
+    </div><!-- .site -->
+    <div id="site-overlay" class="site-overlay"></div>
+    <aside id="sidebar" class="sidebar">
+	<div class="sidebar-scrollable">
+		<div class="sidebar-inside">
+			<button id="sidebar-hide" class="sidebar-toggle"><span class="screen-reader-text">Close Sidebar</span><span
+				    aria-hidden="true" class="icon-close"></span></button>
+			<nav id="sidebar-navigation" class="widget site-navigation">
+				<h2 class="widget-title">Explore Site</h2>
+				<ul class="menu">
+					
+						<li class="menu-item"><a href="/about.html">About</a></li>
+					
+						<li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+					
+				</ul>
+			</nav>
+			
+<section class="widget widget-text">
+    <h2 class="widget-title">About Luru</h2>
+    <p>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</p>
+</section>
+
+
+<section class="widget widget-recent-posts">
+    <h2 class="widget-title">Recent Articles</h2>
+    <ul>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">October 23, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">
+                <img src="/assets/images/posts/2019/pills_thumbnail.jpg"
+                    alt="Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">April 2, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/integration-tests-in-aspnet-core-signalr">Integration Tests in ASP.NET Core SignalR</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/integration-tests-in-aspnet-core-signalr">
+                <img src="/assets/images/posts/2019/nicolas-thomas-540353-unsplash_thumbnail.jpg"
+                    alt="Integration Tests in ASP.NET Core SignalR">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">March 6, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">
+                <img src="/assets/images/posts/2019/agreement-arms-business-1081228_thumbnail.jpg"
+                    alt="Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider">
+            </a>
+            
+        </li>
+        
+    </ul>
+</section>
+
+<!-- Create a sorted array of tags -->
+ 
+<section class="widget widget-tagcloud">
+    <h2 class="widget-title">Tags</h2>
+    <div class="tagcloud">
+        
+        <a href='https://lurumad.github.io/tag/azure/'>Azure</a>
+        
+        <a href='https://lurumad.github.io/tag/blog/'>Blog</a>
+        
+        <a href='https://lurumad.github.io/tag/c#/'>C#</a>
+        
+        <a href='https://lurumad.github.io/tag/career/'>Career</a>
+        
+        <a href='https://lurumad.github.io/tag/devops/'>DevOps</a>
+        
+        <a href='https://lurumad.github.io/tag/pipelines/'>Pipelines</a>
+        
+        <a href='https://lurumad.github.io/tag/self/'>Self</a>
+        
+        <a href='https://lurumad.github.io/tag/aks/'>aks</a>
+        
+        <a href='https://lurumad.github.io/tag/apim/'>apim</a>
+        
+        <a href='https://lurumad.github.io/tag/apis/'>apis</a>
+        
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
+        <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
+        
+        <a href='https://lurumad.github.io/tag/async/'>async</a>
+        
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
+        <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
+        
+        <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
+        
+        <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
+        
+        <a href='https://lurumad.github.io/tag/rest/'>rest</a>
+        
+        <a href='https://lurumad.github.io/tag/saml/'>saml</a>
+        
+        <a href='https://lurumad.github.io/tag/signalr/'>signalr</a>
+        
+        <a href='https://lurumad.github.io/tag/tests/'>tests</a>
+        
+    </div>
+</section>
+
+
+		</div><!-- .sidebar-inside -->
+	</div><!-- .sidebar-scrollable -->
+</aside><!-- .sidebar -->
+    
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131316164-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-131316164-1', { 'anonymize_ip': true });
+  </script>
+
+    <!-- Javascript Assets -->
+    <script src="/assets/js/jquery-3.3.1.min.js"></script>
+    <script src="/assets/js/plugins.js"></script>
+    <script src="/assets/js/custom.js"></script>
+
+</body>
+
+</html>

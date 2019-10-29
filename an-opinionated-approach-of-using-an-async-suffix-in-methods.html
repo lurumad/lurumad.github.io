@@ -70,7 +70,7 @@
 
 <p>To use Respawn you must create a Checkpoint and initialize with some configuration, depending on what you want to do: tables to skip, reseed, schemas to keep or skip, etc. I usually create a static method called <strong>ResetDatabase</strong> in my xunit fixtures as shown in the following code:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">ResetDatabase</span><span class="p">()</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">ResetDatabase</span><span class="p">()</span>
 <span class="p">{</span>
     <span class="kt">var</span> <span class="n">configuration</span> <span class="p">=</span> <span class="nf">CreateTestConfiguration</span><span class="p">(</span>
         <span class="k">new</span> <span class="nf">ConfigurationBuilder</span><span class="p">()).</span><span class="nf">Build</span><span class="p">();</span>
@@ -78,22 +78,20 @@
     <span class="n">_checkpoint</span><span class="p">.</span><span class="nf">Reset</span><span class="p">(</span>
       <span class="n">configuration</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">ConnectionStrings</span><span class="p">&gt;().</span><span class="n">DefaultConnection</span><span class="p">);</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>Put attention at the <strong>Reset</strong> method, later we’ll talk about it.</p>
 
 <p>Then, I create a xunit attribute to decorate tests that depends in the database and I want to clean before it executes:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">ResetDatabaseAttribute</span> <span class="p">:</span> <span class="n">BeforeAfterTestAttribute</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">ResetDatabaseAttribute</span> <span class="p">:</span> <span class="n">BeforeAfterTestAttribute</span>
 <span class="p">{</span>
     <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Before</span><span class="p">(</span><span class="n">MethodInfo</span> <span class="n">methodUnderTest</span><span class="p">)</span>
     <span class="p">{</span>
         <span class="n">ServerFixture</span><span class="p">.</span><span class="nf">ResetDatabase</span><span class="p">();</span>
     <span class="p">}</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><strong>If you want to learn deeper about effective testing of HTTP APIs in .NET Core, I recommend you to visit our <a href="https://github.com/Xabaril/ManualEffectiveTestingHttpAPI">Github repo</a>. We are going to translate all the documentation to English.</strong></p>
 
@@ -115,7 +113,7 @@
 
 <p>To fix this, I changed the <strong>ResetDatabase</strong> method to wait the Task:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">ResetDatabase</span><span class="p">()</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">ResetDatabase</span><span class="p">()</span>
 <span class="p">{</span>
     <span class="kt">var</span> <span class="n">configuration</span> <span class="p">=</span> <span class="nf">CreateTestConfiguration</span><span class="p">(</span>
         <span class="k">new</span> <span class="nf">ConfigurationBuilder</span><span class="p">()).</span><span class="nf">Build</span><span class="p">();</span>
@@ -123,8 +121,7 @@
     <span class="n">_checkpoint</span><span class="p">.</span><span class="nf">Reset</span><span class="p">(</span>
       <span class="n">configuration</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">ConnectionStrings</span><span class="p">&gt;().</span><span class="n">DefaultConnection</span><span class="p">).</span><span class="nf">Wait</span><span class="p">();</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>If the <strong>Reset</strong> method had the async suffix maybe I wouldn’t have forgotten adding <strong>await</strong> before the method.</p>
 
@@ -336,6 +333,23 @@
         <li>
             <div class="post-header">
                 <div class="post-meta">
+                    <time class="published" datetime="??">October 23, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">
+                <img src="/assets/images/posts/2019/pills_thumbnail.jpg"
+                    alt="Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
                     <time class="published" datetime="??">April 2, 2019</time>
                 </div>
                 <div class="post-title">
@@ -363,23 +377,6 @@
             <a class="post-thumbnail" href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">
                 <img src="/assets/images/posts/2019/agreement-arms-business-1081228_thumbnail.jpg"
                     alt="Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider">
-            </a>
-            
-        </li>
-        
-        <li>
-            <div class="post-header">
-                <div class="post-meta">
-                    <time class="published" datetime="??">February 25, 2019</time>
-                </div>
-                <div class="post-title">
-                    <a href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">Problem Details: A standard way of specifying errors in HTTP API responses</a>
-                </div>
-            </div>
-            
-            <a class="post-thumbnail" href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">
-                <img src="/assets/images/posts/2019/rawpixel-761477-unsplash_thumbnail.jpg"
-                    alt="Problem Details: A standard way of specifying errors in HTTP API responses">
             </a>
             
         </li>
@@ -413,13 +410,19 @@
         
         <a href='https://lurumad.github.io/tag/apis/'>apis</a>
         
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
         <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
         
         <a href='https://lurumad.github.io/tag/async/'>async</a>
         
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
         <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
         
         <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
         
         <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
         

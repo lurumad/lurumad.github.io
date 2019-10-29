@@ -109,20 +109,19 @@
 
 <p>To create an Internal Load Balancer, create a service manifest with the service type <em>LoadBalancer</em> and the <em>azure-load-balancer-internal annotation</em> as shown in the following code:</p>
 
-<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="s">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="s">metadata</span><span class="pi">:</span>
-  <span class="s">name</span><span class="pi">:</span> <span class="s">todo-app-service</span>
-  <span class="s">annotations</span><span class="pi">:</span>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">todo-app-service</span>
+  <span class="na">annotations</span><span class="pi">:</span>
     <span class="s">service.beta.kubernetes.io/azure-load-balancer-internal</span><span class="pi">:</span> <span class="s2">"</span><span class="s">true"</span>
-<span class="s">spec</span><span class="pi">:</span>
-  <span class="s">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
-  <span class="s">ports</span><span class="pi">:</span>
-  <span class="pi">-</span> <span class="s">port</span><span class="pi">:</span> <span class="s">80</span>
-  <span class="s">selector</span><span class="pi">:</span>
-    <span class="s">app</span><span class="pi">:</span> <span class="s">todo-app</span>
-</code></pre>
-</div>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
+  <span class="na">ports</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">todo-app</span>
+</code></pre></div></div>
 
 <p>Once we have applied the manifest in our AKS cluster, we should see EXTERNAL-IP that belongs to same subnet of the cluster nodes:</p>
 
@@ -394,6 +393,23 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
         <li>
             <div class="post-header">
                 <div class="post-meta">
+                    <time class="published" datetime="??">October 23, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">
+                <img src="/assets/images/posts/2019/pills_thumbnail.jpg"
+                    alt="Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
                     <time class="published" datetime="??">April 2, 2019</time>
                 </div>
                 <div class="post-title">
@@ -421,23 +437,6 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
             <a class="post-thumbnail" href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">
                 <img src="/assets/images/posts/2019/agreement-arms-business-1081228_thumbnail.jpg"
                     alt="Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider">
-            </a>
-            
-        </li>
-        
-        <li>
-            <div class="post-header">
-                <div class="post-meta">
-                    <time class="published" datetime="??">February 25, 2019</time>
-                </div>
-                <div class="post-title">
-                    <a href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">Problem Details: A standard way of specifying errors in HTTP API responses</a>
-                </div>
-            </div>
-            
-            <a class="post-thumbnail" href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">
-                <img src="/assets/images/posts/2019/rawpixel-761477-unsplash_thumbnail.jpg"
-                    alt="Problem Details: A standard way of specifying errors in HTTP API responses">
             </a>
             
         </li>
@@ -471,13 +470,19 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
         
         <a href='https://lurumad.github.io/tag/apis/'>apis</a>
         
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
         <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
         
         <a href='https://lurumad.github.io/tag/async/'>async</a>
         
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
         <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
         
         <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
         
         <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
         

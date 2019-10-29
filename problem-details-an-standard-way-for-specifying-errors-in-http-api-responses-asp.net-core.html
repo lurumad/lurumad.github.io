@@ -76,21 +76,20 @@
 
 <p>Let me show you an example of HTTP response of JSON problem details</p>
 
-<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="err">HTTP/</span><span class="mf">1.1</span><span class="w"> </span><span class="mi">403</span><span class="w"> </span><span class="err">Forbidden</span><span class="w">
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">HTTP/</span><span class="mf">1.1</span><span class="w"> </span><span class="mi">403</span><span class="w"> </span><span class="err">Forbidden</span><span class="w">
 </span><span class="err">Content-Type:</span><span class="w"> </span><span class="err">application/problem+json</span><span class="w">
 </span><span class="err">Content-Language:</span><span class="w"> </span><span class="err">en</span><span class="w">
 
 </span><span class="p">{</span><span class="w">
-    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/probs/out-of-credit"</span><span class="p">,</span><span class="w">
-    </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"You do not have enough credit."</span><span class="p">,</span><span class="w">
-    </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Your current balance is 30, but that costs 50."</span><span class="p">,</span><span class="w">
-    </span><span class="nt">"instance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/account/12345/msgs/abc"</span><span class="p">,</span><span class="w">
-    </span><span class="nt">"balance"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w">
-    </span><span class="nt">"accounts"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"/account/12345"</span><span class="p">,</span><span class="s2">"/account/67890"</span><span class="p">],</span><span class="w">
-    </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="mi">403</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/probs/out-of-credit"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"You do not have enough credit."</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Your current balance is 30, but that costs 50."</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"instance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/account/12345/msgs/abc"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"accounts"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"/account/12345"</span><span class="p">,</span><span class="s2">"/account/67890"</span><span class="p">],</span><span class="w">
+    </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="mi">403</span><span class="w">
 </span><span class="p">}</span><span class="w">
-</span></code></pre>
-</div>
+</span></code></pre></div></div>
 <p>The format of the message is application/problem+json media type (It could be application/problem+xml also) and we have several members in the response body:</p>
 
 <ul>
@@ -109,13 +108,13 @@
 
 <p>An example of use:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="na">[HttpPost]</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">HttpPost</span><span class="p">]</span>
 <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Transfer</span><span class="p">()</span>
 <span class="p">{</span>
     <span class="k">try</span>
     <span class="p">{</span>
-        <span class="c1">/// Make a transfer
-</span>    <span class="p">}</span>
+        <span class="c1">/// Make a transfer</span>
+    <span class="p">}</span>
     <span class="k">catch</span> <span class="p">(</span><span class="n">OutOfCreditException</span> <span class="n">ex</span><span class="p">)</span>
     <span class="p">{</span>
         <span class="kt">var</span> <span class="n">problemDetails</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ProblemDetails</span>
@@ -136,14 +135,13 @@
 
     <span class="k">return</span> <span class="nf">Ok</span><span class="p">();</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><img src="./assets/images/posts/2019/problemdetails1.png" alt="Problem Details 1" /></p>
 
 <p>We alse have the <a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.validationproblemdetails?view=aspnetcore-2.2">ValidationProblemDetails</a> class for validation errors. This class inherits from <a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails?view=aspnetcore-2.2">ProblemDetails</a> and you can see an example in the following code:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="na">[HttpPost]</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">HttpPost</span><span class="p">]</span>
 <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Transfer</span><span class="p">(</span><span class="n">TransferInfo</span> <span class="n">model</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">if</span> <span class="p">(!</span><span class="n">ModelState</span><span class="p">.</span><span class="n">IsValid</span><span class="p">)</span>
@@ -159,8 +157,7 @@
 
     <span class="k">return</span> <span class="nf">Ok</span><span class="p">();</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><img src="./assets/images/posts/2019/problemdetails2.png" alt="Problem Details 2" /></p>
 
@@ -170,7 +167,7 @@
 
 <p>For model validations we need to configure <a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.apibehavioroptions?view=aspnetcore-2.2">ApiBehaviorOptions</a> in our ConfigureServices:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">services</span>
         <span class="p">.</span><span class="nf">AddMvc</span><span class="p">()</span>
@@ -184,7 +181,7 @@
             <span class="p">{</span>
                 <span class="n">Instance</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Path</span><span class="p">,</span>
                 <span class="n">Status</span> <span class="p">=</span> <span class="n">StatusCodes</span><span class="p">.</span><span class="n">Status400BadRequest</span><span class="p">,</span>
-                <span class="n">Type</span> <span class="p">=</span> <span class="err">$</span><span class="s">"https://httpstatuses.com/400"</span><span class="p">,</span>
+                <span class="n">Type</span> <span class="p">=</span> <span class="s">$"https://httpstatuses.com/400"</span><span class="p">,</span>
                 <span class="n">Detail</span> <span class="p">=</span> <span class="n">ApiConstants</span><span class="p">.</span><span class="n">Messages</span><span class="p">.</span><span class="n">ModelStateValidation</span>
             <span class="p">};</span>
             <span class="k">return</span> <span class="k">new</span> <span class="nf">BadRequestObjectResult</span><span class="p">(</span><span class="n">problemDetails</span><span class="p">)</span>
@@ -198,8 +195,7 @@
         <span class="p">};</span>
     <span class="p">});</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>We have to remark on two things:</p>
 
@@ -213,11 +209,10 @@
   <li>Your controllers must be decorated with the <a href="">[ApiController]</a> attribute:</li>
 </ul>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="na">[Route("api/[controller]</span><span class="s">")]
-</span><span class="na">[ApiController]</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="nf">Route</span><span class="p">(</span><span class="s">"api/[controller]"</span><span class="p">)]</span>
+<span class="p">[</span><span class="n">ApiController</span><span class="p">]</span>
 <span class="k">public</span> <span class="k">class</span> <span class="nc">BankController</span> <span class="p">:</span> <span class="n">ControllerBase</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="handle-errors">Handle errors</h2>
 
@@ -228,7 +223,7 @@
 
 <p>Once we have installed it, we need to configure it. Open your Startup class and add the following code to the ConfigureServices method:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">services</span>
         <span class="p">.</span><span class="nf">AddProblemDetails</span><span class="p">(</span><span class="n">setup</span> <span class="p">=&gt;</span>
@@ -238,33 +233,30 @@
 
     <span class="p">...</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>We only include exception details in the problem details messages when we are running in Development mode. It’ll help us to diagnose our HTTP API while we develop.</p>
 
 <p>And finally we need to add problem details to the ASP.NET Core pipeline in Configure method in our Startup class:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">Configure</span><span class="p">(</span><span class="n">IApplicationBuilder</span> <span class="n">app</span><span class="p">,</span> <span class="n">IHostingEnvironment</span> <span class="n">env</span><span class="p">)</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">Configure</span><span class="p">(</span><span class="n">IApplicationBuilder</span> <span class="n">app</span><span class="p">,</span> <span class="n">IHostingEnvironment</span> <span class="n">env</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">app</span>
         <span class="p">.</span><span class="nf">UseProblemDetails</span><span class="p">()</span>
         <span class="p">.</span><span class="nf">UseMvc</span><span class="p">();</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>If you want to test it, you can throw an exception in your action controller:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="na">[HttpPost]</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">HttpPost</span><span class="p">]</span>
 <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Transfer</span><span class="p">(</span><span class="n">TransferInfo</span> <span class="n">model</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">throw</span> <span class="k">new</span> <span class="nf">Exception</span><span class="p">(</span><span class="s">"Testing problem details"</span><span class="p">);</span>
 
     <span class="k">return</span> <span class="nf">Ok</span><span class="p">();</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>Run your application and execute the action, you should see the following message:</p>
 
@@ -278,7 +270,7 @@
 
 <p>I’ve created a custom OutOfCreditException (This code must be in a service out of our controllers):</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="na">[HttpPost]</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">HttpPost</span><span class="p">]</span>
 <span class="k">public</span> <span class="n">ActionResult</span> <span class="nf">Transfer</span><span class="p">(</span><span class="n">TransferInfo</span> <span class="n">model</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">throw</span> <span class="k">new</span> <span class="nf">OutOfCreditException</span><span class="p">(</span>
@@ -288,21 +280,19 @@
 
     <span class="k">return</span> <span class="nf">Ok</span><span class="p">();</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>I’ve created also my custom problem details object:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">internal</span> <span class="k">class</span> <span class="nc">OutOfCreditProblemDetails</span> <span class="p">:</span> <span class="n">ProblemDetails</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">internal</span> <span class="k">class</span> <span class="nc">OutOfCreditProblemDetails</span> <span class="p">:</span> <span class="n">ProblemDetails</span>
 <span class="p">{</span>
     <span class="k">public</span> <span class="kt">decimal</span> <span class="n">Balance</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>The only thing we need left is to configure ProblemDetails how to map this exception with the problem details object. Open Startup.cs and change the method ConfigureServices:</p>
 
-<div class="language-csharp highlighter-rouge"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">services</span>
         <span class="p">.</span><span class="nf">AddProblemDetails</span><span class="p">(</span><span class="n">setup</span> <span class="p">=&gt;</span>
@@ -321,8 +311,7 @@
     <span class="p">...</span>
 
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>Run you app and call the controller action and you should see the following message:</p>
 
@@ -538,6 +527,23 @@
         <li>
             <div class="post-header">
                 <div class="post-meta">
+                    <time class="published" datetime="??">October 23, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">
+                <img src="/assets/images/posts/2019/pills_thumbnail.jpg"
+                    alt="Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
                     <time class="published" datetime="??">April 2, 2019</time>
                 </div>
                 <div class="post-title">
@@ -565,23 +571,6 @@
             <a class="post-thumbnail" href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">
                 <img src="/assets/images/posts/2019/agreement-arms-business-1081228_thumbnail.jpg"
                     alt="Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider">
-            </a>
-            
-        </li>
-        
-        <li>
-            <div class="post-header">
-                <div class="post-meta">
-                    <time class="published" datetime="??">February 25, 2019</time>
-                </div>
-                <div class="post-title">
-                    <a href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">Problem Details: A standard way of specifying errors in HTTP API responses</a>
-                </div>
-            </div>
-            
-            <a class="post-thumbnail" href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core">
-                <img src="/assets/images/posts/2019/rawpixel-761477-unsplash_thumbnail.jpg"
-                    alt="Problem Details: A standard way of specifying errors in HTTP API responses">
             </a>
             
         </li>
@@ -615,13 +604,19 @@
         
         <a href='https://lurumad.github.io/tag/apis/'>apis</a>
         
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
         <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
         
         <a href='https://lurumad.github.io/tag/async/'>async</a>
         
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
         <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
         
         <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
         
         <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
         

@@ -5,13 +5,15 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 17 Jan 2020 11:59:24 +0100</pubDate>
-    <lastBuildDate>Fri, 17 Jan 2020 11:59:24 +0100</lastBuildDate>
+    <pubDate>Fri, 17 Jan 2020 12:03:48 +0100</pubDate>
+    <lastBuildDate>Fri, 17 Jan 2020 12:03:48 +0100</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
     
       <item>
         <title>Additional API Endpoints to IdentityServer 4</title>
         <description>&lt;p&gt;&lt;strong&gt;DISCLAIMER&lt;/strong&gt; I’m assuming you are familiar with &lt;strong&gt;OpenID Connect&lt;/strong&gt; and &lt;strong&gt;IdentityServer&lt;/strong&gt;, well in this post I’m not going to explain. So if you are not familiar, I recommend you to visit the official documnentation &lt;a href=&quot;https://openid.net/connect/&quot;&gt;OpenID Connect&lt;/a&gt; and &lt;a href=&quot;http://docs.identityserver.io/en/latest/index.html&quot;&gt;IdentityServer4&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
 
 &lt;p&gt;Sometimes, when you work with IdentityServer, you need to add additional API endpoints to the application that host your IdentityServer. In our case, one of the bussines rules is to bring the posibility to the users to change theirs passwords from the mobile applications.&lt;/p&gt;
 
@@ -28,6 +30,8 @@
 &lt;/blockquote&gt;
 
 &lt;p&gt;The API approach was good but how to configure the access not. So I decided to use these helpers.&lt;/p&gt;
+
+&lt;h2 id=&quot;getting-started&quot;&gt;Getting started&lt;/h2&gt;
 
 &lt;p&gt;The first step is to resgister to API as an &lt;strong&gt;ApiResource&lt;/strong&gt;:&lt;/p&gt;
 

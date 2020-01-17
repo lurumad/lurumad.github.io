@@ -66,6 +66,8 @@
             <div class="post-content">
                 <p><strong>DISCLAIMER</strong> I’m assuming you are familiar with <strong>OpenID Connect</strong> and <strong>IdentityServer</strong>, well in this post I’m not going to explain. So if you are not familiar, I recommend you to visit the official documnentation <a href="https://openid.net/connect/">OpenID Connect</a> and <a href="http://docs.identityserver.io/en/latest/index.html">IdentityServer4</a></p>
 
+<h2 id="introduction">Introduction</h2>
+
 <p>Sometimes, when you work with IdentityServer, you need to add additional API endpoints to the application that host your IdentityServer. In our case, one of the bussines rules is to bring the posibility to the users to change theirs passwords from the mobile applications.</p>
 
 <!--more-->
@@ -81,6 +83,8 @@
 </blockquote>
 
 <p>The API approach was good but how to configure the access not. So I decided to use these helpers.</p>
+
+<h2 id="getting-started">Getting started</h2>
 
 <p>The first step is to resgister to API as an <strong>ApiResource</strong>:</p>
 

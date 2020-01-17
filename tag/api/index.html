@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <!-- Page Info -->
-    <title>Set output variables in Azure DevOps pipelines tasks | Luru</title>
+    <title>Tag Page | Luru</title>
     
     <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
     
@@ -23,7 +23,7 @@
 
 
 
-<body class="layout-post">
+<body class="layout-default">
     <div id="page" class="site">
 
         
@@ -51,179 +51,51 @@
 
         <div id="content" class="site-content fadeInDown delay_075s">
     <main id="main" class="site-main outer">
-        <article class="post-full inner">
-            <header class="post-header">
-                <div class="post-meta">
-                    <time class="post-date" datetime="2019-01-13">January 13,
-                        2019</time>
-                </div><!-- .post-meta -->
-                <h1 class="posttitle">Set output variables in Azure DevOps pipelines tasks</h1>
-            </header><!-- .post-header -->
+        <header class="page-header inner">
+            <h1 class="page-title">api</h1>
+            <p class="page-description">A collection of 1 post</p>
             
-            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/input-cable.jpg"
-                    alt="Set output variables in Azure DevOps pipelines tasks"></div>
-            
-            <div class="post-content">
-                <p>Currently I am building a pipeline that deploys a microservices solution in <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">Azure Kubernetes Service (AKS)</a>. For example, I need to parse a kubectl output in a task to extract the cluster service ip dinamically in order to <a href="https://docs.microsoft.com/en-us/azure/aks/ingress-static-ip#configure-a-dns-name">configure a DNS name</a> for an nginx ingress controller. I want to return this cluster service ip back into a variable, so I can use in another task.</p>
-
-<h1 id="configuring-our-build-or-release-pipeline-to-test-it">Configuring our Build or Release pipeline to test it</h1>
-
-<p>Add two bash script tasks to your build or release pipeline:</p>
-
-<p><img src="./assets/images/posts/2019/setoutputvariable.png" alt="Add two bash script tasks" /></p>
-
-<p>Configure the first bash script task as shown in the image below:</p>
-
-<p><img src="./assets/images/posts/2019/setoutputvariable1.png" alt="Set output variable in bash" /></p>
-
-<p>Look at the following command:</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"##vso[task.setvariable variable=AKS_Cluster_Service_Ip;]</span><span class="nv">$ip</span><span class="s2">"</span>
-</code></pre></div></div>
-
-<p>This will make the variable <strong>AKS_Cluster_Service_Ip</strong> to be consumed in the next bash script taks via the <strong>$(AKS_Cluster_Service_Ip)</strong> sintax:</p>
-
-<p><img src="./assets/images/posts/2019/setoutputvariable2.png" alt="Consume the output variable in bash" /></p>
-
-<p>Run your build or create a new release depend what you choosen in the first step, and you should see in the logs the value of the output variable:</p>
-
-<p><img src="./assets/images/posts/2019/setoutputvariable3.png" alt="Consume the output variable in bash" /></p>
-
-<h1 id="links">Links</h1>
-
-<ul>
-  <li><a href="https://github.com/Microsoft/azure-pipelines-tasks/blob/master/docs/authoring/commands.md">Azure Pipeline tasks</a></li>
-</ul>
-
-            </div>
-            <footer class="post-footer">
-                
-                <p class="post-tags">
-                     
-                    <a href='tag/azure/'>Azure</a>
-                    
-                     
-                    <a href='tag/devops/'>DevOps</a>
-                    
-                     
-                    <a href='tag/pipelines/'>Pipelines</a>
-                    
-                    
-                </p>
-                
-                <div class="post-share">
-                    <span class="post-share-title">Share:</span>
-                    <a target="_blank" href="https://twitter.com/share?text=Set+output+variables+in+Azure+DevOps+pipelines+tasks&amp;url=https://lurumad.github.io/set-output-variables-in-azuredevops-pipelines-tasks">Twitter</a>
-                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/set-output-variables-in-azuredevops-pipelines-tasks">Facebook</a>
-                </div><!-- .share-post -->
-            </footer>
-            <div class="author-box">
-                <div class="author-avatar"><img src="/assets/images/01-luis-ruiz-pavon.png" alt="Luis Ruiz Pavon's Picture"
-                        class="avatar"></div>
-                <div class="author-details">
-                    <h2 class="author-title">About Luis Ruiz Pavon</h2>
-                    <p class="author-description">Luis is a husband, father of two, developer, gamer, speaker, author of book about ASP.NET Core and the co-founder MsCoders Madrid Meetup.</p>
-                </div>
-            </div>
-            
-<section id="comments-area" class="comments-area">
-    <h2 class="comments-title">Comments</h2>
-    <div class="comments-inside">
-        <div id="disqus_thread"></div>
-    </div><!-- .comments-inside -->
-    <div id="comments-overlay" class="comments-overlay">
-        <a href="#" id="comments-show" class="comments-show">Show comments</a>
-    </div><!-- .comments-overlay -->
-    <script type="text/javascript">
-        var disqus_shortname = 'lurumad';
-        var disqus_developer = 0;
-        (function () {
-            var dsq = document.createElement('script');
-            dsq.type = 'text/javascript';
-            dsq.async = true;
-            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
-    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
-            Disqus.</a></noscript>
-    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-</section>
-
-
-        </article>
-        
-        <section class="read-next inner">
-            <h2 class="read-next-title">Read Next</h2>
-            
+        </header>
+        <div class="post-feed inner-wide">
             <article class="post">
-                <header class="post-header">
-                    <div class="post-meta">
-                        <time class="published" datetime="January 8, 2019">January 8, 2019</time>
-                    </div>
-                    <h3 class="post-title"><a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">Continous delivery to Azure API Management using Azure DevOps pipelines</a></h3>
-                    <p class="post-tags">
-                        
-                        
-                        
-                        <a href='/tag/azure/'>Azure</a>
-                        
-                        
-                        
-                        <a href='/tag/devops/'>Devops</a>
-                        
-                        
-                        
-                        <a href='/tag/apim/'>Apim</a>
-                        
-                        
-                        
-                    </p>
-                </header>
-                
-                <a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/cd_thumbnail.jpg" alt="Continous delivery to Azure API Management using Azure DevOps pipelines" />
-                </a>
-                
-            </article>
+    <header class="post-header">
+        <div class="post-meta">
+            <time class="published" datetime="2020-01-16">January 16, 2020</time>
+        </div><!-- .post-meta -->
+        <h2 class="post-title">
+            <a href="/aditional-api-endpoints-to-identityserver4" rel="bookmark">Additional API Endpoints to IdentityServer 4</a>
+        </h2>
+    </header><!-- .post-header -->
+    
+    <a class="post-thumbnail" href="/aditional-api-endpoints-to-identityserver4">
+        <img src="/assets/images/posts/2020/abacus_thumbnail.jpg"
+            alt="Additional API Endpoints to IdentityServer 4">
+    </a>
+    
+    <div class="post-content">
+        <p>DISCLAIMER I’m assuming you are familiar with OpenID Connect and IdentityServer, well in this post I’m not going to explain. So if you are not familiar, I recommend you to visit the official documnentation OpenID Connect and IdentityServer4
+
+ </p>
+        <p class="post-tags">
             
             
-            <article class="post">
-                <header class="post-header">
-                    <div class="post-meta">
-                        <time class="published" datetime="January 21, 2019">January 21, 2019</time>
-                    </div>
-                    <h3 class="post-title"><a href="/how-to-connect-azure-api-management-to-your-azure-kubernetes-service">How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)</a></h3>
-                    <p class="post-tags">
-                        
-                        
-                        
-                        <a href='/tag/azure/'>Azure</a>
-                        
-                        
-                        
-                        <a href='/tag/apim/'>Apim</a>
-                        
-                        
-                        
-                        <a href='/tag/k8s/'>K8s</a>
-                        
-                        
-                        
-                        <a href='/tag/aks/'>Aks</a>
-                        
-                        
-                        
-                    </p>
-                </header>
-                
-                <a href="/how-to-connect-azure-api-management-to-your-azure-kubernetes-service" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/thomas-jensen-596085-unsplash_thumbnail.jpg" alt="How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)" />
-                </a>
-                
-            </article>
             
-        </section><!-- .read-next -->
+            <a href='/tag/identityserver/'>identityserver</a>
+            
+            
+            
+            <a href='/tag/oidc/'>oidc</a>
+            
+            
+            
+            <a href='/tag/api/'>api</a>
+            
+            
+            
+        </p>
+    </div><!-- .post-content -->
+</article><!-- .post -->
+        </div>
     </main><!-- .site-main -->
 </div><!-- .site-content -->
 

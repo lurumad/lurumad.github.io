@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <!-- Page Info -->
-    <title>Integration Tests in ASP.NET Core SignalR | Luru</title>
+    <title>Additional API Endpoints to IdentityServer 4 | Luru</title>
     
     <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
     
@@ -54,133 +54,157 @@
         <article class="post-full inner">
             <header class="post-header">
                 <div class="post-meta">
-                    <time class="post-date" datetime="2019-04-02">April 2,
-                        2019</time>
+                    <time class="post-date" datetime="2020-01-16">January 16,
+                        2020</time>
                 </div><!-- .post-meta -->
-                <h1 class="posttitle">Integration Tests in ASP.NET Core SignalR</h1>
+                <h1 class="posttitle">Additional API Endpoints to IdentityServer 4</h1>
             </header><!-- .post-header -->
             
-            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2019/nicolas-thomas-540353-unsplash.jpg"
-                    alt="Integration Tests in ASP.NET Core SignalR"></div>
+            <div class="post-thumbnail"><img class="featured-image img-fluid" src="assets/images/posts/2020/abacus.jpg"
+                    alt="Additional API Endpoints to IdentityServer 4"></div>
             
             <div class="post-content">
-                <p><a href="https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks">AspNetCore.Diagnostics.HealthChecks</a> is a powerfull liveness and readiness library built on top of ASP.NET Core Diagnostics. Last week I decided to create a new health check for <a href="https://www.nuget.org/packages/AspNetCore.HealthChecks.SignalR/">ASP.NET Core SignalR</a> in order to check if your hubs are healthy or not. We usually added unit/integration tests to all projects to ensure the quality of them, and <a href="https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks">AspNetCore.Diagnostics.HealthChecks</a> has a lot of as you can see in this <a href="https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks/tree/master/test/FunctionalTests">link</a>. As you know, ASP.NET Core provides an <a href="https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-2.2">in-memory web test server</a> that we can use in our integration test projects serving test requests without the need of real web host (Internet Information Server, nginx, etc.). My idea was to use this approach to test my SignalR Core health check, so I decided to create a PoC.</p>
+                <p><strong>DISCLAIMER</strong> I’m assuming you are familiar with <strong>OpenID Connect</strong> and <strong>IdentityServer</strong>, well in this post I’m not going to explain. So if you are not familiar, I recommend you to visit the official documnentation <a href="https://openid.net/connect/">OpenID Connect</a> and <a href="http://docs.identityserver.io/en/latest/index.html">IdentityServer4</a></p>
+
+<p>Sometimes, when you work with IdentityServer, you need to add additional API endpoints to the application that host your IdentityServer. In our case, one of the bussines rules is to bring the posibility to the users to change theirs passwords from the mobile applications.</p>
 
 <!--more-->
 
-<h1 id="setting-up-the-test-project">Setting up the test project</h1>
+<p>In a web application is pretty straightforward, you can redirect users to a web page to change theirs passwords because IdentityServer register one cookie for the authentication session, but in mobile applications we haven’t cookies. At the first time, I thought if could be possible to achieve this using the web view and cookies in order to reuse all the infrastructure that we have for web applications in our IdentityServer, but I couldn’t find a solution (I’d love to hear from you. Please leave comment below).</p>
 
-<p>First, we need to create a new xUnit Test project:</p>
+<p>The next idea was to create and API endpoint in the application that host our IdentityServer, create a new client and configure the <strong>Microsoft’s JwtBearer handler</strong> in our IdentityServer to act as an API Resource, so we could pass the access token from the mobile application and change the password. It was a good idea but looking for IdentityServer 4 documentation I found this <a href="http://docs.identityserver.io/en/latest/topics/add_apis.html">link</a></p>
 
-<p><img src="./assets/images/posts/2019/signalrintegrationtests3.png" alt="SignalR Integration Tests" /></p>
+<p>The guys who develop IdentityServer created some helpers to add more endpoints to IdentityServer and of course they give a warning:</p>
 
-<p>We’ll need to install some NuGet packages in our test project:</p>
+<blockquote>
+  <p>You could achieve the same by using either our IdentityServerAuthentication handler or Microsoft’s JwtBearer handler. But this is not recommended since it requires more configuration and creates dependencies on external libraries that might lead to conflicts in future updates.</p>
+</blockquote>
 
-<pre><code class="language-txt">Install-Package Microsoft.AspNetCore.SignalR -Version 1.1.0
-Install-Package Microsoft.AspNetCore.SignalR.Client -Version 1.1.0
-Install-Package Microsoft.AspNetCore.TestHost -Version 2.2.0
-Install-Package FluentAssertions -Version 5.6.0
-</code></pre>
-<p>Next, we are going to add a Hub to the project:</p>
+<p>The API approach was good but how to configure the access not. So I decided to use these helpers.</p>
 
-<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">EchoHub</span> <span class="p">:</span> <span class="n">Hub</span>
+<p>The first step is to resgister to API as an <strong>ApiResource</strong>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="n">ApiResources</span><span class="p">.</span><span class="nf">AddAsync</span><span class="p">(</span>
+    <span class="k">new</span> <span class="nf">ApiResource</span><span class="p">(</span>
+        <span class="n">IdentityServerConstants</span><span class="p">.</span><span class="n">LocalApi</span><span class="p">.</span><span class="n">ScopeName</span>
+    <span class="p">).</span><span class="nf">ToEntity</span><span class="p">());</span>
+</code></pre></div></div>
+
+<p>IdentityServer bring us some predefined constants to use the local Api. In this case the value of <strong>IdentityServerConstants.LocalApi.ScopeName</strong>  is <strong>IdentityServerApi</strong></p>
+
+<p>Next, we have to add this scope to our mobile client:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="nf">Client</span><span class="p">()</span>
 <span class="p">{</span>
-    <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">Send</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+    <span class="n">ClientId</span> <span class="p">=</span> <span class="s">"mobile"</span><span class="p">,</span>
+    <span class="n">ClientName</span> <span class="p">=</span> <span class="s">"Mobile Apps"</span><span class="p">,</span>
+    <span class="n">AllowedGrantTypes</span> <span class="p">=</span> <span class="n">GrantTypes</span><span class="p">.</span><span class="n">Hybrid</span><span class="p">,</span>
+    <span class="n">ClientSecrets</span> <span class="p">=</span> <span class="p">...</span>
+    <span class="n">RedirectUris</span> <span class="p">=</span> <span class="p">{</span> <span class="p">...</span> <span class="p">},</span>
+    <span class="n">PostLogoutRedirectUris</span> <span class="p">=</span> <span class="p">{</span> <span class="p">...</span> <span class="p">},</span>
+    <span class="n">RequireConsent</span> <span class="p">=</span> <span class="k">false</span><span class="p">,</span>
+    <span class="n">RequirePkce</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+    <span class="n">AllowedCorsOrigins</span> <span class="p">=</span> <span class="p">{</span> <span class="p">...</span> <span class="p">},</span>
+    <span class="n">AllowedScopes</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span>
     <span class="p">{</span>
-        <span class="k">await</span> <span class="n">Clients</span>
-            <span class="p">.</span><span class="n">Caller</span>
-            <span class="p">.</span><span class="nf">SendAsync</span><span class="p">(</span><span class="s">"OnMessageRecieved"</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>
-    <span class="p">}</span>
+        <span class="c1">//Omitted for brevity</span>
+        <span class="n">IdentityServerConstants</span><span class="p">.</span><span class="n">LocalApi</span><span class="p">.</span><span class="n">ScopeName</span>
+    <span class="p">},</span>
+    <span class="n">AllowOfflineAccess</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+    <span class="n">AllowAccessTokensViaBrowser</span> <span class="p">=</span> <span class="k">true</span>
 <span class="p">}</span>
 </code></pre></div></div>
-<p>We are going to simulate an echo response, so we need to send to the caller the same message that we recieved.</p>
 
-<p>I decided to move all the <strong>Startup</strong> code from <strong>ConfigureServices</strong> and <strong>Configure</strong> in order to make more clear the example. In a real world, you should leave this code in the Startup class:</p>
+<p>Next step is to enable the token validation for our local Api. In our IdentityServer’s Startup configuration we need to add the services:</p>
 
-<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">echo_hub_should</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">services</span><span class="p">.</span><span class="nf">AddLocalApiAuthentication</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>To protect our action controller, decorate it with the <strong>Authorize</strong> attributte using the policy <strong>LocalApi.PolicyName</strong>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">HttpPost</span><span class="p">]</span>
+<span class="p">[</span><span class="nf">Authorize</span><span class="p">(</span><span class="n">LocalApi</span><span class="p">.</span><span class="n">PolicyName</span><span class="p">)]</span>
+<span class="p">[</span><span class="nf">Route</span><span class="p">(</span><span class="s">"api/account/changepassword"</span><span class="p">)]</span>
+<span class="k">public</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">IActionResult</span><span class="p">&gt;</span> <span class="nf">ChangePasswordMobile</span><span class="p">([</span><span class="n">FromBody</span><span class="p">]</span> <span class="n">ChangePasswordViewModel</span> <span class="n">model</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="p">[</span><span class="n">Fact</span><span class="p">]</span>
-    <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">reply_with_the_same_message_when_invoke_send_method</span><span class="p">()</span>
+    <span class="k">if</span> <span class="p">(!</span><span class="n">ModelState</span><span class="p">.</span><span class="n">IsValid</span><span class="p">)</span>
     <span class="p">{</span>
-        <span class="n">TestServer</span> <span class="n">server</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
-        <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="s">"Integration Testing in Microsoft AspNetCore SignalR"</span><span class="p">;</span>
-        <span class="kt">var</span> <span class="n">echo</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Empty</span><span class="p">;</span>
-        <span class="kt">var</span> <span class="n">webHostBuilder</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">WebHostBuilder</span><span class="p">()</span>
-            <span class="p">.</span><span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">services</span> <span class="p">=&gt;</span>
-            <span class="p">{</span>
-                <span class="n">services</span><span class="p">.</span><span class="nf">AddSignalR</span><span class="p">();</span>
-            <span class="p">})</span>
-            <span class="p">.</span><span class="nf">Configure</span><span class="p">(</span><span class="n">app</span> <span class="p">=&gt;</span>
-            <span class="p">{</span>
-                <span class="n">app</span><span class="p">.</span><span class="nf">UseSignalR</span><span class="p">(</span><span class="n">routes</span> <span class="p">=&gt;</span> <span class="n">routes</span><span class="p">.</span><span class="n">MapHub</span><span class="p">&lt;</span><span class="n">EchoHub</span><span class="p">&gt;(</span><span class="s">"/echo"</span><span class="p">));</span>
-            <span class="p">});</span>
-
-        <span class="n">server</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">TestServer</span><span class="p">(</span><span class="n">webHostBuilder</span><span class="p">);</span>
-        <span class="kt">var</span> <span class="n">connection</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HubConnectionBuilder</span><span class="p">()</span>
-            <span class="p">.</span><span class="nf">WithUrl</span><span class="p">(</span><span class="s">"http://localhost/echo"</span><span class="p">)</span>
-            <span class="p">.</span><span class="nf">Build</span><span class="p">();</span>
-
-        <span class="n">connection</span><span class="p">.</span><span class="n">On</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;(</span><span class="s">"OnMessageRecieved"</span><span class="p">,</span> <span class="n">msg</span> <span class="p">=&gt;</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">ObjectResult</span><span class="p">(</span><span class="k">new</span> <span class="nf">ValidationProblemDetails</span><span class="p">(</span><span class="n">ModelState</span><span class="p">))</span>
         <span class="p">{</span>
-            <span class="n">echo</span> <span class="p">=</span> <span class="n">msg</span><span class="p">;</span>
-        <span class="p">});</span>
-
-        <span class="k">await</span> <span class="n">connection</span><span class="p">.</span><span class="nf">StartAsync</span><span class="p">();</span>
-        <span class="k">await</span> <span class="n">connection</span><span class="p">.</span><span class="nf">InvokeAsync</span><span class="p">(</span><span class="s">"Send"</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>
-
-        <span class="n">echo</span><span class="p">.</span><span class="nf">Should</span><span class="p">().</span><span class="nf">Be</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+            <span class="n">ContentTypes</span> <span class="p">=</span> <span class="p">{</span> <span class="s">"application/problem+json"</span> <span class="p">},</span>
+            <span class="n">StatusCode</span> <span class="p">=</span> <span class="n">StatusCodes</span><span class="p">.</span><span class="n">Status400BadRequest</span>
+        <span class="p">};</span>
     <span class="p">}</span>
+
+    <span class="kt">var</span> <span class="n">email</span> <span class="p">=</span> <span class="n">User</span><span class="p">.</span><span class="n">Claims</span><span class="p">.</span><span class="nf">SingleOrDefault</span><span class="p">(</span><span class="n">c</span> <span class="p">=&gt;</span> <span class="n">c</span><span class="p">.</span><span class="n">Type</span> <span class="p">==</span> <span class="s">"email"</span><span class="p">)?.</span><span class="n">Value</span><span class="p">;</span>
+
+    <span class="kt">var</span> <span class="n">user</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_userManager</span><span class="p">.</span><span class="nf">FindByEmailAsync</span><span class="p">(</span><span class="n">email</span><span class="p">);</span>
+
+    <span class="kt">var</span> <span class="n">result</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_userManager</span><span class="p">.</span><span class="nf">ChangePasswordAsync</span><span class="p">(</span>
+        <span class="n">user</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">.</span><span class="n">CurrentPassword</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">.</span><span class="n">Password</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(!</span><span class="n">result</span><span class="p">.</span><span class="n">Succeeded</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nf">AddErrors</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
+
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">ObjectResult</span><span class="p">(</span>
+            <span class="k">new</span> <span class="nf">ValidationProblemDetails</span><span class="p">(</span><span class="n">ModelState</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="n">ContentTypes</span> <span class="p">=</span> <span class="p">{</span> <span class="s">"application/problem+json"</span> <span class="p">},</span>
+                <span class="n">StatusCode</span> <span class="p">=</span> <span class="n">StatusCodes</span><span class="p">.</span><span class="n">Status400BadRequest</span>
+            <span class="p">};</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nf">Ok</span><span class="p">();</span>
 <span class="p">}</span>
 </code></pre></div></div>
-<p>In the test we are asserting that we are receving the same message as we sent.</p>
 
-<p>If we run the test we should recieved an error as shown in the below image:</p>
+<p>So our mobile applications can request tokens and call to our API to change the password.</p>
 
-<p><img src="./assets/images/posts/2019/signalrintegrationtests.png" alt="SignalR Integration Tests" /></p>
+<p>Under the hood, the method <strong>AddLocalApiAuthentication</strong> does some things:</p>
 
-<p>Apparently we can connect to our hub, but why are receiving this error if we have been configured AspNetCore SignalR in the right way in the <strong>WebHosBuilder</strong>?</p>
+<ul>
+  <li>
+    <p>Register an authentication handler to validate tokens using the IdentityServer infrastructure.</p>
+  </li>
+  <li>
+    <p>This authentication handler require a scope claim with the value of the constant <strong>IdentityServerConstants.LocalApi.ScopeName</strong> which value is <strong>IdentityServerApi</strong>.</p>
+  </li>
+  <li>
+    <p>Add a policy to check for a scope claim with the value of the constant <strong>LocalApi.PolicyName</strong> (IdentityServerApi)</p>
+  </li>
+</ul>
 
-<p>The answer is that <strong>TestServer</strong> requires <strong>HubConnectionBuilder</strong> to use the <strong>HttpMessageHandler</strong> created by it in order to be able to call our Hub(s). To provide the <strong>HttpMessageHandler</strong>, <strong>WithUrl()</strong> method provides an oveload that accepts an Action«HttpConnectionOptions» configureHttpConnection as you can see in the code below;</p>
+<blockquote>
+  <p>If you want to use more advance scenarios, please visit this <a href="http://docs.identityserver.io/en/latest/topics/add_apis.html#advanced">link</a></p>
+</blockquote>
 
-<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">server</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">TestServer</span><span class="p">(</span><span class="n">webHostBuilder</span><span class="p">);</span>
-<span class="kt">var</span> <span class="n">connection</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">HubConnectionBuilder</span><span class="p">()</span>
-    <span class="p">.</span><span class="nf">WithUrl</span><span class="p">(</span>
-        <span class="s">"http://localhost/echo"</span><span class="p">,</span>
-        <span class="n">o</span> <span class="p">=&gt;</span> <span class="n">o</span><span class="p">.</span><span class="n">HttpMessageHandlerFactory</span> <span class="p">=</span> <span class="n">_</span> <span class="p">=&gt;</span> <span class="n">server</span><span class="p">.</span><span class="nf">CreateHandler</span><span class="p">())</span>
-    <span class="p">.</span><span class="nf">Build</span><span class="p">();</span>
-</code></pre></div></div>
+<h2 id="conclusion">Conclusion</h2>
 
-<p>If we run our test again, we should see the green:</p>
-
-<p><img src="./assets/images/posts/2019/signalrintegrationtests2.png" alt="SignalR Integration Tests" /></p>
-
-<p>From now, you can test your Hub as I did with my <a href="https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks/blob/master/test/FunctionalTests/HealthChecks.SignalR/SignalRHealthCheckTests.cs">Health Check</a></p>
-
-<h1 id="conclusion">Conclusion</h1>
-
-<p>In this post I’ve tried to show you how to make integration tests with AspNetCore SignalR.</p>
-
+<p>In this post I’ve tried to show you how we can add additional API Endpoints to the IdentityServer and protect them using tokens.</p>
 
             </div>
             <footer class="post-footer">
                 
                 <p class="post-tags">
                      
-                    <a href='tag/tests/'>tests</a>
+                    <a href='tag/identityserver/'>identityserver</a>
                     
                      
-                    <a href='tag/aspnetcore/'>aspnetcore</a>
+                    <a href='tag/oidc/'>oidc</a>
                     
                      
-                    <a href='tag/signalr/'>signalr</a>
+                    <a href='tag/api/'>api</a>
                     
                     
                 </p>
                 
                 <div class="post-share">
                     <span class="post-share-title">Share:</span>
-                    <a target="_blank" href="https://twitter.com/share?text=Integration+Tests+in+ASP.NET+Core+SignalR&amp;url=https://lurumad.github.io/integration-tests-in-aspnet-core-signalr">Twitter</a>
-                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/integration-tests-in-aspnet-core-signalr">Facebook</a>
+                    <a target="_blank" href="https://twitter.com/share?text=Additional+API+Endpoints+to+IdentityServer+4&amp;url=https://lurumad.github.io/aditional-api-endpoints-to-identityserver4">Twitter</a>
+                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/aditional-api-endpoints-to-identityserver4">Facebook</a>
                 </div><!-- .share-post -->
             </footer>
             <div class="author-box">
@@ -225,38 +249,6 @@ Install-Package FluentAssertions -Version 5.6.0
             <article class="post">
                 <header class="post-header">
                     <div class="post-meta">
-                        <time class="published" datetime="March 6, 2019">March 6, 2019</time>
-                    </div>
-                    <h3 class="post-title"><a href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider">Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider</a></h3>
-                    <p class="post-tags">
-                        
-                        
-                        
-                        <a href='/tag/saml/'>Saml</a>
-                        
-                        
-                        
-                        <a href='/tag/oidc/'>Oidc</a>
-                        
-                        
-                        
-                        <a href='/tag/identityserver/'>Identityserver</a>
-                        
-                        
-                        
-                    </p>
-                </header>
-                
-                <a href="/connecting-zendesk-and-identityserver-4-saml2p-identity-provider" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/agreement-arms-business-1081228_thumbnail.jpg" alt="Connecting Zendesk and IdentityServer 4 SAML 2.0 Identity Provider" />
-                </a>
-                
-            </article>
-            
-            
-            <article class="post">
-                <header class="post-header">
-                    <div class="post-meta">
                         <time class="published" datetime="October 23, 2019">October 23, 2019</time>
                     </div>
                     <h3 class="post-title"><a href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors</a></h3>
@@ -288,6 +280,7 @@ Install-Package FluentAssertions -Version 5.6.0
                 </a>
                 
             </article>
+            
             
         </section><!-- .read-next -->
     </main><!-- .site-main -->

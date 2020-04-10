@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <!-- Page Info -->
+    <title>Begining with React router | Luru</title>
+    
+    <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Site Favicon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/png" />
+
+    <!-- Font Embed Code -->
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
+
+    <!-- CSS Styles -->
+    <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+
+<body class="layout-post">
+    <div id="page" class="site">
+
+        
+        <header id="masthead" class="site-header outer">
+    <div class="site-header-inside">
+        <div class="site-branding">
+            
+                <p class="site-logo"><a href="/" rel="home"><img src="/assets/images/logo.png" alt="Luru" /></a></p>
+                <h1 class="site-title screen-reader-text"><a href="" rel="home"></a></h1>
+            
+        </div><!-- .site-branding -->
+        <nav id="main-navigation" class="site-navigation" aria-label="Primary Navigation">
+            <ul class="menu">
+            
+                <li class="menu-item"><a href="/about.html">About</a></li>
+            
+                <li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+            
+            </ul>
+            <button id="sidebar-show" class="sidebar-toggle"><span class="screen-reader-text">Open Sidebar</span><span class="icon-more" aria-hidden="true"></span></button>
+        </nav><!-- .site-navigation -->
+    </div><!-- .site-header-inside -->
+</header><!-- .site-header -->
+        
+
+        <div id="content" class="site-content fadeInDown delay_075s">
+    <main id="main" class="site-main outer">
+        <article class="post-full inner">
+            <header class="post-header">
+                <div class="post-meta">
+                    <time class="post-date" datetime="2020-04-09">April 9,
+                        2020</time>
+                </div><!-- .post-meta -->
+                <h1 class="posttitle">Begining with React router</h1>
+            </header><!-- .post-header -->
+            
+            <div class="post-thumbnail"><img class="featured-image img-fluid"
+                    src="assets/images/posts/2020/abacus.jpg" alt="Begining with React router"></div>
+            
+            <div class="post-content">
+                <p>I’m consider a back-end developer but I like to step outside from my confort zone and for this reason I’ve decided to learn about front-end technologies. I’ve created a <a href="https://github.com/lurumad/notes">repository</a> in Github where I’m trying to create a front-end app using React Hooks with an Azure Functions back-end. Step by step I hope to complete it using different approaches and best practices, and today I have to learn about routing in React in order to manage navigation, so I’ve decided to write a post for my future self.</p>
+
+<!--more-->
+<p>In a React application we have an excellent solution to manage routing: <a href="https://reacttraining.com/react-router/web/guides/quick-start">React router-library</a>.</p>
+
+<p>We are going to create a new React application using <a href="https://reactjs.org/docs/create-a-new-react-app.html">React-cli</a>:</p>
+
+<pre><code class="language-txt">npx create-react-app react-router-example
+</code></pre>
+
+<p>First, we need to install <a href="https://github.com/ReactTraining/react-router">React-router</a> with the command:</p>
+
+<pre><code class="language-txt">npm install react-router-dom --save
+</code></pre>
+
+<p>In the <strong>App.js</strong> file, add the code below (only for demo purpose because in a real application we should split the components in separated files):</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">React</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">react</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span>
+  <span class="nx">BrowserRouter</span> <span class="k">as</span> <span class="nx">Router</span><span class="p">,</span>
+  <span class="nx">Switch</span><span class="p">,</span> <span class="nx">Route</span><span class="p">,</span> <span class="nx">Link</span>
+<span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">react-router-dom</span><span class="dl">"</span>
+
+<span class="kd">const</span> <span class="nx">Home</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="nx">Home</span><span class="o">&lt;</span><span class="sr">/h1&gt;&lt;/</span><span class="nx">div</span><span class="o">&gt;</span>
+  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">About</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="nx">About</span><span class="o">&lt;</span><span class="sr">/h1&gt;&lt;/</span><span class="nx">div</span><span class="o">&gt;</span>
+  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">Contact</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="nx">Contact</span><span class="o">&lt;</span><span class="sr">/h1&gt;&lt;/</span><span class="nx">div</span><span class="o">&gt;</span>
+  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">App</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">styles</span> <span class="o">=</span> <span class="p">{</span> <span class="na">padding</span><span class="p">:</span> <span class="mi">5</span> <span class="p">}</span>
+
+  <span class="k">return</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">Router</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">Link</span> <span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">styles</span><span class="p">}</span> <span class="nx">to</span><span class="o">=</span><span class="dl">"</span><span class="s2">/</span><span class="dl">"</span><span class="o">&gt;</span><span class="nx">Home</span><span class="o">&lt;</span><span class="sr">/Link</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="nx">Link</span> <span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">styles</span><span class="p">}</span> <span class="nx">to</span><span class="o">=</span><span class="dl">"</span><span class="s2">/about</span><span class="dl">"</span><span class="o">&gt;</span><span class="nx">About</span><span class="o">&lt;</span><span class="sr">/Link</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="nx">Link</span> <span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">styles</span><span class="p">}</span> <span class="nx">to</span><span class="o">=</span><span class="dl">"</span><span class="s2">/contact</span><span class="dl">"</span><span class="o">&gt;</span><span class="nx">Contact</span><span class="o">&lt;</span><span class="sr">/Link</span><span class="err">&gt;
+</span>      <span class="o">&lt;</span><span class="sr">/div</span><span class="err">&gt;
+</span>
+      <span class="o">&lt;</span><span class="nx">Switch</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/about</span><span class="dl">"</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="nx">About</span> <span class="o">/&gt;</span>
+        <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/contact</span><span class="dl">"</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="nx">Contact</span> <span class="o">/&gt;</span>
+        <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/</span><span class="dl">"</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="nx">Home</span> <span class="o">/&gt;</span>
+        <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>      <span class="o">&lt;</span><span class="sr">/Switch</span><span class="err">&gt;
+</span>    <span class="o">&lt;</span><span class="sr">/Router</span><span class="err">&gt;
+</span>  <span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="nx">App</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p>Then, execute this command in order to test the example:</p>
+
+<pre><code class="language-txt">yarn start
+</code></pre>
+
+<p>Our example has 3 “pages” handled by the <strong>Router</strong> component, event though the component is referred by the name <strong>Route</strong> but in fact we are talking about <strong>BrowserRouter</strong> but we are using <strong>Named Imports</strong>, a new way to import modules provides by ES6.</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span>
+  <span class="nx">BrowserRouter</span> <span class="k">as</span> <span class="nx">Router</span><span class="p">,</span>
+  <span class="nx">Switch</span><span class="p">,</span> <span class="nx">Route</span><span class="p">,</span> <span class="nx">Link</span>
+<span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">react-router-dom</span><span class="dl">"</span>
+</code></pre></div></div>
+
+<p>We can find the definition of the BrowserRoute in this <a href="https://reacttraining.com/react-router/web/api/BrowserRouter">link</a></p>
+
+<blockquote>
+  <p>BrowserRoute uses the HTML5 history API (pushState, replaceState and the popstate event) to keep your UI in sync with the URL.</p>
+</blockquote>
+
+<p>This component with the help of the HTML5 history API enable us to use the url in the address browser bar for internal routing in our React application without a full navigation like traditional web apps.</p>
+
+<p>Inside the Router we can define <em>links</em>. We can use <strong>Link</strong> component that will modify the address bar in the browser:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&lt;</span><span class="nx">Link</span> <span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">styles</span><span class="p">}</span> <span class="nx">to</span><span class="o">=</span><span class="dl">"</span><span class="s2">/about</span><span class="dl">"</span><span class="o">&gt;</span><span class="nx">About</span><span class="o">&lt;</span><span class="sr">/Link</span><span class="err">&gt;
+</span></code></pre></div></div>
+
+<p>In this case, when user clicks on the link, the browser bar address will change to <em>/about</em></p>
+
+<p><img src="./assets/images/posts/2020/react-router-1.png" alt="Router" /></p>
+
+<p>We define our routes with the <strong>Route</strong> component, for example:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/about</span><span class="dl">"</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="nx">About</span> <span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span></code></pre></div></div>
+
+<p>In this case, if the browser bar address match with <em>/about</em> the <strong>About</strong> component will be render.</p>
+
+<p>We have to define as many <strong>Route</strong> components as we want inside the <strong>Switch</strong> component:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&lt;</span><span class="nx">Switch</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/about</span><span class="dl">"</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">About</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>    <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/contact</span><span class="dl">"</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">Contact</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>    <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/</span><span class="dl">"</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">Home</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span><span class="o">&lt;</span><span class="sr">/Switch</span><span class="err">&gt;
+</span></code></pre></div></div>
+
+<p>The <strong>Switch</strong> works rendering the first component that match the browser address bar with the <em>path</em> property.</p>
+
+<p>Another importan thing is the order of the <em>Route</em> components. If we change our example:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&lt;</span><span class="nx">Switch</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/</span><span class="dl">"</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">Home</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>    <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/about</span><span class="dl">"</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">About</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>    <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/contact</span><span class="dl">"</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">Contact</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span><span class="o">&lt;</span><span class="sr">/Switch</span><span class="err">&gt;
+</span></code></pre></div></div>
+
+<p>The <strong>Home</strong> component will always be render and nothing more wourl ever get rendered:</p>
+
+<p><img src="./assets/images/posts/2020/react-router2.gif" alt="Router" /></p>
+
+<p>URL parameters</p>
+
+<p>Some times we will need a component that shows to the user a detail of some entity, product details, user profile, etc. With React router we have the ability to define parametrized urls. Let’s see an example:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">React</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">react</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span>
+  <span class="nx">BrowserRouter</span> <span class="k">as</span> <span class="nx">Router</span><span class="p">,</span>
+  <span class="nx">Switch</span><span class="p">,</span> <span class="nx">Route</span><span class="p">,</span> <span class="nx">Link</span><span class="p">,</span>
+  <span class="nx">useParams</span>
+<span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">react-router-dom</span><span class="dl">"</span>
+
+<span class="kd">const</span> <span class="nx">products</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="p">{</span>
+    <span class="na">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="na">name</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Foo</span><span class="dl">'</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="na">id</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="na">name</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Bar</span><span class="dl">'</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+
+<span class="kd">const</span> <span class="nx">Home</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="nx">Home</span><span class="o">&lt;</span><span class="sr">/h1&gt;&lt;/</span><span class="nx">div</span><span class="o">&gt;</span>
+  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">About</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="nx">About</span><span class="o">&lt;</span><span class="sr">/h1&gt;&lt;/</span><span class="nx">div</span><span class="o">&gt;</span>
+  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">Contact</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="nx">Contact</span><span class="o">&lt;</span><span class="sr">/h1&gt;&lt;/</span><span class="nx">div</span><span class="o">&gt;</span>
+  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">Product</span> <span class="o">=</span> <span class="p">({</span> <span class="nx">product</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">li</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="nx">Link</span> <span class="nx">to</span><span class="o">=</span><span class="p">{</span><span class="s2">`/product/</span><span class="p">${</span><span class="nx">product</span><span class="p">.</span><span class="nx">id</span><span class="p">}</span><span class="s2">`</span><span class="p">}</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">product</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span><span class="o">&lt;</span><span class="sr">/Link</span><span class="err">&gt;
+</span>    <span class="o">&lt;</span><span class="sr">/li</span><span class="err">&gt;
+</span>  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">ProductDetails</span> <span class="o">=</span> <span class="p">({</span><span class="nx">products</span><span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">id</span> <span class="o">=</span> <span class="nx">useParams</span><span class="p">().</span><span class="nx">id</span>
+  <span class="kd">const</span> <span class="nx">product</span> <span class="o">=</span> <span class="nx">products</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">product</span> <span class="o">=&gt;</span> <span class="nx">product</span><span class="p">.</span><span class="nx">id</span> <span class="o">===</span> <span class="nb">Number</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span>
+  <span class="k">return</span> <span class="p">(</span>
+  <span class="o">&lt;</span><span class="nx">h3</span><span class="o">&gt;</span><span class="na">Product</span><span class="p">:</span> <span class="p">{</span><span class="nx">product</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span> <span class="nx">details</span><span class="p">.</span><span class="o">&lt;</span><span class="sr">/h3</span><span class="err">&gt;
+</span>  <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">App</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">styles</span> <span class="o">=</span> <span class="p">{</span> <span class="na">padding</span><span class="p">:</span> <span class="mi">5</span> <span class="p">}</span>
+
+  <span class="k">return</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">Router</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="nx">div</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">Link</span> <span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">styles</span><span class="p">}</span> <span class="nx">to</span><span class="o">=</span><span class="dl">"</span><span class="s2">/</span><span class="dl">"</span><span class="o">&gt;</span><span class="nx">Home</span><span class="o">&lt;</span><span class="sr">/Link</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="nx">Link</span> <span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">styles</span><span class="p">}</span> <span class="nx">to</span><span class="o">=</span><span class="dl">"</span><span class="s2">/about</span><span class="dl">"</span><span class="o">&gt;</span><span class="nx">About</span><span class="o">&lt;</span><span class="sr">/Link</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="nx">Link</span> <span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">styles</span><span class="p">}</span> <span class="nx">to</span><span class="o">=</span><span class="dl">"</span><span class="s2">/contact</span><span class="dl">"</span><span class="o">&gt;</span><span class="nx">Contact</span><span class="o">&lt;</span><span class="sr">/Link</span><span class="err">&gt;
+</span>
+        <span class="o">&lt;</span><span class="nx">ul</span><span class="o">&gt;</span>
+          <span class="p">{</span><span class="nx">products</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">product</span> <span class="o">=&gt;</span>
+            <span class="o">&lt;</span><span class="nx">Product</span>
+              <span class="nx">key</span><span class="o">=</span><span class="p">{</span><span class="nx">product</span><span class="p">.</span><span class="nx">id</span><span class="p">}</span>
+              <span class="nx">product</span><span class="o">=</span><span class="p">{</span><span class="nx">product</span><span class="p">}</span> <span class="sr">/</span><span class="err">&gt;
+</span>          <span class="p">)}</span>
+        <span class="o">&lt;</span><span class="sr">/ul</span><span class="err">&gt;
+</span>
+      <span class="o">&lt;</span><span class="sr">/div</span><span class="err">&gt;
+</span>
+      <span class="o">&lt;</span><span class="nx">Switch</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/product/:id</span><span class="dl">"</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="nx">ProductDetails</span> <span class="nx">products</span><span class="o">=</span><span class="p">{</span><span class="nx">products</span><span class="p">}</span> <span class="sr">/</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/about</span><span class="dl">"</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="nx">About</span> <span class="o">/&gt;</span>
+        <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/contact</span><span class="dl">"</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="nx">Contact</span> <span class="o">/&gt;</span>
+        <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/</span><span class="dl">"</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="nx">Home</span> <span class="o">/&gt;</span>
+        <span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span>      <span class="o">&lt;</span><span class="sr">/Switch</span><span class="err">&gt;
+</span>    <span class="o">&lt;</span><span class="sr">/Router</span><span class="err">&gt;
+</span>  <span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="nx">App</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>We have created a new component in order to show a list of products.</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Product</span> <span class="o">=</span> <span class="p">({</span> <span class="nx">product</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span>
+    <span class="o">&lt;</span><span class="nx">li</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="nx">Link</span> <span class="nx">to</span><span class="o">=</span><span class="p">{</span><span class="s2">`/product/</span><span class="p">${</span><span class="nx">product</span><span class="p">.</span><span class="nx">id</span><span class="p">}</span><span class="s2">`</span><span class="p">}</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">product</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span><span class="o">&lt;</span><span class="sr">/Link</span><span class="err">&gt;
+</span>    <span class="o">&lt;</span><span class="sr">/li</span><span class="err">&gt;
+</span>  <span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Clicking the name of the product <em>Foo</em> will trigger an event that change the browser bar address to <em>product/1</em>. We have created a new route inside the <strong>Switch</strong> component that looks like:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&lt;</span><span class="nx">Route</span> <span class="nx">path</span><span class="o">=</span><span class="dl">"</span><span class="s2">/product/:id</span><span class="dl">"</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="nx">ProductDetails</span> <span class="nx">products</span><span class="o">=</span><span class="p">{</span><span class="nx">products</span><span class="p">}</span> <span class="sr">/</span><span class="err">&gt;
+</span><span class="o">&lt;</span><span class="sr">/Route</span><span class="err">&gt;
+</span></code></pre></div></div>
+
+<p>A new component called <strong>ProductDetails</strong> will be rendered passing all the products, but how can we retrieve the id passed in the url and filter the products by id? We access to the url parameters using <strong>useParams</strong> hook:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="nx">useParams</span>
+<span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">react-router-dom</span><span class="dl">"</span>
+</code></pre></div></div>
+
+<p>In the product details component we can use this hook:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">ProductDetails</span> <span class="o">=</span> <span class="p">({</span><span class="nx">products</span><span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">id</span> <span class="o">=</span> <span class="nx">useParams</span><span class="p">().</span><span class="nx">id</span>
+  <span class="kd">const</span> <span class="nx">product</span> <span class="o">=</span> <span class="nx">products</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">product</span> <span class="o">=&gt;</span> <span class="nx">product</span><span class="p">.</span><span class="nx">id</span> <span class="o">===</span> <span class="nb">Number</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span>
+  <span class="k">return</span> <span class="p">(</span>
+  <span class="o">&lt;</span><span class="nx">h3</span><span class="o">&gt;</span><span class="na">Product</span><span class="p">:</span> <span class="p">{</span><span class="nx">product</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span> <span class="nx">details</span><span class="p">.</span><span class="o">&lt;</span><span class="sr">/h3</span><span class="err">&gt;
+</span>  <span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="./assets/images/posts/2020/react-router3.gif" alt="Router" /></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post I’ve tried to show how straightforward is to added routes in our React applications with React router library.</p>
+
+            </div>
+            <footer class="post-footer">
+                
+                <p class="post-tags">
+                     
+                    <a href='tag/react/'>react</a>
+                    
+                     
+                    <a href='tag/router/'>router</a>
+                    
+                     
+                    <a href='tag/javascript/'>javascript</a>
+                    
+                    
+                </p>
+                
+                <div class="post-share">
+                    <span class="post-share-title">Share:</span>
+                    <a target="_blank"
+                        href="https://twitter.com/share?text=Begining+with+React+router&amp;url=https://lurumad.github.io/react-router">Twitter</a>
+                    <a target="_blank"
+                        href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/react-router">Facebook</a>
+                </div><!-- .share-post -->
+            </footer>
+            <div class="author-box">
+                <div class="author-avatar"><img src="/assets/images/01-luis-ruiz-pavon.png"
+                        alt="Luis Ruiz Pavon's Picture" class="avatar">
+                </div>
+                <div class="author-details">
+                    <h2 class="author-title">About Luis Ruiz Pavon</h2>
+                    <p class="author-description">Luis is a husband, father of two, developer, gamer, speaker, author of book about ASP.NET Core and the co-founder MsCoders Madrid Meetup.</p>
+                    <div>
+                        <a href="https://www.buymeacoffee.com/Rth3vqI" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+                    </div>
+                </div>
+            </div>
+            
+<section id="comments-area" class="comments-area">
+    <h2 class="comments-title">Comments</h2>
+    <div class="comments-inside">
+        <div id="disqus_thread"></div>
+    </div><!-- .comments-inside -->
+    <div id="comments-overlay" class="comments-overlay">
+        <a href="#" id="comments-show" class="comments-show">Show comments</a>
+    </div><!-- .comments-overlay -->
+    <script type="text/javascript">
+        var disqus_shortname = 'lurumad';
+        var disqus_developer = 0;
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+        </article>
+        
+        <section class="read-next inner">
+            <h2 class="read-next-title">Read Next</h2>
+            
+            <article class="post">
+                <header class="post-header">
+                    <div class="post-meta">
+                        <time class="published" datetime="January 16, 2020">January 16, 2020</time>
+                    </div>
+                    <h3 class="post-title"><a href="/aditional-api-endpoints-to-identityserver4">Additional API Endpoints to IdentityServer 4</a>
+                    </h3>
+                    <p class="post-tags">
+                        
+                        
+                        
+                        <a href='/tag/identityserver/'>Identityserver</a>
+                        
+                        
+                        
+                        <a href='/tag/oidc/'>Oidc</a>
+                        
+                        
+                        
+                        <a href='/tag/api/'>Api</a>
+                        
+                        
+                        
+                    </p>
+                </header>
+                
+                <a href="/aditional-api-endpoints-to-identityserver4" class="post-thumbnail">
+                    <img src="assets/images/posts/2020/abacus_thumbnail.jpg" alt="Additional API Endpoints to IdentityServer 4" />
+                </a>
+                
+            </article>
+            
+            
+        </section><!-- .read-next -->
+    </main><!-- .site-main -->
+</div><!-- .site-content -->
+
+        
+
+        
+
+        <footer id="colophon" class="site-footer outer">
+            <div class="site-footer-inside">
+                <p class="social-links">
+    
+    <a href="https://twitter.com/luisruizpavon" target="_blank">
+        <span class="fa-twitter fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Twitter</span>
+    </a>
+    
+    
+    
+    <a href="https://github.com/lurumad" target="_blank">
+        <span class="fa-github fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">GitHub</span>
+    </a>
+    
+    
+    
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/luisruizpavon" target="_blank">
+        <span class="fa-linkedin fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Linkedin</span>
+    </a>
+    
+    
+</p>
+                <p class="site-info">
+                    <a href="#">Luru</a> &copy; 2020 . Horace theme by
+                    <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
+                    Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
+                </p>
+                <p class="back-to-top">
+                    <a id="top-button" class="top-button" href="#page">
+                        <span class="icon-arrow-up" aria-hidden="true"></span>
+                        <span class="screen-reader-text">Back to top</span>
+                    </a>
+                </p>
+            </div><!-- .site-footer-inside -->
+        </footer><!-- .site-footer -->
+    </div><!-- .site -->
+    <div id="site-overlay" class="site-overlay"></div>
+    <aside id="sidebar" class="sidebar">
+	<div class="sidebar-scrollable">
+		<div class="sidebar-inside">
+			<button id="sidebar-hide" class="sidebar-toggle"><span class="screen-reader-text">Close Sidebar</span><span
+				    aria-hidden="true" class="icon-close"></span></button>
+			<nav id="sidebar-navigation" class="widget site-navigation">
+				<h2 class="widget-title">Explore Site</h2>
+				<ul class="menu">
+					
+						<li class="menu-item"><a href="/about.html">About</a></li>
+					
+						<li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+					
+				</ul>
+			</nav>
+			
+<section class="widget widget-text">
+    <h2 class="widget-title">About Luru</h2>
+    <p>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</p>
+</section>
+
+
+<section class="widget widget-recent-posts">
+    <h2 class="widget-title">Recent Articles</h2>
+    <ul>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">April 9, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/react-router">Begining with React router</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/react-router">
+                <img src="/assets/images/posts/2020/abacus_thumbnail.jpg"
+                    alt="Begining with React router">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">January 16, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/aditional-api-endpoints-to-identityserver4">Additional API Endpoints to IdentityServer 4</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/aditional-api-endpoints-to-identityserver4">
+                <img src="/assets/images/posts/2020/abacus_thumbnail.jpg"
+                    alt="Additional API Endpoints to IdentityServer 4">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">October 23, 2019</time>
+                </div>
+                <div class="post-title">
+                    <a href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">
+                <img src="/assets/images/posts/2019/pills_thumbnail.jpg"
+                    alt="Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors">
+            </a>
+            
+        </li>
+        
+    </ul>
+</section>
+
+<!-- Create a sorted array of tags -->
+ 
+<section class="widget widget-tagcloud">
+    <h2 class="widget-title">Tags</h2>
+    <div class="tagcloud">
+        
+        <a href='https://lurumad.github.io/tag/azure/'>Azure</a>
+        
+        <a href='https://lurumad.github.io/tag/blog/'>Blog</a>
+        
+        <a href='https://lurumad.github.io/tag/c#/'>C#</a>
+        
+        <a href='https://lurumad.github.io/tag/career/'>Career</a>
+        
+        <a href='https://lurumad.github.io/tag/devops/'>DevOps</a>
+        
+        <a href='https://lurumad.github.io/tag/pipelines/'>Pipelines</a>
+        
+        <a href='https://lurumad.github.io/tag/self/'>Self</a>
+        
+        <a href='https://lurumad.github.io/tag/aks/'>aks</a>
+        
+        <a href='https://lurumad.github.io/tag/api/'>api</a>
+        
+        <a href='https://lurumad.github.io/tag/apim/'>apim</a>
+        
+        <a href='https://lurumad.github.io/tag/apis/'>apis</a>
+        
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
+        <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
+        
+        <a href='https://lurumad.github.io/tag/async/'>async</a>
+        
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
+        <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
+        
+        <a href='https://lurumad.github.io/tag/javascript/'>javascript</a>
+        
+        <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
+        
+        <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
+        
+        <a href='https://lurumad.github.io/tag/react/'>react</a>
+        
+        <a href='https://lurumad.github.io/tag/rest/'>rest</a>
+        
+        <a href='https://lurumad.github.io/tag/router/'>router</a>
+        
+        <a href='https://lurumad.github.io/tag/saml/'>saml</a>
+        
+        <a href='https://lurumad.github.io/tag/signalr/'>signalr</a>
+        
+        <a href='https://lurumad.github.io/tag/tests/'>tests</a>
+        
+    </div>
+</section>
+
+
+		</div><!-- .sidebar-inside -->
+	</div><!-- .sidebar-scrollable -->
+</aside><!-- .sidebar -->
+    
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131316164-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-131316164-1', { 'anonymize_ip': true });
+  </script>
+
+    <!-- Javascript Assets -->
+    <script src="/assets/js/jquery-3.3.1.min.js"></script>
+    <script src="/assets/js/plugins.js"></script>
+    <script src="/assets/js/custom.js"></script>
+
+</body>
+
+</html>

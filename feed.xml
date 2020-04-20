@@ -5,8 +5,8 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 20 Apr 2020 07:40:39 +0200</pubDate>
-    <lastBuildDate>Mon, 20 Apr 2020 07:40:39 +0200</lastBuildDate>
+    <pubDate>Mon, 20 Apr 2020 07:43:02 +0200</pubDate>
+    <lastBuildDate>Mon, 20 Apr 2020 07:43:02 +0200</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
     
       <item>
@@ -27,7 +27,7 @@
 
 &lt;p&gt;Before Authorization code flow + PKCE, &lt;strong&gt;Implicit&lt;/strong&gt; flow was the standard flow in order to obtain these JWT and provides access to the APIs in browser-based applications such us SPAs (Single Page Applications). As I told you before, you should avoid the use of Implicit flow in favor of Authorization code flow + PKCE. If someone ask you why it should avoid it, please refer to this &lt;a href=&quot;https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-00&quot;&gt;link&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;Some time ago, I made a &lt;a href=&quot;https://github.com/domaindrivendev/Swashbuckle.AspNetCore/pull/1405&quot;&gt;pull request&lt;/a&gt; to support Authorization code flow + PKCE in Swashbuckle Asp.Net Core, so in this post I would like to show you how to configure Shashbuckle in order to use this authorization flow.&lt;/p&gt;
+&lt;p&gt;Some time ago, I made a &lt;a href=&quot;https://github.com/domaindrivendev/Swashbuckle.AspNetCore/pull/1405&quot;&gt;pull request&lt;/a&gt; to support Authorization code flow + PKCE in Swashbuckle Asp.Net Core, so in this post I would like to show you how to configure Swashbuckle in order to use this authorization flow.&lt;/p&gt;
 
 &lt;h2 id=&quot;geeting-started&quot;&gt;Geeting started&lt;/h2&gt;
 

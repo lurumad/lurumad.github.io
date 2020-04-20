@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <!-- Page Info -->
+    <title>Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core | Luru</title>
+    
+    <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Site Favicon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/png" />
+
+    <!-- Font Embed Code -->
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
+
+    <!-- CSS Styles -->
+    <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+
+<body class="layout-post">
+    <div id="page" class="site">
+
+        
+        <header id="masthead" class="site-header outer">
+    <div class="site-header-inside">
+        <div class="site-branding">
+            
+                <p class="site-logo"><a href="/" rel="home"><img src="/assets/images/logo.png" alt="Luru" /></a></p>
+                <h1 class="site-title screen-reader-text"><a href="" rel="home"></a></h1>
+            
+        </div><!-- .site-branding -->
+        <nav id="main-navigation" class="site-navigation" aria-label="Primary Navigation">
+            <ul class="menu">
+            
+                <li class="menu-item"><a href="/about.html">About</a></li>
+            
+                <li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+            
+            </ul>
+            <button id="sidebar-show" class="sidebar-toggle"><span class="screen-reader-text">Open Sidebar</span><span class="icon-more" aria-hidden="true"></span></button>
+        </nav><!-- .site-navigation -->
+    </div><!-- .site-header-inside -->
+</header><!-- .site-header -->
+        
+
+        <div id="content" class="site-content fadeInDown delay_075s">
+    <main id="main" class="site-main outer">
+        <article class="post-full inner">
+            <header class="post-header">
+                <div class="post-meta">
+                    <time class="post-date" datetime="2020-04-17">April 17,
+                        2020</time>
+                </div><!-- .post-meta -->
+                <h1 class="posttitle">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</h1>
+            </header><!-- .post-header -->
+            
+            <div class="post-thumbnail"><img class="featured-image img-fluid"
+                    src="assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash.jpg" alt="Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core"></div>
+            
+            <div class="post-content">
+                <p>If you are using OAuth2, the <a href="https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-00">recommendation</a> for the OAuth working group is to update your applications in order to use Authorization code flow + PKCE instead of implicit flow. With this approach you can remove the tokens from the URL for a much more secure flow. If you are not familiar with OAuth2, I recommend you this Pluralsigt <a href="https://www.pluralsight.com/courses/oauth-2-getting-started">course</a> by <a href="https://www.scottbrady91.com/">Scott Brady</a>.</p>
+
+<!--more-->
+
+<p>If you are developing Web APIs, you should have heared about <a href="https://github.com/swagger-api/swagger-ui">Swagger-UI</a></p>
+
+<blockquote>
+  <p>Swagger UI is a collection of HTML, Javascript, and CSS assets that dynamically generate beautiful documentation from a Swagger-compliant API. <a href="http://swagger.io">Swagger</a></p>
+</blockquote>
+
+<p>In Asp.Net Core we have available a NuGet package called <a href="https://github.com/domaindrivendev/Swashbuckle.AspNetCore">Swashbuckle.AspNetCore</a> to provides an embedded version of the awesome <a href="https://github.com/swagger-api/swagger-ui">Swagger-UI</a>.</p>
+
+<p>Normally our APIs are using some authorization mechanism to protect the access to their information. It’s very common to use <a href="https://jwt.io/introduction/">JSON Web Tokens</a> as an authorization mechanism. Once the user is logged in, each subsequetnt request will include a JWT, that allow our API to determine if the client can access to the resource that is permitted by this token.</p>
+
+<p>Before Authorization code flow + PKCE, <strong>Implicit</strong> flow was the standard flow in order to obtain these JWT and provides access to the APIs in browser-based applications such us SPAs (Single Page Applications). As I told you before, you should avoid the use of Implicit flow in favor of Authorization code flow + PKCE. If someone ask you why it should avoid it, please refer to this <a href="https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-00">link</a>.</p>
+
+<p>Some time ago, I made a <a href="https://github.com/domaindrivendev/Swashbuckle.AspNetCore/pull/1405">pull request</a> to support Authorization code flow + PKCE in Swashbuckle Asp.Net Core, so in this post I would like to show you how to configure Shashbuckle in order to use this authorization flow.</p>
+
+<h2 id="geeting-started">Geeting started</h2>
+
+<p><strong>Disclaimer:</strong> I’m not going to show how to configure things like JWT authentication, settings, etc. and also I’m going to omit some code for brevety and I’m going to put focus only in how to configure Swashbuckle to support Authorization code + PKCE. At the end of the post you’ll have a link to my Github repository with a fully functional example using the <a href="https://demo.identityserver.io/">identityserver demo</a>.</p>
+
+<p>We are going to create and ASP.NET Core Web Application using the API template from Visual Studio 2019:</p>
+
+<p><img src="./assets/images/posts/2020/pkce1.png" alt="PKCE" /></p>
+
+<p>In order to use Swashbuckle in our ASP.NET Core web applications, we need to install a NuGet package with Package Manager Console:</p>
+
+<pre><code class="language-txt">Install-Package Swashbuckle.AspNetCore -Version 5.3.2
+</code></pre>
+
+<p>Or using dotnet cli:</p>
+
+<pre><code class="language-txt">dotnet package add Swashbuckle.AspNetCore --version 5.3.2
+</code></pre>
+
+<p>We need to add the SwaggerGen services in our ConfigureServices method in the Startup.cs:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">services</span>
+    <span class="p">.</span><span class="n">AddTransient</span><span class="p">&lt;</span><span class="n">IConfigureOptions</span><span class="p">&lt;</span><span class="n">SwaggerGenOptions</span><span class="p">&gt;,</span> <span class="n">ConfigureSwaggerGenOptions</span><span class="p">&gt;()</span>
+    <span class="p">.</span><span class="nf">AddSwaggerGen</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>We need to create SwaggerGen options:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">ConfigureSwaggerGenOptions</span> <span class="p">:</span> <span class="n">IConfigureOptions</span><span class="p">&lt;</span><span class="n">SwaggerGenOptions</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="p">...</span>
+
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Configure</span><span class="p">(</span><span class="n">SwaggerGenOptions</span> <span class="n">options</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">OperationFilter</span><span class="p">&lt;</span><span class="n">AuthorizeOperationFilter</span><span class="p">&gt;();</span>
+        <span class="p">...</span>
+        <span class="n">options</span><span class="p">.</span><span class="nf">AddSecurityDefinition</span><span class="p">(</span><span class="s">"OAuth2"</span><span class="p">,</span> <span class="k">new</span> <span class="n">OpenApiSecurityScheme</span>
+        <span class="p">{</span>
+            <span class="n">Type</span> <span class="p">=</span> <span class="n">SecuritySchemeType</span><span class="p">.</span><span class="n">OAuth2</span><span class="p">,</span>
+
+            <span class="n">Flows</span> <span class="p">=</span> <span class="k">new</span> <span class="n">OpenApiOAuthFlows</span>
+            <span class="p">{</span>
+                <span class="n">AuthorizationCode</span> <span class="p">=</span> <span class="k">new</span> <span class="n">OpenApiOAuthFlow</span>
+                <span class="p">{</span>
+                    <span class="n">AuthorizationUrl</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Uri</span><span class="p">(</span><span class="n">discoveryDocument</span><span class="p">.</span><span class="n">AuthorizeEndpoint</span><span class="p">),</span>
+                    <span class="n">TokenUrl</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Uri</span><span class="p">(</span><span class="n">discoveryDocument</span><span class="p">.</span><span class="n">TokenEndpoint</span><span class="p">),</span>
+                    <span class="n">Scopes</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">&gt;</span>
+                    <span class="p">{</span>
+                        <span class="p">{</span> <span class="n">_settings</span><span class="p">.</span><span class="n">Security</span><span class="p">.</span><span class="n">Jwt</span><span class="p">.</span><span class="n">Audience</span> <span class="p">,</span> <span class="s">"Balea Server HTTP Api"</span> <span class="p">}</span>
+                    <span class="p">},</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="n">Description</span> <span class="p">=</span> <span class="s">"Balea Server OpenId Security Scheme"</span>
+        <span class="p">});</span>
+    <span class="p">}</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The first important thing to remark is this line:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">options</span><span class="p">.</span><span class="n">OperationFilter</span><span class="p">&lt;</span><span class="n">AuthorizeOperationFilter</span><span class="p">&gt;();</span>
+</code></pre></div></div>
+
+<p>With this line, we instructs to <strong>swagger-ui</strong> to show a padlock in all operations that have been decorated with the <strong>AuthorizeAttribute</strong>:</p>
+
+<p><img src="./assets/images/posts/2020/pkce2.png" alt="PKCE" /></p>
+
+<p>An also de correct responses:</p>
+
+<p><img src="./assets/images/posts/2020/pkce3.png" alt="PKCE" /></p>
+
+<p>Next, we are configuring Swashbuckle to use an Authorization code flow using the authorization endpoint and the token endpoint.</p>
+
+<p>Finally, we need to configure the middlewares:</p>
+
+<pre><code class="language-scharp">app
+    .UseSwagger()
+    .UseSwaggerUI(setup =&gt;
+    {
+        setup.SwaggerEndpoint($"/swagger/v1/swagger.json", "Version 1.0");
+        setup.OAuthClientId(appSettings.Security.Jwt.ClientId);
+        setup.OAuthClientSecret(appSettings.Security.Jwt.ClientSecret);
+        setup.OAuthAppName("Weather API");
+        setup.OAuthScopeSeparator(" ");
+        setup.OAuthUsePkce();
+    })
+</code></pre>
+
+<p><strong>OAuthUsePkce()</strong> will do the magic and instructs <strong>swagger-ui</strong> to add the PKCE to the Authorization flow.</p>
+
+<p>If you run the example, you will see an Authorize button:</p>
+
+<p><img src="./assets/images/posts/2020/pkce4.png" alt="PKCE" /></p>
+
+<p>Click on the Authorize button, a new window will be opened:</p>
+
+<p><img src="./assets/images/posts/2020/pkce5.png" alt="PKCE" /></p>
+
+<p>You’ll need to check the scope and then click on the Authorize button and Authorization code flow + PKCE will be initiated. You’ll be redirected to the <a href="https://demo.identityserver.io/">IdentityServer4 demo</a>. You’ll need to introduce the credentials:</p>
+
+<p><img src="./assets/images/posts/2020/pkce6.png" alt="PKCE" /></p>
+
+<p>If the authentication was sucessfully, you’ll be redirected again to the swagger-ui interface:</p>
+
+<p><img src="./assets/images/posts/2020/pkce7.png" alt="PKCE" /></p>
+
+<p>Close the modal windows and now the padlocks should be lock:</p>
+
+<p><img src="./assets/images/posts/2020/pkce8.png" alt="PKCE" /></p>
+
+<p>And now you cam make an authorization request to the Weather API.</p>
+
+<p>If you can ensure that <strong>swagger-ui</strong> is using an Authorization code flow + PKCE, open the developer tools in your browser and inspect the networks calls or you can use a HTTP snifer like <a href="https://www.telerik.com/fiddler">Fiddler</a>:</p>
+
+<p><img src="./assets/images/posts/2020/pkce9.png" alt="PKCE" /></p>
+
+<p><img src="./assets/images/posts/2020/pkce10.png" alt="PKCE" /></p>
+
+<p>You can download the complete example <a href="https://github.com/lurumad/swagger-ui-pkce">here</a></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post I’ve tried to show how straightforward is to add Authorization code flow + PKCE in Swashbuckle Asp.Net Core. If you are using Implivit code flow, yI recommend you to change all your browser-based applications such us SPAs (Single Page Applications) in favor to the Authorization code flow + PKCE.</p>
+
+            </div>
+            <footer class="post-footer">
+                
+                <p class="post-tags">
+                     
+                    <a href='tag/openapi/'>openapi</a>
+                    
+                     
+                    <a href='tag/swagger/'>swagger</a>
+                    
+                     
+                    <a href='tag/swagger-ui/'>swagger-ui</a>
+                    
+                     
+                    <a href='tag/oauth2/'>oauth2</a>
+                    
+                     
+                    <a href='tag/pkce/'>pkce</a>
+                    
+                     
+                    <a href='tag/aspnetcore/'>aspnetcore</a>
+                    
+                    
+                </p>
+                
+                <div class="post-share">
+                    <span class="post-share-title">Share:</span>
+                    <a target="_blank"
+                        href="https://twitter.com/share?text=Swagger+UI+%28OpenApi%29+with+Authorization+code+flow+%2B+PKCE+using+Swashbuckle+ASP.NET+Core&amp;url=https://lurumad.github.io/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">Twitter</a>
+                    <a target="_blank"
+                        href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">Facebook</a>
+                </div><!-- .share-post -->
+            </footer>
+            <div class="author-box">
+                <div class="author-avatar"><img src="/assets/images/01-luis-ruiz-pavon.png"
+                        alt="Luis Ruiz Pavon's Picture" class="avatar">
+                </div>
+                <div class="author-details">
+                    <h2 class="author-title">About Luis Ruiz Pavon</h2>
+                    <p class="author-description">Luis is a husband, father of two, developer, gamer, speaker, author of book about ASP.NET Core and the co-founder MsCoders Madrid Meetup.</p>
+                    <div>
+                        <a href="https://www.buymeacoffee.com/Rth3vqI" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+                    </div>
+                </div>
+            </div>
+            
+<section id="comments-area" class="comments-area">
+    <h2 class="comments-title">Comments</h2>
+    <div class="comments-inside">
+        <div id="disqus_thread"></div>
+    </div><!-- .comments-inside -->
+    <div id="comments-overlay" class="comments-overlay">
+        <a href="#" id="comments-show" class="comments-show">Show comments</a>
+    </div><!-- .comments-overlay -->
+    <script type="text/javascript">
+        var disqus_shortname = 'lurumad';
+        var disqus_developer = 0;
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+        </article>
+        
+        <section class="read-next inner">
+            <h2 class="read-next-title">Read Next</h2>
+            
+            <article class="post">
+                <header class="post-header">
+                    <div class="post-meta">
+                        <time class="published" datetime="April 9, 2020">April 9, 2020</time>
+                    </div>
+                    <h3 class="post-title"><a href="/react-router">Begining with React router</a>
+                    </h3>
+                    <p class="post-tags">
+                        
+                        
+                        
+                        <a href='/tag/react/'>React</a>
+                        
+                        
+                        
+                        <a href='/tag/router/'>Router</a>
+                        
+                        
+                        
+                        <a href='/tag/javascript/'>Javascript</a>
+                        
+                        
+                        
+                    </p>
+                </header>
+                
+                <a href="/react-router" class="post-thumbnail">
+                    <img src="assets/images/posts/2020/jonathan-fox-0LXFLzDOfuA-unsplash_thumbnail.jpg" alt="Begining with React router" />
+                </a>
+                
+            </article>
+            
+            
+        </section><!-- .read-next -->
+    </main><!-- .site-main -->
+</div><!-- .site-content -->
+
+        
+
+        
+
+        <footer id="colophon" class="site-footer outer">
+            <div class="site-footer-inside">
+                <p class="social-links">
+    
+    <a href="https://twitter.com/luisruizpavon" target="_blank">
+        <span class="fa-twitter fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Twitter</span>
+    </a>
+    
+    
+    
+    <a href="https://github.com/lurumad" target="_blank">
+        <span class="fa-github fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">GitHub</span>
+    </a>
+    
+    
+    
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/luisruizpavon" target="_blank">
+        <span class="fa-linkedin fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Linkedin</span>
+    </a>
+    
+    
+</p>
+                <p class="site-info">
+                    <a href="#">Luru</a> &copy; 2020 . Horace theme by
+                    <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
+                    Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
+                </p>
+                <p class="back-to-top">
+                    <a id="top-button" class="top-button" href="#page">
+                        <span class="icon-arrow-up" aria-hidden="true"></span>
+                        <span class="screen-reader-text">Back to top</span>
+                    </a>
+                </p>
+            </div><!-- .site-footer-inside -->
+        </footer><!-- .site-footer -->
+    </div><!-- .site -->
+    <div id="site-overlay" class="site-overlay"></div>
+    <aside id="sidebar" class="sidebar">
+	<div class="sidebar-scrollable">
+		<div class="sidebar-inside">
+			<button id="sidebar-hide" class="sidebar-toggle"><span class="screen-reader-text">Close Sidebar</span><span
+				    aria-hidden="true" class="icon-close"></span></button>
+			<nav id="sidebar-navigation" class="widget site-navigation">
+				<h2 class="widget-title">Explore Site</h2>
+				<ul class="menu">
+					
+						<li class="menu-item"><a href="/about.html">About</a></li>
+					
+						<li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+					
+				</ul>
+			</nav>
+			
+<section class="widget widget-text">
+    <h2 class="widget-title">About Luru</h2>
+    <p>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</p>
+</section>
+
+
+<section class="widget widget-recent-posts">
+    <h2 class="widget-title">Recent Articles</h2>
+    <ul>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">April 17, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">
+                <img src="/assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash_thumbnail.jpg"
+                    alt="Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">April 9, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/react-router">Begining with React router</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/react-router">
+                <img src="/assets/images/posts/2020/jonathan-fox-0LXFLzDOfuA-unsplash_thumbnail.jpg"
+                    alt="Begining with React router">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">January 16, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/aditional-api-endpoints-to-identityserver4">Additional API Endpoints to IdentityServer 4</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/aditional-api-endpoints-to-identityserver4">
+                <img src="/assets/images/posts/2020/abacus_thumbnail.jpg"
+                    alt="Additional API Endpoints to IdentityServer 4">
+            </a>
+            
+        </li>
+        
+    </ul>
+</section>
+
+<!-- Create a sorted array of tags -->
+ 
+<section class="widget widget-tagcloud">
+    <h2 class="widget-title">Tags</h2>
+    <div class="tagcloud">
+        
+        <a href='https://lurumad.github.io/tag/azure/'>Azure</a>
+        
+        <a href='https://lurumad.github.io/tag/blog/'>Blog</a>
+        
+        <a href='https://lurumad.github.io/tag/c#/'>C#</a>
+        
+        <a href='https://lurumad.github.io/tag/career/'>Career</a>
+        
+        <a href='https://lurumad.github.io/tag/devops/'>DevOps</a>
+        
+        <a href='https://lurumad.github.io/tag/pipelines/'>Pipelines</a>
+        
+        <a href='https://lurumad.github.io/tag/self/'>Self</a>
+        
+        <a href='https://lurumad.github.io/tag/aks/'>aks</a>
+        
+        <a href='https://lurumad.github.io/tag/api/'>api</a>
+        
+        <a href='https://lurumad.github.io/tag/apim/'>apim</a>
+        
+        <a href='https://lurumad.github.io/tag/apis/'>apis</a>
+        
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
+        <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
+        
+        <a href='https://lurumad.github.io/tag/async/'>async</a>
+        
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
+        <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
+        
+        <a href='https://lurumad.github.io/tag/javascript/'>javascript</a>
+        
+        <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
+        
+        <a href='https://lurumad.github.io/tag/oauth2/'>oauth2</a>
+        
+        <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
+        
+        <a href='https://lurumad.github.io/tag/openapi/'>openapi</a>
+        
+        <a href='https://lurumad.github.io/tag/pkce/'>pkce</a>
+        
+        <a href='https://lurumad.github.io/tag/react/'>react</a>
+        
+        <a href='https://lurumad.github.io/tag/rest/'>rest</a>
+        
+        <a href='https://lurumad.github.io/tag/router/'>router</a>
+        
+        <a href='https://lurumad.github.io/tag/saml/'>saml</a>
+        
+        <a href='https://lurumad.github.io/tag/signalr/'>signalr</a>
+        
+        <a href='https://lurumad.github.io/tag/swagger/'>swagger</a>
+        
+        <a href='https://lurumad.github.io/tag/swagger-ui/'>swagger-ui</a>
+        
+        <a href='https://lurumad.github.io/tag/tests/'>tests</a>
+        
+    </div>
+</section>
+
+
+		</div><!-- .sidebar-inside -->
+	</div><!-- .sidebar-scrollable -->
+</aside><!-- .sidebar -->
+    
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131316164-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-131316164-1', { 'anonymize_ip': true });
+  </script>
+
+    <!-- Javascript Assets -->
+    <script src="/assets/js/jquery-3.3.1.min.js"></script>
+    <script src="/assets/js/plugins.js"></script>
+    <script src="/assets/js/custom.js"></script>
+
+</body>
+
+</html>

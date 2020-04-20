@@ -5,9 +5,172 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 10 Apr 2020 08:59:04 +0200</pubDate>
-    <lastBuildDate>Fri, 10 Apr 2020 08:59:04 +0200</lastBuildDate>
+    <pubDate>Mon, 20 Apr 2020 07:39:02 +0200</pubDate>
+    <lastBuildDate>Mon, 20 Apr 2020 07:39:02 +0200</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
+    
+      <item>
+        <title>Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</title>
+        <description>&lt;p&gt;If you are using OAuth2, the &lt;a href=&quot;https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-00&quot;&gt;recommendation&lt;/a&gt; for the OAuth working group is to update your applications in order to use Authorization code flow + PKCE instead of implicit flow. With this approach you can remove the tokens from the URL for a much more secure flow. If you are not familiar with OAuth2, I recommend you this Pluralsigt &lt;a href=&quot;https://www.pluralsight.com/courses/oauth-2-getting-started&quot;&gt;course&lt;/a&gt; by &lt;a href=&quot;https://www.scottbrady91.com/&quot;&gt;Scott Brady&lt;/a&gt;.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;If you are developing Web APIs, you should have heared about &lt;a href=&quot;https://github.com/swagger-api/swagger-ui&quot;&gt;Swagger-UI&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Swagger UI is a collection of HTML, Javascript, and CSS assets that dynamically generate beautiful documentation from a Swagger-compliant API. &lt;a href=&quot;http://swagger.io&quot;&gt;Swagger&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In Asp.Net Core we have available a NuGet package called &lt;a href=&quot;https://github.com/domaindrivendev/Swashbuckle.AspNetCore&quot;&gt;Swashbuckle.AspNetCore&lt;/a&gt; to provides an embedded version of the awesome &lt;a href=&quot;https://github.com/swagger-api/swagger-ui&quot;&gt;Swagger-UI&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Normally our APIs are using some authorization mechanism to protect the access to their information. It’s very common to use &lt;a href=&quot;https://jwt.io/introduction/&quot;&gt;JSON Web Tokens&lt;/a&gt; as an authorization mechanism. Once the user is logged in, each subsequetnt request will include a JWT, that allow our API to determine if the client can access to the resource that is permitted by this token.&lt;/p&gt;
+
+&lt;p&gt;Before Authorization code flow + PKCE, &lt;strong&gt;Implicit&lt;/strong&gt; flow was the standard flow in order to obtain these JWT and provides access to the APIs in browser-based applications such us SPAs (Single Page Applications). As I told you before, you should avoid the use of Implicit flow in favor of Authorization code flow + PKCE. If someone ask you why it should avoid it, please refer to this &lt;a href=&quot;https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-00&quot;&gt;link&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Some time ago, I made a &lt;a href=&quot;https://github.com/domaindrivendev/Swashbuckle.AspNetCore/pull/1405&quot;&gt;pull request&lt;/a&gt; to support Authorization code flow + PKCE in Swashbuckle Asp.Net Core, so in this post I would like to show you how to configure Shashbuckle in order to use this authorization flow.&lt;/p&gt;
+
+&lt;h2 id=&quot;geeting-started&quot;&gt;Geeting started&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; I’m not going to show how to configure things like JWT authentication, settings, etc. and also I’m going to omit some code for brevety and I’m going to put focus only in how to configure Swashbuckle to support Authorization code + PKCE. At the end of the post you’ll have a link to my Github repository with a fully functional example using the &lt;a href=&quot;https://demo.identityserver.io/&quot;&gt;identityserver demo&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;We are going to create and ASP.NET Core Web Application using the API template from Visual Studio 2019:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/pkce1.png&quot; alt=&quot;PKCE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In order to use Swashbuckle in our ASP.NET Core web applications, we need to install a NuGet package with Package Manager Console:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-txt&quot;&gt;Install-Package Swashbuckle.AspNetCore -Version 5.3.2
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Or using dotnet cli:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-txt&quot;&gt;dotnet package add Swashbuckle.AspNetCore --version 5.3.2
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We need to add the SwaggerGen services in our ConfigureServices method in the Startup.cs:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;services&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AddTransient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IConfigureOptions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SwaggerGenOptions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ConfigureSwaggerGenOptions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddSwaggerGen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We need to create SwaggerGen options:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ConfigureSwaggerGenOptions&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IConfigureOptions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SwaggerGenOptions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SwaggerGenOptions&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OperationFilter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AuthorizeOperationFilter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;();&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddSecurityDefinition&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;OAuth2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OpenApiSecurityScheme&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;Type&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SecuritySchemeType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OAuth2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+
+            &lt;span class=&quot;n&quot;&gt;Flows&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OpenApiOAuthFlows&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;AuthorizationCode&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OpenApiOAuthFlow&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;AuthorizationUrl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Uri&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;discoveryDocument&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AuthorizeEndpoint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;TokenUrl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Uri&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;discoveryDocument&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TokenEndpoint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;Scopes&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Dictionary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+                    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_settings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Security&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Jwt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Audience&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Balea Server HTTP Api&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+                    &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;Description&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Balea Server OpenId Security Scheme&quot;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The first important thing to remark is this line:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OperationFilter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AuthorizeOperationFilter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;();&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;With this line, we instructs to &lt;strong&gt;swagger-ui&lt;/strong&gt; to show a padlock in all operations that have been decorated with the &lt;strong&gt;AuthorizeAttribute&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/pkce2.png&quot; alt=&quot;PKCE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;An also de correct responses:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/pkce3.png&quot; alt=&quot;PKCE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Next, we are configuring Swashbuckle to use an Authorization code flow using the authorization endpoint and the token endpoint.&lt;/p&gt;
+
+&lt;p&gt;Finally, we need to configure the middlewares:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-scharp&quot;&gt;app
+    .UseSwagger()
+    .UseSwaggerUI(setup =&amp;gt;
+    {
+        setup.SwaggerEndpoint($&quot;/swagger/v1/swagger.json&quot;, &quot;Version 1.0&quot;);
+        setup.OAuthClientId(appSettings.Security.Jwt.ClientId);
+        setup.OAuthClientSecret(appSettings.Security.Jwt.ClientSecret);
+        setup.OAuthAppName(&quot;Weather API&quot;);
+        setup.OAuthScopeSeparator(&quot; &quot;);
+        setup.OAuthUsePkce();
+    })
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;OAuthUsePkce()&lt;/strong&gt; will do the magic and instructs &lt;strong&gt;swagger-ui&lt;/strong&gt; to add the PKCE to the Authorization flow.&lt;/p&gt;
+
+&lt;p&gt;If you run the example, you will see an Authorize button:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/pkce4.png&quot; alt=&quot;PKCE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Click on the Authorize button, a new window will be opened:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/pkce5.png&quot; alt=&quot;PKCE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;You’ll need to check the scope and then click on the Authorize button and Authorization code flow + PKCE will be initiated. You’ll be redirected to the &lt;a href=&quot;https://demo.identityserver.io/&quot;&gt;IdentityServer4 demo&lt;/a&gt;. You’ll need to introduce the credentials:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/pkce6.png&quot; alt=&quot;PKCE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If the authentication was sucessfully, you’ll be redirected again to the swagger-ui interface:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/pkce7.png&quot; alt=&quot;PKCE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Close the modal windows and now the padlocks should be lock:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/pkce8.png&quot; alt=&quot;PKCE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And now you cam make an authorization request to the Weather API.&lt;/p&gt;
+
+&lt;p&gt;If you can ensure that &lt;strong&gt;swagger-ui&lt;/strong&gt; is using an Authorization code flow + PKCE, open the developer tools in your browser and inspect the networks calls or you can use a HTTP snifer like &lt;a href=&quot;https://www.telerik.com/fiddler&quot;&gt;Fiddler&lt;/a&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/pkce9.png&quot; alt=&quot;PKCE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/pkce10.png&quot; alt=&quot;PKCE&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;You can download the complete example &lt;a href=&quot;https://github.com/lurumad/swagger-ui-pkce&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post I’ve tried to show how straightforward is to add Authorization code flow + PKCE in Swashbuckle Asp.Net Core. If you are using Implivit code flow, yI recommend you to change all your browser-based applications such us SPAs (Single Page Applications) in favor to the Authorization code flow + PKCE.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 17 Apr 2020 00:00:00 +0200</pubDate>
+        <link>/swagger-ui-with-pkce-using-swashbuckle-asp-net-core</link>
+        <guid isPermaLink="true">/swagger-ui-with-pkce-using-swashbuckle-asp-net-core</guid>
+        
+        <category>openapi</category>
+        
+        <category>swagger</category>
+        
+        <category>swagger-ui</category>
+        
+        <category>oauth2</category>
+        
+        <category>pkce</category>
+        
+        <category>aspnetcore</category>
+        
+        
+      </item>
     
       <item>
         <title>Begining with React router</title>
@@ -1515,147 +1678,6 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
         <category>DevOps</category>
         
         <category>Pipelines</category>
-        
-        
-      </item>
-    
-      <item>
-        <title>Continous delivery to Azure API Management using Azure DevOps pipelines</title>
-        <description>&lt;p&gt;A while ago, one of our customers, a spanish insurance company, contact us with one ambitous project: Expose many of their internal APIs to their ISV ecosystem using &lt;a href=&quot;https://azure.microsoft.com/en-us/services/api-management/&quot;&gt;Azure API Management&lt;/a&gt;. So, we accepted the challengue and we began to work together to achieve the objective.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;p&gt;Actually, we have three environments in Azure API Management, Dev &amp;amp; Pre (Developer tier) and Pro (Premium tier). We choosen Developer and Premium tiers because we need Virtual Network support (One of the most annoing thing about pricing details in apim is why Basic and Standard doesn’t have support for Virtual Network). Our customer have more than 90 apis ready to expose through Azure API Management and you will thinking about how we are going to publish this APIs, because &lt;strong&gt;3 environments * 90 APIs = 180 APIs&lt;/strong&gt; to deploy in apim. So if we have deploy manually this APIs we could have several problems like time-consuming and error prone. So we need to automate this process.&lt;/p&gt;
-
-&lt;p&gt;All source code of theses APIs is managed by &lt;a href=&quot;https://azure.microsoft.com/en-us/services/devops/&quot;&gt;Azure DevOps&lt;/a&gt; through several team projects. So our first thought was to create a set of powershell scripts to automate this process, because if you know or not Azure API Management like other services in Azure provides a REST API for performing operations on selected entities, such us apis, products, users, groups… but this approach has severral cons:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;We don’t have an user interface, is a powershell script with many input parameters and things like choose in which azure subscription we want to deploy, which resource group, the name op the service… we want to specify through variables.&lt;/li&gt;
-  &lt;li&gt;We can publish these scripts as a build artifacts but we can’t share between team projects so we have to store in some place accesible from Azure DevOps.&lt;/li&gt;
-  &lt;li&gt;We can version the scripts but we don’t have feedback about which things have been changed (Rename parameters, remove, update)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;So for these reasons we decided to create an Azure DevOps custom tasks for this purpose. But after that we decided to search in the Azure DevOps marketplace if there were some extension available and we found this &lt;a href=&quot;https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim&quot;&gt;API Management Suite&lt;/a&gt;. A full suite of tasks to manage Azure Api Management from Azure DevOps developed by &lt;a href=&quot;https://twitter.com/stephaneeyskens&quot;&gt;Stephane Eyskens&lt;/a&gt;. We have several tasks available:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Create or update product.&lt;/li&gt;
-  &lt;li&gt;Create or Update Api from OpenApi specificacion.&lt;/li&gt;
-  &lt;li&gt;Create or Update Api from WSDL.&lt;/li&gt;
-  &lt;li&gt;Create or Update versioned API.&lt;/li&gt;
-  &lt;li&gt;Create or Update (versioned) API on Azure Functions&lt;/li&gt;
-  &lt;li&gt;API security checker.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;This extension is open source released in &lt;a href=&quot;https://github.com/stephaneey/azure-apim-extension&quot;&gt;Github&lt;/a&gt; and I have been contributing with all requirements that our customer had. We look forward to your PR!&lt;/p&gt;
-
-&lt;h1 id=&quot;publish-your-first-api-using-azure-devops&quot;&gt;Publish your first API using Azure DevOps&lt;/h1&gt;
-
-&lt;p&gt;I’m going to show you how to create a new product (If you want to know more about products in Azure API Management, I recommend you the official documentation https://docs.microsoft.com/en-us/azure/api-management/api-management-key-concepts#a-nameproducts-a-products and how to publish a new API from an “OpenAPI specification” using a Release Pipeline and how to associate to the product.&lt;/p&gt;
-
-&lt;h4 id=&quot;1-install-the-extension&quot;&gt;1. Install the extension&lt;/h4&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Click on this &lt;a href=&quot;https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim&quot;&gt;link&lt;/a&gt; to go to the Azure DevOps marketplace.&lt;/li&gt;
-  &lt;li&gt;Click on “Get it free” button&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim1.png&quot; alt=&quot;Get if free&quot; /&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Select your organization and then click on “Install” button.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim2.png&quot; alt=&quot;Install the extension&quot; /&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;We have the suite ready to use in our Azure DevOps Pipelines. So we are going create a new Release Pipeline:&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim5.png&quot; alt=&quot;New release pipeline&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Select an &lt;strong&gt;Empty job&lt;/strong&gt;:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim6.png&quot; alt=&quot;Empty job&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Change the name of the stage whatever you want, in my case &lt;strong&gt;Development&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim7.png&quot; alt=&quot;Change stage name&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Click on the &lt;strong&gt;Development&lt;/strong&gt; stage tasks:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim8.png&quot; alt=&quot;View stage tasks&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Add APIM DevOps tasks to the pipeline:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim9.png&quot; alt=&quot;Add tasks&quot; /&gt;
-&lt;img src=&quot;./assets/images/posts/2019/apim10.png&quot; alt=&quot;Add product&quot; /&gt;
-&lt;img src=&quot;./assets/images/posts/2019/apim11.png&quot; alt=&quot;Add api&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Out pipeline should be like this:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim12.png&quot; alt=&quot;Pipeline&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Click on the &lt;strong&gt;Create/Update product&lt;/strong&gt; task in order the configure the required properties:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim13.png&quot; alt=&quot;Configure product task&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Click on the &lt;strong&gt;Create/Update API&lt;/strong&gt; task in order the configure the required properties:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim14.png&quot; alt=&quot;Configure api task&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;You can associate to the API the product created by previous task/s (You can add more than one product task and API task can be associated with all of them) and you can reduce error prone.&lt;/p&gt;
-
-&lt;p&gt;Once the pipeline is configured, we can can create a new Release:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim15.png&quot; alt=&quot;Create a release&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim16.png&quot; alt=&quot;Create a release 2&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;And if you have followed all these steps you should be something like this:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim17.png&quot; alt=&quot;Deploy logs&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Navigate to the &lt;a href=&quot;https://portal.azure.com&quot;&gt;Azure Portal&lt;/a&gt; and open your API Management resource, you should see the new API and it should be associated with the &lt;strong&gt;Blog&lt;/strong&gt; product:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim18.png&quot; alt=&quot;Azure Portal&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Also, you can configure products and API’s policies using these tasks. You can choose a starting policy template and modify as you want. The list of templates availables are:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;None(Default): Choose if you want to override your policies in API Management.&lt;/li&gt;
-  &lt;li&gt;Custom&lt;/li&gt;
-  &lt;li&gt;Basic&lt;/li&gt;
-  &lt;li&gt;JWT&lt;/li&gt;
-  &lt;li&gt;IP&lt;/li&gt;
-  &lt;li&gt;Rate and Quota&lt;/li&gt;
-  &lt;li&gt;Rate by key&lt;/li&gt;
-  &lt;li&gt;Quota by key&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;For example, imagine that you can restrict the product by IP. Select the IP template and fill the required information:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apim19.png&quot; alt=&quot;Policies&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;The purpose of the post is give you a brief introduction of how you can automate Azure API Management tasks from Azure DevOps using a suite of open source tasks, so from this moment you can go deeper more and of course collaborate adding more functionallity or new features.&lt;/p&gt;
-
-&lt;h1 id=&quot;links&quot;&gt;Links&lt;/h1&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://marketplace.visualstudio.com/items?itemName=stephane-eyskens.apim&quot;&gt;API Management Suite&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/stephaneey/azure-apim-extension&quot;&gt;Github&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Tue, 08 Jan 2019 00:00:00 +0100</pubDate>
-        <link>/continous-delivery-to-azure-api-management-using-azure-devops-pipelines</link>
-        <guid isPermaLink="true">/continous-delivery-to-azure-api-management-using-azure-devops-pipelines</guid>
-        
-        <category>Azure</category>
-        
-        <category>DevOps</category>
-        
-        <category>apim</category>
         
         
       </item>

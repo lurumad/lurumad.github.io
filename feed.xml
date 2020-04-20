@@ -5,8 +5,8 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 20 Apr 2020 07:39:02 +0200</pubDate>
-    <lastBuildDate>Mon, 20 Apr 2020 07:39:02 +0200</lastBuildDate>
+    <pubDate>Mon, 20 Apr 2020 07:40:39 +0200</pubDate>
+    <lastBuildDate>Mon, 20 Apr 2020 07:40:39 +0200</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
     
       <item>
@@ -153,7 +153,7 @@
 
 &lt;p&gt;In this post I’ve tried to show how straightforward is to add Authorization code flow + PKCE in Swashbuckle Asp.Net Core. If you are using Implivit code flow, yI recommend you to change all your browser-based applications such us SPAs (Single Page Applications) in favor to the Authorization code flow + PKCE.&lt;/p&gt;
 </description>
-        <pubDate>Fri, 17 Apr 2020 00:00:00 +0200</pubDate>
+        <pubDate>Mon, 20 Apr 2020 00:00:00 +0200</pubDate>
         <link>/swagger-ui-with-pkce-using-swashbuckle-asp-net-core</link>
         <guid isPermaLink="true">/swagger-ui-with-pkce-using-swashbuckle-asp-net-core</guid>
         

@@ -5,19 +5,19 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 10 May 2020 13:19:19 +0200</pubDate>
-    <lastBuildDate>Sun, 10 May 2020 13:19:19 +0200</lastBuildDate>
+    <pubDate>Sun, 10 May 2020 17:25:45 +0200</pubDate>
+    <lastBuildDate>Sun, 10 May 2020 17:25:45 +0200</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
     
       <item>
-        <title>ASP.NET CORE API security guidelines: Be careful with your predictible id's</title>
-        <description>&lt;p&gt;Sometimes developers doesn’t take care about security concerns when they develop a REST API. I know this scope is not straightforward but at least we should complaint with a minimum of basic security rules in order to avoid the most common attacks.&lt;/p&gt;
+        <title>ASP.NET CORE API security guidelines: Be careful with your predictable id's</title>
+        <description>&lt;p&gt;Sometimes developers don’t take care about security concerns when they develop a REST API. I know this scope is not straightforward but at least we should comply with a minimum of basic security rules in order to avoid the most common attacks.&lt;/p&gt;
 
 &lt;!--more--&gt;
 
-&lt;p&gt;The first thing we have to take into account is avoid to use predictible ids like identity fields. Last vulnerability I’ve seen was a simple script using a for statement making calls to the api passsing an autoincremental id and retrieving all the confidentials documents from the system. It was an error configuring the authorization of the system, but the use of predictible ids facilitated the attack.&lt;/p&gt;
+&lt;p&gt;The first thing we must take into account is to avoid using predictable ids like identity fields. The last vulnerability I’ve seen was a simple bash script which using a for statement it was making calls to the api passing an autoincremental id and retrieving all the confidentials documents from the system. It was an error configuring the authorization of the system, but the use of predictable ids facilitated the attack.&lt;/p&gt;
 
-&lt;p&gt;There are some ways to fix this kind of vulnerability, for example use GUIDs to represent this ids but from my side and for many DBA’s thera some caveats using this approach:&lt;/p&gt;
+&lt;p&gt;There are some ways to fix this kind of vulnerability, for example using GUIDs to represent this ids but from my side and for many DBA’s there are some caveats on the usage of this approach:&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;4 times larger than the traditional 4-byte index value&lt;/li&gt;
@@ -25,17 +25,17 @@
   &lt;li&gt;They are not monotonically increasing&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;Looking for a better alternative to avoid expose our database ids to the clients is to hashing ids (creates short, unique, decryptable hashes from unsigned integers). There is a library written in many languages to generate short unique ids from integers &lt;a href=&quot;https://hashids.org/net/&quot;&gt;hashids&lt;/a&gt; and of course there is an available version for .NET &lt;a href=&quot;https://github.com/ullmark/hashids.net&quot;&gt;hashids.net&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Looking for a better alternative to avoid exposing our database ids to the clients is to use hashing ids (it creates short, unique, decryptable hashes from unsigned integers). There is a library written in many languages to generate short unique ids from integers &lt;a href=&quot;https://hashids.org/net/&quot;&gt;hashids&lt;/a&gt; and of course there is an available version for .NET &lt;a href=&quot;https://github.com/ullmark/hashids.net&quot;&gt;hashids.net&lt;/a&gt;&lt;/p&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;A small .NET package to generate YouTube-like hashes from one or many numbers. Use hashids when you do not want to expose your database ids to the user.&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;I decided to create a PoC in order to hashing the ids in ASP.NET Core.&lt;/p&gt;
+&lt;p&gt;I decided to create a PoC to hashing the ids in ASP.NET Core.&lt;/p&gt;
 
 &lt;h2 id=&quot;first-part-crypt-ids&quot;&gt;First part: Crypt ids&lt;/h2&gt;
 
-&lt;p&gt;To return my hashing identitfiers to my clients, I decided to create a custom &lt;strong&gt;JsonConverter&lt;/strong&gt; in order to hash integer properties of my DTOs. Given the current limitations of &lt;strong&gt;System.Text.Json.Serialization.JsonConverter&lt;/strong&gt; I couldn’t find a solution 100% acceptable today, but I decided to create a different type other than &lt;strong&gt;int&lt;/strong&gt; with an implicit conversion to and-from int.&lt;/p&gt;
+&lt;p&gt;To return my hashing identifiers to my clients, I decided to create a custom &lt;strong&gt;JsonConverter&lt;/strong&gt; to hash integer properties of my DTOs. Given the current limitations of &lt;strong&gt;System.Text.Json.Serialization.JsonConverter&lt;/strong&gt; I couldn’t find a solution 100% acceptable today, but I decided to create a different type other than &lt;strong&gt;int&lt;/strong&gt; with an implicit conversion to and-from int.&lt;/p&gt;
 
 &lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HashidInt&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -220,9 +220,9 @@
 
 &lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
 
-&lt;p&gt;In this post I’ve tried to show how important is the security in our REST APIs in order to avoid the most common attacks like for example using predictible ids. I’m going to continue researching about to find a better way to create non-guessable ids and I’ll wait until dotnet team make changes in the current implementation of &lt;strong&gt;System.Text.Json.Serialization&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;In this post I’ve tried to show how important is the security in our REST APIs in order to avoid the most common attacks like for example using predictable ids. I’m going to continue researching about finding a better way to create non-guessable ids and I’ll wait until dotnet team make changes in the current implementation of &lt;strong&gt;System.Text.Json.Serialization&lt;/strong&gt;.&lt;/p&gt;
 
-&lt;p&gt;Of course, any feedback is welcome and I would to know your experiencies with this in order to learn alternative ways to do this.&lt;/p&gt;
+&lt;p&gt;Of course, any feedback is welcome, and I would to know your experiences with this in order to learn alternative ways to do this.&lt;/p&gt;
 </description>
         <pubDate>Sun, 10 May 2020 00:00:00 +0200</pubDate>
         <link>/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s</link>

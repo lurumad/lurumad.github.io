@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <!-- Page Info -->
-    <title>ASP.NET CORE API security guidelines: Be careful with your predictible id's | Luru</title>
+    <title>ASP.NET CORE API security guidelines: Be careful with your predictable id's | Luru</title>
     
     <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
     
@@ -57,20 +57,20 @@
                     <time class="post-date" datetime="2020-05-10">May 10,
                         2020</time>
                 </div><!-- .post-meta -->
-                <h1 class="posttitle">ASP.NET CORE API security guidelines: Be careful with your predictible id's</h1>
+                <h1 class="posttitle">ASP.NET CORE API security guidelines: Be careful with your predictable id's</h1>
             </header><!-- .post-header -->
             
             <div class="post-thumbnail"><img class="featured-image img-fluid"
-                    src="assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash.jpg" alt="ASP.NET CORE API security guidelines: Be careful with your predictible id's"></div>
+                    src="assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash.jpg" alt="ASP.NET CORE API security guidelines: Be careful with your predictable id's"></div>
             
             <div class="post-content">
-                <p>Sometimes developers doesn’t take care about security concerns when they develop a REST API. I know this scope is not straightforward but at least we should complaint with a minimum of basic security rules in order to avoid the most common attacks.</p>
+                <p>Sometimes developers don’t take care about security concerns when they develop a REST API. I know this scope is not straightforward but at least we should comply with a minimum of basic security rules in order to avoid the most common attacks.</p>
 
 <!--more-->
 
-<p>The first thing we have to take into account is avoid to use predictible ids like identity fields. Last vulnerability I’ve seen was a simple script using a for statement making calls to the api passsing an autoincremental id and retrieving all the confidentials documents from the system. It was an error configuring the authorization of the system, but the use of predictible ids facilitated the attack.</p>
+<p>The first thing we must take into account is to avoid using predictable ids like identity fields. The last vulnerability I’ve seen was a simple bash script which using a for statement it was making calls to the api passing an autoincremental id and retrieving all the confidentials documents from the system. It was an error configuring the authorization of the system, but the use of predictable ids facilitated the attack.</p>
 
-<p>There are some ways to fix this kind of vulnerability, for example use GUIDs to represent this ids but from my side and for many DBA’s thera some caveats using this approach:</p>
+<p>There are some ways to fix this kind of vulnerability, for example using GUIDs to represent this ids but from my side and for many DBA’s there are some caveats on the usage of this approach:</p>
 
 <ul>
   <li>4 times larger than the traditional 4-byte index value</li>
@@ -78,17 +78,17 @@
   <li>They are not monotonically increasing</li>
 </ul>
 
-<p>Looking for a better alternative to avoid expose our database ids to the clients is to hashing ids (creates short, unique, decryptable hashes from unsigned integers). There is a library written in many languages to generate short unique ids from integers <a href="https://hashids.org/net/">hashids</a> and of course there is an available version for .NET <a href="https://github.com/ullmark/hashids.net">hashids.net</a></p>
+<p>Looking for a better alternative to avoid exposing our database ids to the clients is to use hashing ids (it creates short, unique, decryptable hashes from unsigned integers). There is a library written in many languages to generate short unique ids from integers <a href="https://hashids.org/net/">hashids</a> and of course there is an available version for .NET <a href="https://github.com/ullmark/hashids.net">hashids.net</a></p>
 
 <blockquote>
   <p>A small .NET package to generate YouTube-like hashes from one or many numbers. Use hashids when you do not want to expose your database ids to the user.</p>
 </blockquote>
 
-<p>I decided to create a PoC in order to hashing the ids in ASP.NET Core.</p>
+<p>I decided to create a PoC to hashing the ids in ASP.NET Core.</p>
 
 <h2 id="first-part-crypt-ids">First part: Crypt ids</h2>
 
-<p>To return my hashing identitfiers to my clients, I decided to create a custom <strong>JsonConverter</strong> in order to hash integer properties of my DTOs. Given the current limitations of <strong>System.Text.Json.Serialization.JsonConverter</strong> I couldn’t find a solution 100% acceptable today, but I decided to create a different type other than <strong>int</strong> with an implicit conversion to and-from int.</p>
+<p>To return my hashing identifiers to my clients, I decided to create a custom <strong>JsonConverter</strong> to hash integer properties of my DTOs. Given the current limitations of <strong>System.Text.Json.Serialization.JsonConverter</strong> I couldn’t find a solution 100% acceptable today, but I decided to create a different type other than <strong>int</strong> with an implicit conversion to and-from int.</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">struct</span> <span class="nc">HashidInt</span>
 <span class="p">{</span>
@@ -273,9 +273,9 @@
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>In this post I’ve tried to show how important is the security in our REST APIs in order to avoid the most common attacks like for example using predictible ids. I’m going to continue researching about to find a better way to create non-guessable ids and I’ll wait until dotnet team make changes in the current implementation of <strong>System.Text.Json.Serialization</strong>.</p>
+<p>In this post I’ve tried to show how important is the security in our REST APIs in order to avoid the most common attacks like for example using predictable ids. I’m going to continue researching about finding a better way to create non-guessable ids and I’ll wait until dotnet team make changes in the current implementation of <strong>System.Text.Json.Serialization</strong>.</p>
 
-<p>Of course, any feedback is welcome and I would to know your experiencies with this in order to learn alternative ways to do this.</p>
+<p>Of course, any feedback is welcome, and I would to know your experiences with this in order to learn alternative ways to do this.</p>
 
             </div>
             <footer class="post-footer">
@@ -302,7 +302,7 @@
                 <div class="post-share">
                     <span class="post-share-title">Share:</span>
                     <a target="_blank"
-                        href="https://twitter.com/share?text=ASP.NET+CORE+API+security+guidelines%3A+Be+careful+with+your+predictible+id%27s&amp;url=https://lurumad.github.io/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s">Twitter</a>
+                        href="https://twitter.com/share?text=ASP.NET+CORE+API+security+guidelines%3A+Be+careful+with+your+predictable+id%27s&amp;url=https://lurumad.github.io/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s">Twitter</a>
                     <a target="_blank"
                         href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s">Facebook</a>
                 </div><!-- .share-post -->
@@ -479,13 +479,13 @@
                     <time class="published" datetime="??">May 10, 2020</time>
                 </div>
                 <div class="post-title">
-                    <a href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s">ASP.NET CORE API security guidelines: Be careful with your predictible id's</a>
+                    <a href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s">ASP.NET CORE API security guidelines: Be careful with your predictable id's</a>
                 </div>
             </div>
             
             <a class="post-thumbnail" href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s">
                 <img src="/assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg"
-                    alt="ASP.NET CORE API security guidelines: Be careful with your predictible id's">
+                    alt="ASP.NET CORE API security guidelines: Be careful with your predictable id's">
             </a>
             
         </li>

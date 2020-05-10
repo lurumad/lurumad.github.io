@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <!-- Page Info -->
+    <title>ASP.NET CORE API security guidelines: Be careful with your predictible id's | Luru</title>
+    
+    <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Site Favicon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/png" />
+
+    <!-- Font Embed Code -->
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
+
+    <!-- CSS Styles -->
+    <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+
+<body class="layout-post">
+    <div id="page" class="site">
+
+        
+        <header id="masthead" class="site-header outer">
+    <div class="site-header-inside">
+        <div class="site-branding">
+            
+                <p class="site-logo"><a href="/" rel="home"><img src="/assets/images/logo.png" alt="Luru" /></a></p>
+                <h1 class="site-title screen-reader-text"><a href="" rel="home"></a></h1>
+            
+        </div><!-- .site-branding -->
+        <nav id="main-navigation" class="site-navigation" aria-label="Primary Navigation">
+            <ul class="menu">
+            
+                <li class="menu-item"><a href="/about.html">About</a></li>
+            
+                <li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+            
+            </ul>
+            <button id="sidebar-show" class="sidebar-toggle"><span class="screen-reader-text">Open Sidebar</span><span class="icon-more" aria-hidden="true"></span></button>
+        </nav><!-- .site-navigation -->
+    </div><!-- .site-header-inside -->
+</header><!-- .site-header -->
+        
+
+        <div id="content" class="site-content fadeInDown delay_075s">
+    <main id="main" class="site-main outer">
+        <article class="post-full inner">
+            <header class="post-header">
+                <div class="post-meta">
+                    <time class="post-date" datetime="2020-05-10">May 10,
+                        2020</time>
+                </div><!-- .post-meta -->
+                <h1 class="posttitle">ASP.NET CORE API security guidelines: Be careful with your predictible id's</h1>
+            </header><!-- .post-header -->
+            
+            <div class="post-thumbnail"><img class="featured-image img-fluid"
+                    src="assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash.jpg" alt="ASP.NET CORE API security guidelines: Be careful with your predictible id's"></div>
+            
+            <div class="post-content">
+                <p>Sometimes developers doesn’t take care about security concerns when they develop a REST API. I know this scope is not straightforward but at least we should complaint with a minimum of basic security rules in order to avoid the most common attacks.</p>
+
+<!--more-->
+
+<p>The first thing we have to take into account is avoid to use predictible ids like identity fields. Last vulnerability I’ve seen was a simple script using a for statement making calls to the api passsing an autoincremental id and retrieving all the confidentials documents from the system. It was an error configuring the authorization of the system, but the use of predictible ids facilitated the attack.</p>
+
+<p>There are some ways to fix this kind of vulnerability, for example use GUIDs to represent this ids but from my side and for many DBA’s thera some caveats using this approach:</p>
+
+<ul>
+  <li>4 times larger than the traditional 4-byte index value</li>
+  <li>Cumbersome to debug</li>
+  <li>They are not monotonically increasing</li>
+</ul>
+
+<p>Looking for a better alternative to avoid expose our database ids to the clients is to hashing ids (creates short, unique, decryptable hashes from unsigned integers). There is a library written in many languages to generate short unique ids from integers <a href="https://hashids.org/net/">hashids</a> and of course there is an available version for .NET <a href="https://github.com/ullmark/hashids.net">hashids.net</a></p>
+
+<blockquote>
+  <p>A small .NET package to generate YouTube-like hashes from one or many numbers. Use hashids when you do not want to expose your database ids to the user.</p>
+</blockquote>
+
+<p>I decided to create a PoC in order to hashing the ids in ASP.NET Core.</p>
+
+<h2 id="first-part-crypt-ids">First part: Crypt ids</h2>
+
+<p>To return my hashing identitfiers to my clients, I decided to create a custom <strong>JsonConverter</strong> in order to hash integer properties of my DTOs. Given the current limitations of <strong>System.Text.Json.Serialization.JsonConverter</strong> I couldn’t find a solution 100% acceptable today, but I decided to create a different type other than <strong>int</strong> with an implicit conversion to and-from int.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">struct</span> <span class="nc">HashidInt</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="kt">int</span> <span class="n">_value</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">implicit</span> <span class="k">operator</span> <span class="nf">HashidInt</span><span class="p">(</span><span class="kt">int</span> <span class="k">value</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="n">HashidInt</span> <span class="p">{</span> <span class="n">_value</span> <span class="p">=</span> <span class="k">value</span> <span class="p">};</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">implicit</span> <span class="k">operator</span> <span class="kt">int</span><span class="p">(</span><span class="n">HashidInt</span> <span class="k">value</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="k">value</span><span class="p">.</span><span class="n">_value</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And my custom <strong>JsonConverter</strong> looks like this:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">HashidsJsonConverter</span> <span class="p">:</span> <span class="n">JsonConverter</span><span class="p">&lt;</span><span class="n">HashidInt</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="n">HashidInt</span> <span class="nf">Read</span><span class="p">(</span><span class="k">ref</span> <span class="n">Utf8JsonReader</span> <span class="n">reader</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeToConvert</span><span class="p">,</span> <span class="n">JsonSerializerOptions</span> <span class="n">options</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">reader</span><span class="p">.</span><span class="n">TokenType</span> <span class="p">==</span> <span class="n">JsonTokenType</span><span class="p">.</span><span class="n">String</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">string</span> <span class="n">stringValue</span> <span class="p">=</span> <span class="n">reader</span><span class="p">.</span><span class="nf">GetString</span><span class="p">();</span>
+            <span class="k">return</span> <span class="n">ServiceCollectionExtensions</span><span class="p">.</span><span class="n">Hashids</span><span class="p">.</span><span class="nf">Decode</span><span class="p">(</span><span class="n">stringValue</span><span class="p">)[</span><span class="m">0</span><span class="p">];</span>
+        <span class="p">}</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">reader</span><span class="p">.</span><span class="n">TokenType</span> <span class="p">==</span> <span class="n">JsonTokenType</span><span class="p">.</span><span class="n">Number</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">reader</span><span class="p">.</span><span class="nf">GetInt32</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">JsonException</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Write</span><span class="p">(</span><span class="n">Utf8JsonWriter</span> <span class="n">writer</span><span class="p">,</span> <span class="n">HashidInt</span> <span class="k">value</span><span class="p">,</span> <span class="n">JsonSerializerOptions</span> <span class="n">options</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">writer</span><span class="p">.</span><span class="nf">WriteStringValue</span><span class="p">(</span><span class="n">ServiceCollectionExtensions</span><span class="p">.</span><span class="n">Hashids</span><span class="p">.</span><span class="nf">Encode</span><span class="p">(</span><span class="k">value</span><span class="p">));</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>For me the best solution would be to decorate my DTO like this:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">CustomerDto</span>
+<span class="p">{</span>
+    <span class="p">[</span><span class="n">HashId</span><span class="p">]</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">NonHashid</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">FirstName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">LastName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Or using a convention where all the properties named or ended with <strong>Id</strong> will be hashed, like <strong>EntityFramework</strong> works with <a href="https://docs.microsoft.com/es-es/ef/core/modeling/keys?tabs=data-annotations">primary keys</a>. Maybe in a future, dotnet team change the current implementation of the <strong>JsonConverter</strong> and maybe could be possible to achieve one the two approachs I’ve shown you before.</p>
+
+<p>We need to create our DTO using the custom type:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">CustomerDto</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="n">HashidInt</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">NonHashid</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">FirstName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">LastName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And also register our custom <strong>JsonConverter</strong>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">ConfigureJsonOptions</span> <span class="p">:</span> <span class="n">IConfigureOptions</span><span class="p">&lt;</span><span class="n">JsonOptions</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Configure</span><span class="p">(</span><span class="n">JsonOptions</span> <span class="n">options</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">JsonSerializerOptions</span><span class="p">.</span><span class="n">Converters</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="k">new</span> <span class="nf">HashidsJsonConverter</span><span class="p">());</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Run our ASP.NET Core API and voilà our ids have been hashed:</p>
+
+<p><img src="./assets/images/posts/2020/hashids1.png" alt="Hashids" /></p>
+
+<h2 id="second-part-decrypt-ids">Second part: Decrypt ids</h2>
+
+<p>As I told you before, <a href="https://github.com/ullmark/hashids.net">hashids.net</a> creates short, unique, decryptable hashes from unsigned integers based on some settings like a salt, alphabet, etc so it’s possible to decrypt it into the original integer value.</p>
+
+<p>To do this, I’ve created a custom <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#custom-route-constraints">route constraint</a> to check if the value of the hash is a hashid:</p>
+
+<pre><code class="language-cshap">public class HashidsRouteConstraint
+        : IRouteConstraint
+{
+    private readonly IHashids hashids;
+
+    public HashidsRouteConstraint(IHashids hashids)
+    {
+        this.hashids = hashids ?? throw new ArgumentNullException(nameof(hashids));
+    }
+
+    public bool Match(
+        HttpContext httpContext,
+        IRouter route,
+        string routeKey,
+        RouteValueDictionary values,
+        RouteDirection routeDirection)
+    {
+        if (values.TryGetValue(routeKey, out var value))
+        {
+            var hashid = Convert.ToString(value, CultureInfo.InvariantCulture);
+            var decode = hashids.Decode(hashid);
+
+            return decode.Length &gt; 0;
+        }
+
+        return false;
+    }
+}
+</code></pre>
+
+<p>And also a custom <a href="https://docs.microsoft.com/en-us/aspnet/core/mvc/advanced/custom-model-binding?view=aspnetcore-3.1">model binding</a> to convert decrypt the hashed value into the original integer:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">HashidsModelBinder</span> <span class="p">:</span> <span class="n">IModelBinder</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IHashids</span> <span class="n">hashids</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">HashidsModelBinder</span><span class="p">(</span><span class="n">IHashids</span> <span class="n">hashids</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">hashids</span> <span class="p">=</span> <span class="n">hashids</span> <span class="p">??</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="nf">ArgumentNullException</span><span class="p">(</span><span class="k">nameof</span><span class="p">(</span><span class="n">hashids</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="n">Task</span> <span class="nf">BindModelAsync</span><span class="p">(</span><span class="n">ModelBindingContext</span> <span class="n">bindingContext</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">bindingContext</span> <span class="k">is</span> <span class="k">null</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="nf">ArgumentNullException</span><span class="p">(</span><span class="k">nameof</span><span class="p">(</span><span class="n">bindingContext</span><span class="p">));</span>
+        <span class="p">}</span>
+
+        <span class="kt">var</span> <span class="n">modelName</span> <span class="p">=</span> <span class="n">bindingContext</span><span class="p">.</span><span class="n">ModelName</span><span class="p">;</span>
+
+        <span class="kt">var</span> <span class="n">valueProviderResult</span> <span class="p">=</span> <span class="n">bindingContext</span><span class="p">.</span><span class="n">ValueProvider</span><span class="p">.</span><span class="nf">GetValue</span><span class="p">(</span><span class="n">modelName</span><span class="p">);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">valueProviderResult</span> <span class="p">==</span> <span class="n">ValueProviderResult</span><span class="p">.</span><span class="n">None</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">Task</span><span class="p">.</span><span class="n">CompletedTask</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="n">bindingContext</span><span class="p">.</span><span class="n">ModelState</span><span class="p">.</span><span class="nf">SetModelValue</span><span class="p">(</span><span class="n">modelName</span><span class="p">,</span> <span class="n">valueProviderResult</span><span class="p">);</span>
+
+        <span class="kt">var</span> <span class="k">value</span> <span class="p">=</span> <span class="n">valueProviderResult</span><span class="p">.</span><span class="n">FirstValue</span><span class="p">;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="kt">string</span><span class="p">.</span><span class="nf">IsNullOrEmpty</span><span class="p">(</span><span class="k">value</span><span class="p">))</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">Task</span><span class="p">.</span><span class="n">CompletedTask</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="kt">var</span> <span class="n">ids</span> <span class="p">=</span> <span class="n">hashids</span><span class="p">.</span><span class="nf">Decode</span><span class="p">(</span><span class="k">value</span><span class="p">);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">ids</span><span class="p">.</span><span class="n">Length</span> <span class="p">==</span> <span class="m">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">Task</span><span class="p">.</span><span class="n">CompletedTask</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="n">bindingContext</span><span class="p">.</span><span class="n">Result</span> <span class="p">=</span> <span class="n">ModelBindingResult</span><span class="p">.</span><span class="nf">Success</span><span class="p">(</span><span class="n">ids</span><span class="p">.</span><span class="nf">First</span><span class="p">());</span>
+
+        <span class="k">return</span> <span class="n">Task</span><span class="p">.</span><span class="n">CompletedTask</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now, we can pass our hashed id in the url:</p>
+
+<pre><code class="language-txt">https://localhost:5001/api/customers/7x
+</code></pre>
+
+<p>And our custom route constraint and model binding will do the magic:</p>
+
+<p><img src="./assets/images/posts/2020/hashids2.png" alt="Hashids" /></p>
+
+<p><img src="./assets/images/posts/2020/hashids3.png" alt="Hashids" /></p>
+
+<p>You can find the complete example in my Github <a href="https://github.com/lurumad/aspnetcore-hashids">repo</a></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post I’ve tried to show how important is the security in our REST APIs in order to avoid the most common attacks like for example using predictible ids. I’m going to continue researching about to find a better way to create non-guessable ids and I’ll wait until dotnet team make changes in the current implementation of <strong>System.Text.Json.Serialization</strong>.</p>
+
+<p>Of course, any feedback is welcome and I would to know your experiencies with this in order to learn alternative ways to do this.</p>
+
+            </div>
+            <footer class="post-footer">
+                
+                <p class="post-tags">
+                     
+                    <a href='tag/aspnetcore/'>aspnetcore</a>
+                    
+                     
+                    <a href='tag/rest/'>rest</a>
+                    
+                     
+                    <a href='tag/api/'>api</a>
+                    
+                     
+                    <a href='tag/security/'>security</a>
+                    
+                     
+                    <a href='tag/hashids/'>hashids</a>
+                    
+                    
+                </p>
+                
+                <div class="post-share">
+                    <span class="post-share-title">Share:</span>
+                    <a target="_blank"
+                        href="https://twitter.com/share?text=ASP.NET+CORE+API+security+guidelines%3A+Be+careful+with+your+predictible+id%27s&amp;url=https://lurumad.github.io/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s">Twitter</a>
+                    <a target="_blank"
+                        href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s">Facebook</a>
+                </div><!-- .share-post -->
+            </footer>
+            <div class="author-box">
+                <div class="author-avatar"><img src="/assets/images/01-luis-ruiz-pavon.png"
+                        alt="Luis Ruiz Pavon's Picture" class="avatar">
+                </div>
+                <div class="author-details">
+                    <h2 class="author-title">About Luis Ruiz Pavon</h2>
+                    <p class="author-description">Luis is a husband, father of two, developer, gamer, speaker, author of book about ASP.NET Core and the co-founder MsCoders Madrid Meetup.</p>
+                    <div>
+                        <a href="https://www.buymeacoffee.com/Rth3vqI" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+                    </div>
+                </div>
+            </div>
+            
+<section id="comments-area" class="comments-area">
+    <h2 class="comments-title">Comments</h2>
+    <div class="comments-inside">
+        <div id="disqus_thread"></div>
+    </div><!-- .comments-inside -->
+    <div id="comments-overlay" class="comments-overlay">
+        <a href="#" id="comments-show" class="comments-show">Show comments</a>
+    </div><!-- .comments-overlay -->
+    <script type="text/javascript">
+        var disqus_shortname = 'lurumad';
+        var disqus_developer = 0;
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+        </article>
+        
+        <section class="read-next inner">
+            <h2 class="read-next-title">Read Next</h2>
+            
+            <article class="post">
+                <header class="post-header">
+                    <div class="post-meta">
+                        <time class="published" datetime="April 20, 2020">April 20, 2020</time>
+                    </div>
+                    <h3 class="post-title"><a href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</a>
+                    </h3>
+                    <p class="post-tags">
+                        
+                        
+                        
+                        <a href='/tag/openapi/'>Openapi</a>
+                        
+                        
+                        
+                        <a href='/tag/swagger/'>Swagger</a>
+                        
+                        
+                        
+                        <a href='/tag/swagger-ui/'>Swagger-ui</a>
+                        
+                        
+                        
+                        <a href='/tag/oauth2/'>Oauth2</a>
+                        
+                        
+                        
+                        <a href='/tag/pkce/'>Pkce</a>
+                        
+                        
+                        
+                        <a href='/tag/aspnetcore/'>Aspnetcore</a>
+                        
+                        
+                        
+                    </p>
+                </header>
+                
+                <a href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core" class="post-thumbnail">
+                    <img src="assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash_thumbnail.jpg" alt="Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core" />
+                </a>
+                
+            </article>
+            
+            
+        </section><!-- .read-next -->
+    </main><!-- .site-main -->
+</div><!-- .site-content -->
+
+        
+
+        
+
+        <footer id="colophon" class="site-footer outer">
+            <div class="site-footer-inside">
+                <p class="social-links">
+    
+    <a href="https://twitter.com/luisruizpavon" target="_blank">
+        <span class="fa-twitter fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Twitter</span>
+    </a>
+    
+    
+    
+    <a href="https://github.com/lurumad" target="_blank">
+        <span class="fa-github fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">GitHub</span>
+    </a>
+    
+    
+    
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/luisruizpavon" target="_blank">
+        <span class="fa-linkedin fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Linkedin</span>
+    </a>
+    
+    
+</p>
+                <p class="site-info">
+                    <a href="#">Luru</a> &copy; 2020 . Horace theme by
+                    <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
+                    Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
+                </p>
+                <p class="back-to-top">
+                    <a id="top-button" class="top-button" href="#page">
+                        <span class="icon-arrow-up" aria-hidden="true"></span>
+                        <span class="screen-reader-text">Back to top</span>
+                    </a>
+                </p>
+            </div><!-- .site-footer-inside -->
+        </footer><!-- .site-footer -->
+    </div><!-- .site -->
+    <div id="site-overlay" class="site-overlay"></div>
+    <aside id="sidebar" class="sidebar">
+	<div class="sidebar-scrollable">
+		<div class="sidebar-inside">
+			<button id="sidebar-hide" class="sidebar-toggle"><span class="screen-reader-text">Close Sidebar</span><span
+				    aria-hidden="true" class="icon-close"></span></button>
+			<nav id="sidebar-navigation" class="widget site-navigation">
+				<h2 class="widget-title">Explore Site</h2>
+				<ul class="menu">
+					
+						<li class="menu-item"><a href="/about.html">About</a></li>
+					
+						<li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+					
+				</ul>
+			</nav>
+			
+<section class="widget widget-text">
+    <h2 class="widget-title">About Luru</h2>
+    <p>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</p>
+</section>
+
+
+<section class="widget widget-recent-posts">
+    <h2 class="widget-title">Recent Articles</h2>
+    <ul>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">May 10, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s">ASP.NET CORE API security guidelines: Be careful with your predictible id's</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictible-id-s">
+                <img src="/assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg"
+                    alt="ASP.NET CORE API security guidelines: Be careful with your predictible id's">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">April 20, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">
+                <img src="/assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash_thumbnail.jpg"
+                    alt="Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">April 9, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/react-router">Begining with React router</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/react-router">
+                <img src="/assets/images/posts/2020/jonathan-fox-0LXFLzDOfuA-unsplash_thumbnail.jpg"
+                    alt="Begining with React router">
+            </a>
+            
+        </li>
+        
+    </ul>
+</section>
+
+<!-- Create a sorted array of tags -->
+ 
+<section class="widget widget-tagcloud">
+    <h2 class="widget-title">Tags</h2>
+    <div class="tagcloud">
+        
+        <a href='https://lurumad.github.io/tag/azure/'>Azure</a>
+        
+        <a href='https://lurumad.github.io/tag/blog/'>Blog</a>
+        
+        <a href='https://lurumad.github.io/tag/c#/'>C#</a>
+        
+        <a href='https://lurumad.github.io/tag/career/'>Career</a>
+        
+        <a href='https://lurumad.github.io/tag/devops/'>DevOps</a>
+        
+        <a href='https://lurumad.github.io/tag/pipelines/'>Pipelines</a>
+        
+        <a href='https://lurumad.github.io/tag/self/'>Self</a>
+        
+        <a href='https://lurumad.github.io/tag/aks/'>aks</a>
+        
+        <a href='https://lurumad.github.io/tag/api/'>api</a>
+        
+        <a href='https://lurumad.github.io/tag/apim/'>apim</a>
+        
+        <a href='https://lurumad.github.io/tag/apis/'>apis</a>
+        
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
+        <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
+        
+        <a href='https://lurumad.github.io/tag/async/'>async</a>
+        
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
+        <a href='https://lurumad.github.io/tag/hashids/'>hashids</a>
+        
+        <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
+        
+        <a href='https://lurumad.github.io/tag/javascript/'>javascript</a>
+        
+        <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
+        
+        <a href='https://lurumad.github.io/tag/oauth2/'>oauth2</a>
+        
+        <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
+        
+        <a href='https://lurumad.github.io/tag/openapi/'>openapi</a>
+        
+        <a href='https://lurumad.github.io/tag/pkce/'>pkce</a>
+        
+        <a href='https://lurumad.github.io/tag/react/'>react</a>
+        
+        <a href='https://lurumad.github.io/tag/rest/'>rest</a>
+        
+        <a href='https://lurumad.github.io/tag/router/'>router</a>
+        
+        <a href='https://lurumad.github.io/tag/saml/'>saml</a>
+        
+        <a href='https://lurumad.github.io/tag/security/'>security</a>
+        
+        <a href='https://lurumad.github.io/tag/signalr/'>signalr</a>
+        
+        <a href='https://lurumad.github.io/tag/swagger/'>swagger</a>
+        
+        <a href='https://lurumad.github.io/tag/swagger-ui/'>swagger-ui</a>
+        
+        <a href='https://lurumad.github.io/tag/tests/'>tests</a>
+        
+    </div>
+</section>
+
+
+		</div><!-- .sidebar-inside -->
+	</div><!-- .sidebar-scrollable -->
+</aside><!-- .sidebar -->
+    
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131316164-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-131316164-1', { 'anonymize_ip': true });
+  </script>
+
+    <!-- Javascript Assets -->
+    <script src="/assets/js/jquery-3.3.1.min.js"></script>
+    <script src="/assets/js/plugins.js"></script>
+    <script src="/assets/js/custom.js"></script>
+
+</body>
+
+</html>

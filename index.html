@@ -12,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Site Favicon -->
-    <link rel="shortcut icon" href="http://localhost:4000/assets/images/favicon.ico" type="image/png" />
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/png" />
 
     <!-- Font Embed Code -->
     <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
@@ -98,9 +98,44 @@
 <div class="featured-posts outer">
     
         
+            <article class=" post-featured inner">
+    <header class="post-header">
+        <div class="post-meta">
+            <span class="featured-badge">Featured</span> &sol; 
+            <time class="published" datetime="2020-05-17">May 17, 2020</time>
+        </div><!-- .post-meta -->
+        <h2 class="post-title">
+            <a href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it" rel="bookmark">Using Source Link in .NET projects and how to configure Visual Studio to use it.</a>
+        </h2>
+    </header><!-- .post-header -->
     
+        <a href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it" class="post-thumbnail"><img src="assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash.jpg" alt="Using Source Link in .NET projects and how to configure Visual Studio to use it."></a>
+    
+    <div class="post-content">
+         <p>As a maintainer of some Open Source projects in <a href="https://github.com/Xabaril">Xabaril</a> that lot of people use, I think it’s crucial to help developers to debug the source code in order to make their lifes easier when troubleshoting problems. For this reason in Xabaril we have decided to enable support for <a href="https://github.com/dotnet/sourcelink">Source Link</a> in our open source projects to embrace this practice.</p>
+
+<p>I actually want to give kudos to <a href="https://twitter.com/_unaizc_">Unai Zorrila</a> to teach me how to configure <a href="https://github.com/dotnet/sourcelink">Source Link</a> in <a href="https://github.com/Xabaril/Balea">Balea</a>.</p>
+
+
+        <p class="post-tags">
+                  
+                <a href='/tag/netcore/'>netcore</a>
+                  
+                <a href='/tag/debugging/'>debugging</a>
+                  
+                <a href='/tag/sourcelink/'>sourcelink</a>
+                  
+                <a href='/tag/visualstudio/'>visualstudio</a>
+                  
+                <a href='/tag/pdb/'>pdb</a>
+                  
+            </p>
+        <p class="read-more">
+            <a class="button" href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it" class="more-link">Continue Reading</a>
+        </p>
         
-    
+    </div><!-- .post-content -->
+</article><!-- .post -->
         
     
         
@@ -122,34 +157,32 @@
     <header class="post-header">
         <div class="post-meta">
             <span class="featured-badge">Featured</span> &sol; 
-            <time class="published" datetime="2019-01-21">January 21, 2019</time>
+            <time class="published" datetime="2019-02-25">February 25, 2019</time>
         </div><!-- .post-meta -->
         <h2 class="post-title">
-            <a href="/how-to-connect-azure-api-management-to-your-azure-kubernetes-service" rel="bookmark">How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)</a>
+            <a href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core" rel="bookmark">Problem Details: A standard way of specifying errors in HTTP API responses</a>
         </h2>
     </header><!-- .post-header -->
     
-        <a href="http://localhost:4000/how-to-connect-azure-api-management-to-your-azure-kubernetes-service" class="post-thumbnail"><img src="assets/images/posts/2019/thomas-jensen-596085-unsplash.jpg" alt="How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)"></a>
+        <a href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core" class="post-thumbnail"><img src="assets/images/posts/2019/rawpixel-761477-unsplash.jpg" alt="Problem Details: A standard way of specifying errors in HTTP API responses"></a>
     
     <div class="post-content">
-         <p><strong>DISCLAIMER</strong>: I’m assuming you are familiar with Kubernetes, well in this post we are not going to explain it. So if you are not familiar, I recommend you to visit the official <a href="https://kubernetes.io/">documentation</a>.</p>
+         <h1 id="a-brief-introduction-of-problem-details">A brief introduction of Problem details</h1>
 
-<p>If you have read my previous <a href="https://lurumad.github.io/set-output-variables-in-azuredevops-pipelines-tasks">post</a> you’ll know that currently I’m building a microservices architecture using <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">Azure Kubernetes Service (AKS)</a>. The context here is that we have a set of microservices that exposes API endpoints and we need a solution for publishing APIs to external and internal customers and clients applications, so we don´t want customers and client applications access directly to these microservices. We are talking to production ready API, so we have to take some considerations:</p>
+<p>If you have developed HTTP APIs, I’m sure that many times you have had the need to define new error response formats for HTTP APIs to return to your clients. The most common way to do this is using <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">HTTP Status Codes</a> but sometimes is not sufficient to communicate enough information to the clients. For example, imagine a banking HTTP API that allows customers to make online transactions and this call returns Forbidden (403) response telling the client that the customer isn’t allowed to make this transaction, but why? Maybe the customer doesn’t have enough credit? or he has a maximum limit of money to transfer?</p>
 
 
         <p class="post-tags">
                   
-                <a href='/tag/azure/'>Azure</a>
+                <a href='/tag/apis/'>apis</a>
                   
-                <a href='/tag/apim/'>apim</a>
+                <a href='/tag/rest/'>rest</a>
                   
-                <a href='/tag/k8s/'>k8s</a>
-                  
-                <a href='/tag/aks/'>aks</a>
+                <a href='/tag/aspnetcore/'>aspnetcore</a>
                   
             </p>
         <p class="read-more">
-            <a class="button" href="/how-to-connect-azure-api-management-to-your-azure-kubernetes-service" class="more-link">Continue Reading</a>
+            <a class="button" href="/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core" class="more-link">Continue Reading</a>
         </p>
         
     </div><!-- .post-content -->
@@ -159,38 +192,9 @@
         
     
         
-            <article class=" post-featured inner">
-    <header class="post-header">
-        <div class="post-meta">
-            <span class="featured-badge">Featured</span> &sol; 
-            <time class="published" datetime="2019-01-08">January 8, 2019</time>
-        </div><!-- .post-meta -->
-        <h2 class="post-title">
-            <a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines" rel="bookmark">Continous delivery to Azure API Management using Azure DevOps pipelines</a>
-        </h2>
-    </header><!-- .post-header -->
     
-        <a href="http://localhost:4000/continous-delivery-to-azure-api-management-using-azure-devops-pipelines" class="post-thumbnail"><img src="assets/images/posts/2019/cd.jpg" alt="Continous delivery to Azure API Management using Azure DevOps pipelines"></a>
-    
-    <div class="post-content">
-         <p>A while ago, one of our customers, a spanish insurance company, contact us with one ambitous project: Expose many of their internal APIs to their ISV ecosystem using <a href="https://azure.microsoft.com/en-us/services/api-management/">Azure API Management</a>. So, we accepted the challengue and we began to work together to achieve the objective.</p>
-
-
-        <p class="post-tags">
-                  
-                <a href='/tag/azure/'>Azure</a>
-                  
-                <a href='/tag/devops/'>DevOps</a>
-                  
-                <a href='/tag/apim/'>apim</a>
-                  
-            </p>
-        <p class="read-more">
-            <a class="button" href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines" class="more-link">Continue Reading</a>
-        </p>
         
-    </div><!-- .post-content -->
-</article><!-- .post -->
+    
         
     
         
@@ -207,60 +211,15 @@
             <article class="post">
     <header class="post-header">
         <div class="post-meta">
-            <time class="published" datetime="2020-05-17">May 17, 2020</time>
-        </div><!-- .post-meta -->
-        <h2 class="post-title">
-            <a href="http://localhost:4000/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it" rel="bookmark">Using Source Link in .NET projects and how to configure Visual Studio to use it.</a>
-        </h2>
-    </header><!-- .post-header -->
-    
-    <a class="post-thumbnail" href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">
-        <img src="http://localhost:4000/assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash_thumbnail.jpg"
-            alt="Using Source Link in .NET projects and how to configure Visual Studio to use it.">
-    </a>
-    
-    <div class="post-content">
-        <p>As a maintainer of some Open Source projects in Xabaril that lot of people use, I think it’s crucial to help developers to debug the source code in order to make their lifes easier when troubleshoting problems. For this reason... </p>
-        <p class="post-tags">
-            
-            
-            
-            <a href='/tag/netcore/'>netcore</a>
-            
-            
-            
-            <a href='/tag/debugging/'>debugging</a>
-            
-            
-            
-            <a href='/tag/sourcelink/'>sourcelink</a>
-            
-            
-            
-            <a href='/tag/visualstudio/'>visualstudio</a>
-            
-            
-            
-            <a href='/tag/pdb/'>pdb</a>
-            
-            
-            
-        </p>
-    </div><!-- .post-content -->
-</article><!-- .post -->
-        
-            <article class="post">
-    <header class="post-header">
-        <div class="post-meta">
             <time class="published" datetime="2020-05-10">May 10, 2020</time>
         </div><!-- .post-meta -->
         <h2 class="post-title">
-            <a href="http://localhost:4000/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s" rel="bookmark">ASP.NET CORE API security guidelines: Be careful with your predictable id's</a>
+            <a href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s" rel="bookmark">ASP.NET CORE API security guidelines: Be careful with your predictable id's</a>
         </h2>
     </header><!-- .post-header -->
     
     <a class="post-thumbnail" href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">
-        <img src="http://localhost:4000/assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg"
+        <img src="/assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg"
             alt="ASP.NET CORE API security guidelines: Be careful with your predictable id's">
     </a>
     
@@ -300,12 +259,12 @@
             <time class="published" datetime="2020-04-20">April 20, 2020</time>
         </div><!-- .post-meta -->
         <h2 class="post-title">
-            <a href="http://localhost:4000/swagger-ui-with-pkce-using-swashbuckle-asp-net-core" rel="bookmark">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</a>
+            <a href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core" rel="bookmark">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</a>
         </h2>
     </header><!-- .post-header -->
     
     <a class="post-thumbnail" href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">
-        <img src="http://localhost:4000/assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash_thumbnail.jpg"
+        <img src="/assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash_thumbnail.jpg"
             alt="Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core">
     </a>
     
@@ -349,12 +308,12 @@
             <time class="published" datetime="2020-04-09">April 9, 2020</time>
         </div><!-- .post-meta -->
         <h2 class="post-title">
-            <a href="http://localhost:4000/react-router" rel="bookmark">Begining with React router</a>
+            <a href="/react-router" rel="bookmark">Begining with React router</a>
         </h2>
     </header><!-- .post-header -->
     
     <a class="post-thumbnail" href="/react-router">
-        <img src="http://localhost:4000/assets/images/posts/2020/jonathan-fox-0LXFLzDOfuA-unsplash_thumbnail.jpg"
+        <img src="/assets/images/posts/2020/jonathan-fox-0LXFLzDOfuA-unsplash_thumbnail.jpg"
             alt="Begining with React router">
     </a>
     
@@ -386,12 +345,12 @@
             <time class="published" datetime="2020-01-16">January 16, 2020</time>
         </div><!-- .post-meta -->
         <h2 class="post-title">
-            <a href="http://localhost:4000/aditional-api-endpoints-to-identityserver4" rel="bookmark">Additional API Endpoints to IdentityServer 4</a>
+            <a href="/aditional-api-endpoints-to-identityserver4" rel="bookmark">Additional API Endpoints to IdentityServer 4</a>
         </h2>
     </header><!-- .post-header -->
     
     <a class="post-thumbnail" href="/aditional-api-endpoints-to-identityserver4">
-        <img src="http://localhost:4000/assets/images/posts/2020/abacus_thumbnail.jpg"
+        <img src="/assets/images/posts/2020/abacus_thumbnail.jpg"
             alt="Additional API Endpoints to IdentityServer 4">
     </a>
     
@@ -412,6 +371,47 @@
             
             
             <a href='/tag/api/'>api</a>
+            
+            
+            
+        </p>
+    </div><!-- .post-content -->
+</article><!-- .post -->
+        
+            <article class="post">
+    <header class="post-header">
+        <div class="post-meta">
+            <time class="published" datetime="2019-10-23">October 23, 2019</time>
+        </div><!-- .post-meta -->
+        <h2 class="post-title">
+            <a href="/cross-cutting-concerns-in-asp-net-core-with-meaditr" rel="bookmark">Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors</a>
+        </h2>
+    </header><!-- .post-header -->
+    
+    <a class="post-thumbnail" href="/cross-cutting-concerns-in-asp-net-core-with-meaditr">
+        <img src="/assets/images/posts/2019/pills_thumbnail.jpg"
+            alt="Applying cross-cutting concerns in ASP.NET Core with MediatR using behaviors">
+    </a>
+    
+    <div class="post-content">
+        <p>MediatR by Jimmy Bogard is a simple mediator implementation for .NET that allows you to process in-memory request (Commands) and notifications (Events). I’ve been using this library many years in my applications because allows me to follow the CQS (Command... </p>
+        <p class="post-tags">
+            
+            
+            
+            <a href='/tag/madiatr/'>madiatr</a>
+            
+            
+            
+            <a href='/tag/aspnetcore/'>aspnetcore</a>
+            
+            
+            
+            <a href='/tag/cross-cutting/'>cross-cutting</a>
+            
+            
+            
+            <a href='/tag/architecture/'>architecture</a>
             
             
             
@@ -522,12 +522,12 @@
                     <time class="published" datetime="??">May 17, 2020</time>
                 </div>
                 <div class="post-title">
-                    <a href="http://localhost:4000/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">Using Source Link in .NET projects and how to configure Visual Studio to use it.</a>
+                    <a href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">Using Source Link in .NET projects and how to configure Visual Studio to use it.</a>
                 </div>
             </div>
             
             <a class="post-thumbnail" href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">
-                <img src="http://localhost:4000/assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash_thumbnail.jpg"
+                <img src="/assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash_thumbnail.jpg"
                     alt="Using Source Link in .NET projects and how to configure Visual Studio to use it.">
             </a>
             
@@ -539,12 +539,12 @@
                     <time class="published" datetime="??">May 10, 2020</time>
                 </div>
                 <div class="post-title">
-                    <a href="http://localhost:4000/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">ASP.NET CORE API security guidelines: Be careful with your predictable id's</a>
+                    <a href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">ASP.NET CORE API security guidelines: Be careful with your predictable id's</a>
                 </div>
             </div>
             
             <a class="post-thumbnail" href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">
-                <img src="http://localhost:4000/assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg"
+                <img src="/assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg"
                     alt="ASP.NET CORE API security guidelines: Be careful with your predictable id's">
             </a>
             
@@ -556,12 +556,12 @@
                     <time class="published" datetime="??">April 20, 2020</time>
                 </div>
                 <div class="post-title">
-                    <a href="http://localhost:4000/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</a>
+                    <a href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</a>
                 </div>
             </div>
             
             <a class="post-thumbnail" href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">
-                <img src="http://localhost:4000/assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash_thumbnail.jpg"
+                <img src="/assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash_thumbnail.jpg"
                     alt="Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core">
             </a>
             

@@ -12,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Site Favicon -->
-    <link rel="shortcut icon" href="http://localhost:4000/assets/images/favicon.ico" type="image/png" />
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/png" />
 
     <!-- Font Embed Code -->
     <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
@@ -118,7 +118,7 @@
 <span class="na">spec</span><span class="pi">:</span>
   <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
   <span class="na">ports</span><span class="pi">:</span>
-  <span class="pi">-</span> <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+    <span class="pi">-</span> <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
   <span class="na">selector</span><span class="pi">:</span>
     <span class="na">app</span><span class="pi">:</span> <span class="s">todo-app</span>
 </code></pre></div></div>
@@ -162,7 +162,7 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
 
 <h1 id="import-and-publish-our-services-in-azure-api-management">Import and publish our services in Azure Api Management</h1>
 
-<p>Now that we have to service listening within the virtual network, it’s time to <a href="https://docs.microsoft.com/en-us/azure/api-management/import-and-publish">import and publish</a> in our Azure Api Management. In my case, I’ve configured my API to generate an OpenApi  specification using a library called <a href="https://github.com/domaindrivendev/Swashbuckle">Swashbuckle</a>. It analyzes your API and generates an OpenApi specification that allows us to import from the Azure Portal using the next url:</p>
+<p>Now that we have to service listening within the virtual network, it’s time to <a href="https://docs.microsoft.com/en-us/azure/api-management/import-and-publish">import and publish</a> in our Azure Api Management. In my case, I’ve configured my API to generate an OpenApi specification using a library called <a href="https://github.com/domaindrivendev/Swashbuckle">Swashbuckle</a>. It analyzes your API and generates an OpenApi specification that allows us to import from the Azure Portal using the next url:</p>
 
 <pre><code class="language-txt">http://EXTERNAL-IP/swagger/v1/swagger.json
 </code></pre>
@@ -403,12 +403,12 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
                     <time class="published" datetime="??">May 17, 2020</time>
                 </div>
                 <div class="post-title">
-                    <a href="http://localhost:4000/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">Using Source Link in .NET projects and how to configure Visual Studio to use it.</a>
+                    <a href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">Using Source Link in .NET projects and how to configure Visual Studio to use it.</a>
                 </div>
             </div>
             
             <a class="post-thumbnail" href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">
-                <img src="http://localhost:4000/assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash_thumbnail.jpg"
+                <img src="/assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash_thumbnail.jpg"
                     alt="Using Source Link in .NET projects and how to configure Visual Studio to use it.">
             </a>
             
@@ -420,12 +420,12 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
                     <time class="published" datetime="??">May 10, 2020</time>
                 </div>
                 <div class="post-title">
-                    <a href="http://localhost:4000/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">ASP.NET CORE API security guidelines: Be careful with your predictable id's</a>
+                    <a href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">ASP.NET CORE API security guidelines: Be careful with your predictable id's</a>
                 </div>
             </div>
             
             <a class="post-thumbnail" href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">
-                <img src="http://localhost:4000/assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg"
+                <img src="/assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg"
                     alt="ASP.NET CORE API security guidelines: Be careful with your predictable id's">
             </a>
             
@@ -437,12 +437,12 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
                     <time class="published" datetime="??">April 20, 2020</time>
                 </div>
                 <div class="post-title">
-                    <a href="http://localhost:4000/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</a>
+                    <a href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</a>
                 </div>
             </div>
             
             <a class="post-thumbnail" href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">
-                <img src="http://localhost:4000/assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash_thumbnail.jpg"
+                <img src="/assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash_thumbnail.jpg"
                     alt="Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core">
             </a>
             

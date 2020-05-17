@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <!-- Page Info -->
+    <title>Using Source Link in .NET projects and how to configure Visual Studio to use it. | Luru</title>
+    
+    <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Site Favicon -->
+    <link rel="shortcut icon" href="http://localhost:4000/assets/images/favicon.ico" type="image/png" />
+
+    <!-- Font Embed Code -->
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
+
+    <!-- CSS Styles -->
+    <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+
+<body class="layout-post">
+    <div id="page" class="site">
+
+        
+        <header id="masthead" class="site-header outer">
+    <div class="site-header-inside">
+        <div class="site-branding">
+            
+                <p class="site-logo"><a href="/" rel="home"><img src="/assets/images/logo.png" alt="Luru" /></a></p>
+                <h1 class="site-title screen-reader-text"><a href="" rel="home"></a></h1>
+            
+        </div><!-- .site-branding -->
+        <nav id="main-navigation" class="site-navigation" aria-label="Primary Navigation">
+            <ul class="menu">
+            
+                <li class="menu-item"><a href="/about.html">About</a></li>
+            
+                <li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+            
+            </ul>
+            <button id="sidebar-show" class="sidebar-toggle"><span class="screen-reader-text">Open Sidebar</span><span class="icon-more" aria-hidden="true"></span></button>
+        </nav><!-- .site-navigation -->
+    </div><!-- .site-header-inside -->
+</header><!-- .site-header -->
+        
+
+        <div id="content" class="site-content fadeInDown delay_075s">
+    <main id="main" class="site-main outer">
+        <article class="post-full inner">
+            <header class="post-header">
+                <div class="post-meta">
+                    <time class="post-date" datetime="2020-05-17">May 17,
+                        2020</time>
+                </div><!-- .post-meta -->
+                <h1 class="posttitle">Using Source Link in .NET projects and how to configure Visual Studio to use it.</h1>
+            </header><!-- .post-header -->
+            
+            <div class="post-thumbnail"><img class="featured-image img-fluid"
+                    src="assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash.jpg" alt="Using Source Link in .NET projects and how to configure Visual Studio to use it."></div>
+            
+            <div class="post-content">
+                <p>As a maintainer of some Open Source projects in <a href="https://github.com/Xabaril">Xabaril</a> that lot of people use, I think it’s crucial to help developers to debug the source code in order to make their lifes easier when troubleshoting problems. For this reason in Xabaril we have decided to enable support for <a href="https://github.com/dotnet/sourcelink">Source Link</a> in our open source projects to embrace this practice.</p>
+
+<p>I actually want to give kudos to <a href="https://twitter.com/_unaizc_">Unai Zorrila</a> to teach me how to configure <a href="https://github.com/dotnet/sourcelink">Source Link</a> in <a href="https://github.com/Xabaril/Balea">Balea</a>.</p>
+
+<!--more-->
+
+<h2 id="what-is-source-link">What is Source Link?</h2>
+
+<p>Basically, <a href="https://github.com/dotnet/sourcelink">Source Link</a> is a technology that enables developers to debug the source code from the NuGet packages, so tools like Visual Studio can step into its source code given an amazing experience in order to troubleshoting problems when you are using open source projects.</p>
+
+<h2 id="using-source-link-in-net-core-projects">Using Source Link in .NET Core projects</h2>
+
+<p>I don’t know if you are familiar with <strong>dependencies.props</strong> file in your .NET Core projects, if not, I recommend the use of this file from now.</p>
+
+<p><strong>Dependencies.props</strong> declares any dependency that you’ll need through your entire solution helping us to avoid problems such us consolidating versions of NuGet packages because we are defining the versions in one place and each project define which dependency it needs:</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;PropertyGroup</span> <span class="na">Label=</span><span class="s">"Package Dependencies"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;AspNetCoreVersion&gt;</span>3.1.3<span class="nt">&lt;/AspNetCoreVersion&gt;</span>
+    <span class="nt">&lt;EntityFrameworkVersion&gt;</span>3.1.3<span class="nt">&lt;/EntityFrameworkVersion&gt;</span>
+<span class="nt">&lt;/PropertyGroup&gt;</span>
+</code></pre></div></div>
+
+<p>In your <strong>csproj</strong> you need to define which dependency needs:</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nt">&lt;ItemGroup&gt;</span>
+    <span class="nt">&lt;PackageReference</span> <span class="na">Include=</span><span class="s">"Microsoft.Extensions.Http.Polly"</span> <span class="na">Version=</span><span class="s">"$(AspNetCoreVersion)"</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;/ItemGroup&gt;</span>
+</code></pre></div></div>
+
+<p>So, if the ASP.NET Core team release a new version you don’t need to go through all projects one by one upgrading the version, you’ll only need to update the version in your <strong>dependency.props</strong> and those projects that reference it will be upgrading to use it.</p>
+
+<p>Another file you should be familiar is <strong>Directory.Build.props</strong> which fairly easy to share commom metadata across your solution.</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;Project&gt;</span>
+  <span class="nt">&lt;Import</span> <span class="na">Project=</span><span class="s">"build/dependencies.props"</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;PropertyGroup</span> <span class="na">Label=</span><span class="s">"Package information"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;PackageLicenseExpression&gt;</span>Apache-2.0<span class="nt">&lt;/PackageLicenseExpression&gt;</span>
+    <span class="nt">&lt;PackageProjectUrl&gt;</span>http://github.com/xabaril/Balea<span class="nt">&lt;/PackageProjectUrl&gt;</span>
+    <span class="nt">&lt;RepositoryUrl&gt;</span>https://github.com/xabaril/Balea<span class="nt">&lt;/RepositoryUrl&gt;</span>
+    <span class="nt">&lt;Authors&gt;</span>Xabaril Contributors<span class="nt">&lt;/Authors&gt;</span>
+    <span class="nt">&lt;Company&gt;</span>Xabaril<span class="nt">&lt;/Company&gt;</span>
+  <span class="nt">&lt;/PropertyGroup&gt;</span>
+<span class="nt">&lt;/Project&gt;</span>
+</code></pre></div></div>
+
+<p>In the first line, we are importing the <strong>dependencies.props</strong> file and also adding some commom metadata to share across all projects such license information, project url, etc.</p>
+
+<p>After a brief introduction to these files, we are going to enable <a href="https://github.com/dotnet/sourcelink">Source Link</a> in our project. You’ll need to add these lines to your <strong>Directory.Build.props</strong></p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- Publish the repository URL in the built .nupkg (in the NuSpec &lt;Repository&gt; element) --&gt;</span>
+<span class="nt">&lt;PublishRepositoryUrl&gt;</span>true<span class="nt">&lt;/PublishRepositoryUrl&gt;</span>
+
+<span class="c">&lt;!-- Embed source files that are not tracked by the source control manager in the PDB --&gt;</span>
+<span class="nt">&lt;EmbedUntrackedSources&gt;</span>true<span class="nt">&lt;/EmbedUntrackedSources&gt;</span>
+
+<span class="c">&lt;!-- Build symbol package (.snupkg) to distribute the PDB containing Source Link --&gt;</span>
+<span class="nt">&lt;IncludeSymbols&gt;</span>true<span class="nt">&lt;/IncludeSymbols&gt;</span>
+<span class="nt">&lt;SymbolPackageFormat&gt;</span>snupkg<span class="nt">&lt;/SymbolPackageFormat&gt;</span>
+</code></pre></div></div>
+
+<p>For projects hosted in <a href="https://github.com">GitHub</a> you’ll need to reference the <a href="https://github.com/dotnet/sourcelink">Source Link</a> package:</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;ItemGroup&gt;</span>
+  <span class="nt">&lt;SourceRoot</span> <span class="na">Include=</span><span class="s">"$(MSBuildThisFileDirectory)/"</span><span class="nt">/&gt;</span>
+  <span class="nt">&lt;PackageReference</span> <span class="na">Include=</span><span class="s">"Microsoft.SourceLink.GitHub"</span> <span class="na">Version=</span><span class="s">"$(MicrosoftSourceLinkGithub)"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;PrivateAssets&gt;</span>all<span class="nt">&lt;/PrivateAssets&gt;</span>
+    <span class="nt">&lt;IncludeAssets&gt;</span>runtime; build; native; contentfiles; analyzers<span class="nt">&lt;/IncludeAssets&gt;</span>
+  <span class="nt">&lt;/PackageReference&gt;</span>
+<span class="nt">&lt;/ItemGroup&gt;</span>
+</code></pre></div></div>
+
+<p>Next, you’ll have to enable <strong>Deterministic build</strong>. In this <a href="https://github.com/clairernovotny/DeterministicBuilds#deterministic-builds">repo</a> <a href="https://twitter.com/clairernovotny">Claire Novotny</a> explains how deterministic build .NET works and why are so important:</p>
+
+<blockquote>
+  <p>Deterministic builds are important as they enable verification that the resulting binary was built from the specified source and provides traceability.</p>
+</blockquote>
+
+<p>You’ll need to add this to your <strong>Directory.Build.props</strong> if you are using <a href="https://github.com">GitHub</a>:</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;PropertyGroup</span> <span class="na">Condition=</span><span class="s">"'$(GITHUB_ACTIONS)' == 'true'"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;ContinuousIntegrationBuild&gt;</span>true<span class="nt">&lt;/ContinuousIntegrationBuild&gt;</span>
+<span class="nt">&lt;/PropertyGroup&gt;</span>
+</code></pre></div></div>
+
+<p>There is a well known <a href="https://github.com/dotnet/sourcelink/issues/572">issue</a> with the <strong>EmbedUntrackedSources</strong> attribute that could be fix with the below workaround needed for many SDK’s prior to 3.1.300 (At the moment I write this post 3.1.201). Add a new file called <strong>Directory.Build.targets</strong> at the solution level with the content below:</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;Project&gt;</span>
+<span class="nt">&lt;PropertyGroup&gt;</span>
+    <span class="nt">&lt;TargetFrameworkMonikerAssemblyAttributesPath&gt;</span>$([System.IO.Path]::Combine('$(IntermediateOutputPath)','$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)'))<span class="nt">&lt;/TargetFrameworkMonikerAssemblyAttributesPath&gt;</span>
+  <span class="nt">&lt;/PropertyGroup&gt;</span>
+  <span class="nt">&lt;ItemGroup&gt;</span>
+    <span class="c">&lt;!-- https://github.com/dotnet/sourcelink/issues/572 --&gt;</span>
+    <span class="nt">&lt;EmbeddedFiles</span> <span class="na">Include=</span><span class="s">"$(GeneratedAssemblyInfoFile)"</span><span class="nt">/&gt;</span>
+  <span class="nt">&lt;/ItemGroup&gt;</span>
+<span class="nt">&lt;/Project&gt;</span>
+</code></pre></div></div>
+
+<p>If you want to test your packages in your local machine prior to publish in the NuGet feed, please remove the conditional for the GitHub actions:</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;PropertyGroup&gt;</span>
+    <span class="nt">&lt;ContinuousIntegrationBuild&gt;</span>true<span class="nt">&lt;/ContinuousIntegrationBuild&gt;</span>
+<span class="nt">&lt;/PropertyGroup&gt;</span>
+</code></pre></div></div>
+
+<p>Run the next command to pack your project:</p>
+
+<pre><code class="language-txt">dotnet pack &lt;yoor_project&gt;.csproj -c Release -o .\artifacts --include-symbols
+</code></pre>
+
+<p>And the NuGet package should be generated:</p>
+
+<p><img src="./assets/images/posts/2020/sourcelink1.png" alt="SourceLink" /></p>
+
+<p>Open <a href="https://www.microsoft.com/en-us/p/nuget-package-explorer/9wzdncrdmdm3?activetab=pivot:overviewtab">NuGet Package Explorer</a> and select <strong>“Open a local package”</strong></p>
+
+<p><img src="./assets/images/posts/2020/sourcelink2.png" alt="SourceLink" /></p>
+
+<p>Find your NuGet package:</p>
+
+<p><img src="./assets/images/posts/2020/sourcelink3.png" alt="SourceLink" /></p>
+
+<p>And you should see that <strong>Source Link</strong> and <strong>Deterministic build</strong> are valid.</p>
+
+<p><img src="./assets/images/posts/2020/sourcelink4.png" alt="SourceLink" /></p>
+
+<p>It’s time to add again the conditional for GitHub actions that you removed previously to test in your local machine and push the changes to your repository. You’ll need to have a <a href="https://github.com/Xabaril/Balea/blob/master/.github/workflows/nuget.yml">GitHub Action</a> to publish your packages to the <a href="https://www.nuget.org/">NuGet</a> feed. Once the package has been published, open again <a href="https://www.microsoft.com/en-us/p/nuget-package-explorer/9wzdncrdmdm3?activetab=pivot:overviewtab">NuGet Package Explorer</a> but this time select <strong>“Open a package from online feed”</strong></p>
+
+<p><img src="./assets/images/posts/2020/sourcelink5.png" alt="SourceLink" /></p>
+
+<p>Search your package:</p>
+
+<p><img src="./assets/images/posts/2020/sourcelink6.png" alt="SourceLink" /></p>
+
+<p>And if you have followed all the previous steps correctly, your package should be valid and reflect the last commit to your repo:</p>
+
+<p><img src="./assets/images/posts/2020/sourcelink7.png" alt="SourceLink" /></p>
+
+<h2 id="configuring-visual-studio-2019-to-use-source-link">Configuring Visual Studio 2019 to use Source Link</h2>
+
+<p>By default NuGet Symbols server are disabled. Visual Studio 2019 needs to be able to download these sources in order to works properly with <a href="https://github.com/dotnet/sourcelink">Source Link</a>. Go to <strong>Tools -&gt; Options -&gt; Debugging -&gt; Symbols</strong></p>
+
+<p><img src="./assets/images/posts/2020/sourcelink10.png" alt="SourceLink" /></p>
+
+<p>Go to <strong>Tools -&gt; Options -&gt; Debugging -&gt; General</strong> settings window and disable <strong>“Enable Just My Code”</strong></p>
+
+<p><img src="./assets/images/posts/2020/sourcelink8.png" alt="SourceLink" /></p>
+
+<p>By default <a href="https://github.com/dotnet/sourcelink">Source Link</a> is enable in Visual Studio 2019 but Source Server support not:</p>
+
+<p><img src="./assets/images/posts/2020/sourcelink9.png" alt="SourceLink" /></p>
+
+<p><strong>Fallback to Git Credential Manager…</strong> allows tools that use Git Credential Manager to use Source Link in private repositories.</p>
+
+<h2 id="step-into-third-party-code">Step into third party code</h2>
+
+<p>In my case, I’ve created a simple WebApi application and I’ve added Balea’s packages:</p>
+
+<p><img src="./assets/images/posts/2020/sourcelink14.png" alt="SourceLink" /></p>
+
+<p>Run the web application and click <strong>F11</strong> to Step Into:</p>
+
+<p><img src="./assets/images/posts/2020/sourcelink15.png" alt="SourceLink" /></p>
+
+<p>A new popup window appears for the first time if Source Link won’t download the source code.</p>
+
+<p><img src="./assets/images/posts/2020/sourcelink12.png" alt="SourceLink" /></p>
+
+<p>Once the source code was downloaded by Source Link, we can step into the source code:</p>
+
+<p><img src="./assets/images/posts/2020/sourcelink13.png" alt="SourceLink" /></p>
+
+<p>If you want to see a full example of this post, I recommend you to take a look at this <a href="https://github.com/Xabaril/Balea">repo</a></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post I’ve try to show you how to configure <a href="https://github.com/dotnet/sourcelink">Source Link</a> in .NET projects and how to use into the Visual Studio.</p>
+
+            </div>
+            <footer class="post-footer">
+                
+                <p class="post-tags">
+                     
+                    <a href='tag/netcore/'>netcore</a>
+                    
+                     
+                    <a href='tag/debugging/'>debugging</a>
+                    
+                     
+                    <a href='tag/sourcelink/'>sourcelink</a>
+                    
+                     
+                    <a href='tag/visualstudio/'>visualstudio</a>
+                    
+                     
+                    <a href='tag/pdb/'>pdb</a>
+                    
+                    
+                </p>
+                
+                <div class="post-share">
+                    <span class="post-share-title">Share:</span>
+                    <a target="_blank"
+                        href="https://twitter.com/share?text=Using+Source+Link+in+.NET+projects+and+how+to+configure+Visual+Studio+to+use+it.&amp;url=https://lurumad.github.io/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">Twitter</a>
+                    <a target="_blank"
+                        href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">Facebook</a>
+                </div><!-- .share-post -->
+            </footer>
+            <div class="author-box">
+                <div class="author-avatar"><img src="/assets/images/01-luis-ruiz-pavon.png"
+                        alt="Luis Ruiz Pavon's Picture" class="avatar">
+                </div>
+                <div class="author-details">
+                    <h2 class="author-title">About Luis Ruiz Pavon</h2>
+                    <p class="author-description">Luis is a husband, father of two, developer, gamer, speaker, author of book about ASP.NET Core and the co-founder MsCoders Madrid Meetup.</p>
+                    <div>
+                        <a href="https://www.buymeacoffee.com/Rth3vqI" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+                    </div>
+                </div>
+            </div>
+            
+<section id="comments-area" class="comments-area">
+    <h2 class="comments-title">Comments</h2>
+    <div class="comments-inside">
+        <div id="disqus_thread"></div>
+    </div><!-- .comments-inside -->
+    <div id="comments-overlay" class="comments-overlay">
+        <a href="#" id="comments-show" class="comments-show">Show comments</a>
+    </div><!-- .comments-overlay -->
+    <script type="text/javascript">
+        var disqus_shortname = 'lurumad';
+        var disqus_developer = 0;
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+        </article>
+        
+        <section class="read-next inner">
+            <h2 class="read-next-title">Read Next</h2>
+            
+            <article class="post">
+                <header class="post-header">
+                    <div class="post-meta">
+                        <time class="published" datetime="May 10, 2020">May 10, 2020</time>
+                    </div>
+                    <h3 class="post-title"><a href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">ASP.NET CORE API security guidelines: Be careful with your predictable id's</a>
+                    </h3>
+                    <p class="post-tags">
+                        
+                        
+                        
+                        <a href='/tag/aspnetcore/'>Aspnetcore</a>
+                        
+                        
+                        
+                        <a href='/tag/rest/'>Rest</a>
+                        
+                        
+                        
+                        <a href='/tag/api/'>Api</a>
+                        
+                        
+                        
+                        <a href='/tag/security/'>Security</a>
+                        
+                        
+                        
+                        <a href='/tag/hashids/'>Hashids</a>
+                        
+                        
+                        
+                    </p>
+                </header>
+                
+                <a href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s" class="post-thumbnail">
+                    <img src="assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg" alt="ASP.NET CORE API security guidelines: Be careful with your predictable id's" />
+                </a>
+                
+            </article>
+            
+            
+        </section><!-- .read-next -->
+    </main><!-- .site-main -->
+</div><!-- .site-content -->
+
+        
+
+        
+
+        <footer id="colophon" class="site-footer outer">
+            <div class="site-footer-inside">
+                <p class="social-links">
+    
+    <a href="https://twitter.com/luisruizpavon" target="_blank">
+        <span class="fa-twitter fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Twitter</span>
+    </a>
+    
+    
+    
+    <a href="https://github.com/lurumad" target="_blank">
+        <span class="fa-github fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">GitHub</span>
+    </a>
+    
+    
+    
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/luisruizpavon" target="_blank">
+        <span class="fa-linkedin fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Linkedin</span>
+    </a>
+    
+    
+</p>
+                <p class="site-info">
+                    <a href="#">Luru</a> &copy; 2020 . Horace theme by
+                    <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
+                    Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
+                </p>
+                <p class="back-to-top">
+                    <a id="top-button" class="top-button" href="#page">
+                        <span class="icon-arrow-up" aria-hidden="true"></span>
+                        <span class="screen-reader-text">Back to top</span>
+                    </a>
+                </p>
+            </div><!-- .site-footer-inside -->
+        </footer><!-- .site-footer -->
+    </div><!-- .site -->
+    <div id="site-overlay" class="site-overlay"></div>
+    <aside id="sidebar" class="sidebar">
+	<div class="sidebar-scrollable">
+		<div class="sidebar-inside">
+			<button id="sidebar-hide" class="sidebar-toggle"><span class="screen-reader-text">Close Sidebar</span><span
+				    aria-hidden="true" class="icon-close"></span></button>
+			<nav id="sidebar-navigation" class="widget site-navigation">
+				<h2 class="widget-title">Explore Site</h2>
+				<ul class="menu">
+					
+						<li class="menu-item"><a href="/about.html">About</a></li>
+					
+						<li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+					
+				</ul>
+			</nav>
+			
+<section class="widget widget-text">
+    <h2 class="widget-title">About Luru</h2>
+    <p>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</p>
+</section>
+
+
+<section class="widget widget-recent-posts">
+    <h2 class="widget-title">Recent Articles</h2>
+    <ul>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">May 17, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="http://localhost:4000/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">Using Source Link in .NET projects and how to configure Visual Studio to use it.</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">
+                <img src="http://localhost:4000/assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash_thumbnail.jpg"
+                    alt="Using Source Link in .NET projects and how to configure Visual Studio to use it.">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">May 10, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="http://localhost:4000/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">ASP.NET CORE API security guidelines: Be careful with your predictable id's</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">
+                <img src="http://localhost:4000/assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg"
+                    alt="ASP.NET CORE API security guidelines: Be careful with your predictable id's">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">April 20, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="http://localhost:4000/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/swagger-ui-with-pkce-using-swashbuckle-asp-net-core">
+                <img src="http://localhost:4000/assets/images/posts/2020/chris-panas-0Yiy0XajJHQ-unsplash_thumbnail.jpg"
+                    alt="Swagger UI (OpenApi) with Authorization code flow + PKCE using Swashbuckle ASP.NET Core">
+            </a>
+            
+        </li>
+        
+    </ul>
+</section>
+
+<!-- Create a sorted array of tags -->
+ 
+<section class="widget widget-tagcloud">
+    <h2 class="widget-title">Tags</h2>
+    <div class="tagcloud">
+        
+        <a href='https://lurumad.github.io/tag/azure/'>Azure</a>
+        
+        <a href='https://lurumad.github.io/tag/blog/'>Blog</a>
+        
+        <a href='https://lurumad.github.io/tag/c#/'>C#</a>
+        
+        <a href='https://lurumad.github.io/tag/career/'>Career</a>
+        
+        <a href='https://lurumad.github.io/tag/devops/'>DevOps</a>
+        
+        <a href='https://lurumad.github.io/tag/pipelines/'>Pipelines</a>
+        
+        <a href='https://lurumad.github.io/tag/self/'>Self</a>
+        
+        <a href='https://lurumad.github.io/tag/aks/'>aks</a>
+        
+        <a href='https://lurumad.github.io/tag/api/'>api</a>
+        
+        <a href='https://lurumad.github.io/tag/apim/'>apim</a>
+        
+        <a href='https://lurumad.github.io/tag/apis/'>apis</a>
+        
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
+        <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
+        
+        <a href='https://lurumad.github.io/tag/async/'>async</a>
+        
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
+        <a href='https://lurumad.github.io/tag/debugging/'>debugging</a>
+        
+        <a href='https://lurumad.github.io/tag/hashids/'>hashids</a>
+        
+        <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
+        
+        <a href='https://lurumad.github.io/tag/javascript/'>javascript</a>
+        
+        <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
+        
+        <a href='https://lurumad.github.io/tag/netcore/'>netcore</a>
+        
+        <a href='https://lurumad.github.io/tag/oauth2/'>oauth2</a>
+        
+        <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
+        
+        <a href='https://lurumad.github.io/tag/openapi/'>openapi</a>
+        
+        <a href='https://lurumad.github.io/tag/pdb/'>pdb</a>
+        
+        <a href='https://lurumad.github.io/tag/pkce/'>pkce</a>
+        
+        <a href='https://lurumad.github.io/tag/react/'>react</a>
+        
+        <a href='https://lurumad.github.io/tag/rest/'>rest</a>
+        
+        <a href='https://lurumad.github.io/tag/router/'>router</a>
+        
+        <a href='https://lurumad.github.io/tag/saml/'>saml</a>
+        
+        <a href='https://lurumad.github.io/tag/security/'>security</a>
+        
+        <a href='https://lurumad.github.io/tag/signalr/'>signalr</a>
+        
+        <a href='https://lurumad.github.io/tag/sourcelink/'>sourcelink</a>
+        
+        <a href='https://lurumad.github.io/tag/swagger/'>swagger</a>
+        
+        <a href='https://lurumad.github.io/tag/swagger-ui/'>swagger-ui</a>
+        
+        <a href='https://lurumad.github.io/tag/tests/'>tests</a>
+        
+        <a href='https://lurumad.github.io/tag/visualstudio/'>visualstudio</a>
+        
+    </div>
+</section>
+
+
+		</div><!-- .sidebar-inside -->
+	</div><!-- .sidebar-scrollable -->
+</aside><!-- .sidebar -->
+    
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131316164-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-131316164-1', { 'anonymize_ip': true });
+  </script>
+
+    <!-- Javascript Assets -->
+    <script src="/assets/js/jquery-3.3.1.min.js"></script>
+    <script src="/assets/js/plugins.js"></script>
+    <script src="/assets/js/custom.js"></script>
+
+</body>
+
+</html>

@@ -3,11 +3,207 @@
   <channel>
     <title>Luru</title>
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
-    <link>/</link>
-    <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 10 May 2020 17:31:45 +0200</pubDate>
-    <lastBuildDate>Sun, 10 May 2020 17:31:45 +0200</lastBuildDate>
+    <link>http://localhost:4000/</link>
+    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Sun, 17 May 2020 09:53:39 +0200</pubDate>
+    <lastBuildDate>Sun, 17 May 2020 09:53:39 +0200</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
+    
+      <item>
+        <title>Using Source Link in .NET projects and how to configure Visual Studio to use it.</title>
+        <description>&lt;p&gt;As a maintainer of some Open Source projects in &lt;a href=&quot;https://github.com/Xabaril&quot;&gt;Xabaril&lt;/a&gt; that lot of people use, I think it’s crucial to help developers to debug the source code in order to make their lifes easier when troubleshoting problems. For this reason in Xabaril we have decided to enable support for &lt;a href=&quot;https://github.com/dotnet/sourcelink&quot;&gt;Source Link&lt;/a&gt; in our open source projects to embrace this practice.&lt;/p&gt;
+
+&lt;p&gt;I actually want to give kudos to &lt;a href=&quot;https://twitter.com/_unaizc_&quot;&gt;Unai Zorrila&lt;/a&gt; to teach me how to configure &lt;a href=&quot;https://github.com/dotnet/sourcelink&quot;&gt;Source Link&lt;/a&gt; in &lt;a href=&quot;https://github.com/Xabaril/Balea&quot;&gt;Balea&lt;/a&gt;.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h2 id=&quot;what-is-source-link&quot;&gt;What is Source Link?&lt;/h2&gt;
+
+&lt;p&gt;Basically, &lt;a href=&quot;https://github.com/dotnet/sourcelink&quot;&gt;Source Link&lt;/a&gt; is a technology that enables developers to debug the source code from the NuGet packages, so tools like Visual Studio can step into its source code given an amazing experience in order to troubleshoting problems when you are using open source projects.&lt;/p&gt;
+
+&lt;h2 id=&quot;using-source-link-in-net-core-projects&quot;&gt;Using Source Link in .NET Core projects&lt;/h2&gt;
+
+&lt;p&gt;I don’t know if you are familiar with &lt;strong&gt;dependencies.props&lt;/strong&gt; file in your .NET Core projects, if not, I recommend the use of this file from now.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Dependencies.props&lt;/strong&gt; declares any dependency that you’ll need through your entire solution helping us to avoid problems such us consolidating versions of NuGet packages because we are defining the versions in one place and each project define which dependency it needs:&lt;/p&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;PropertyGroup&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Label=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Package Dependencies&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;AspNetCoreVersion&amp;gt;&lt;/span&gt;3.1.3&lt;span class=&quot;nt&quot;&gt;&amp;lt;/AspNetCoreVersion&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;EntityFrameworkVersion&amp;gt;&lt;/span&gt;3.1.3&lt;span class=&quot;nt&quot;&gt;&amp;lt;/EntityFrameworkVersion&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/PropertyGroup&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In your &lt;strong&gt;csproj&lt;/strong&gt; you need to define which dependency needs:&lt;/p&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;nt&quot;&gt;&amp;lt;ItemGroup&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;PackageReference&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Include=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Microsoft.Extensions.Http.Polly&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Version=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;$(AspNetCoreVersion)&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/ItemGroup&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;So, if the ASP.NET Core team release a new version you don’t need to go through all projects one by one upgrading the version, you’ll only need to update the version in your &lt;strong&gt;dependency.props&lt;/strong&gt; and those projects that reference it will be upgrading to use it.&lt;/p&gt;
+
+&lt;p&gt;Another file you should be familiar is &lt;strong&gt;Directory.Build.props&lt;/strong&gt; which fairly easy to share commom metadata across your solution.&lt;/p&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;Project&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;Import&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Project=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;build/dependencies.props&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;PropertyGroup&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Label=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Package information&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;PackageLicenseExpression&amp;gt;&lt;/span&gt;Apache-2.0&lt;span class=&quot;nt&quot;&gt;&amp;lt;/PackageLicenseExpression&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;PackageProjectUrl&amp;gt;&lt;/span&gt;http://github.com/xabaril/Balea&lt;span class=&quot;nt&quot;&gt;&amp;lt;/PackageProjectUrl&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;RepositoryUrl&amp;gt;&lt;/span&gt;https://github.com/xabaril/Balea&lt;span class=&quot;nt&quot;&gt;&amp;lt;/RepositoryUrl&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;Authors&amp;gt;&lt;/span&gt;Xabaril Contributors&lt;span class=&quot;nt&quot;&gt;&amp;lt;/Authors&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;Company&amp;gt;&lt;/span&gt;Xabaril&lt;span class=&quot;nt&quot;&gt;&amp;lt;/Company&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/PropertyGroup&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/Project&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In the first line, we are importing the &lt;strong&gt;dependencies.props&lt;/strong&gt; file and also adding some commom metadata to share across all projects such license information, project url, etc.&lt;/p&gt;
+
+&lt;p&gt;After a brief introduction to these files, we are going to enable &lt;a href=&quot;https://github.com/dotnet/sourcelink&quot;&gt;Source Link&lt;/a&gt; in our project. You’ll need to add these lines to your &lt;strong&gt;Directory.Build.props&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- Publish the repository URL in the built .nupkg (in the NuSpec &amp;lt;Repository&amp;gt; element) --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;PublishRepositoryUrl&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/PublishRepositoryUrl&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- Embed source files that are not tracked by the source control manager in the PDB --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;EmbedUntrackedSources&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/EmbedUntrackedSources&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- Build symbol package (.snupkg) to distribute the PDB containing Source Link --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;IncludeSymbols&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/IncludeSymbols&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;SymbolPackageFormat&amp;gt;&lt;/span&gt;snupkg&lt;span class=&quot;nt&quot;&gt;&amp;lt;/SymbolPackageFormat&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;For projects hosted in &lt;a href=&quot;https://github.com&quot;&gt;GitHub&lt;/a&gt; you’ll need to reference the &lt;a href=&quot;https://github.com/dotnet/sourcelink&quot;&gt;Source Link&lt;/a&gt; package:&lt;/p&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;ItemGroup&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;SourceRoot&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Include=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;$(MSBuildThisFileDirectory)/&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;PackageReference&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Include=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Microsoft.SourceLink.GitHub&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Version=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;$(MicrosoftSourceLinkGithub)&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;PrivateAssets&amp;gt;&lt;/span&gt;all&lt;span class=&quot;nt&quot;&gt;&amp;lt;/PrivateAssets&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;IncludeAssets&amp;gt;&lt;/span&gt;runtime; build; native; contentfiles; analyzers&lt;span class=&quot;nt&quot;&gt;&amp;lt;/IncludeAssets&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/PackageReference&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/ItemGroup&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Next, you’ll have to enable &lt;strong&gt;Deterministic build&lt;/strong&gt;. In this &lt;a href=&quot;https://github.com/clairernovotny/DeterministicBuilds#deterministic-builds&quot;&gt;repo&lt;/a&gt; &lt;a href=&quot;https://twitter.com/clairernovotny&quot;&gt;Claire Novotny&lt;/a&gt; explains how deterministic build .NET works and why are so important:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Deterministic builds are important as they enable verification that the resulting binary was built from the specified source and provides traceability.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;You’ll need to add this to your &lt;strong&gt;Directory.Build.props&lt;/strong&gt; if you are using &lt;a href=&quot;https://github.com&quot;&gt;GitHub&lt;/a&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;PropertyGroup&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Condition=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;'$(GITHUB_ACTIONS)' == 'true'&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;ContinuousIntegrationBuild&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/ContinuousIntegrationBuild&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/PropertyGroup&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;There is a well known &lt;a href=&quot;https://github.com/dotnet/sourcelink/issues/572&quot;&gt;issue&lt;/a&gt; with the &lt;strong&gt;EmbedUntrackedSources&lt;/strong&gt; attribute that could be fix with the below workaround needed for many SDK’s prior to 3.1.300 (At the moment I write this post 3.1.201). Add a new file called &lt;strong&gt;Directory.Build.targets&lt;/strong&gt; at the solution level with the content below:&lt;/p&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;Project&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;PropertyGroup&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;TargetFrameworkMonikerAssemblyAttributesPath&amp;gt;&lt;/span&gt;$([System.IO.Path]::Combine('$(IntermediateOutputPath)','$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)'))&lt;span class=&quot;nt&quot;&gt;&amp;lt;/TargetFrameworkMonikerAssemblyAttributesPath&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/PropertyGroup&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;ItemGroup&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- https://github.com/dotnet/sourcelink/issues/572 --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;EmbeddedFiles&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Include=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;$(GeneratedAssemblyInfoFile)&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/ItemGroup&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/Project&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;If you want to test your packages in your local machine prior to publish in the NuGet feed, please remove the conditional for the GitHub actions:&lt;/p&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;PropertyGroup&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;ContinuousIntegrationBuild&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/ContinuousIntegrationBuild&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/PropertyGroup&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Run the next command to pack your project:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-txt&quot;&gt;dotnet pack &amp;lt;yoor_project&amp;gt;.csproj -c Release -o .\artifacts --include-symbols
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And the NuGet package should be generated:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink1.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Open &lt;a href=&quot;https://www.microsoft.com/en-us/p/nuget-package-explorer/9wzdncrdmdm3?activetab=pivot:overviewtab&quot;&gt;NuGet Package Explorer&lt;/a&gt; and select &lt;strong&gt;“Open a local package”&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink2.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Find your NuGet package:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink3.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And you should see that &lt;strong&gt;Source Link&lt;/strong&gt; and &lt;strong&gt;Deterministic build&lt;/strong&gt; are valid.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink4.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;It’s time to add again the conditional for GitHub actions that you removed previously to test in your local machine and push the changes to your repository. You’ll need to have a &lt;a href=&quot;https://github.com/Xabaril/Balea/blob/master/.github/workflows/nuget.yml&quot;&gt;GitHub Action&lt;/a&gt; to publish your packages to the &lt;a href=&quot;https://www.nuget.org/&quot;&gt;NuGet&lt;/a&gt; feed. Once the package has been published, open again &lt;a href=&quot;https://www.microsoft.com/en-us/p/nuget-package-explorer/9wzdncrdmdm3?activetab=pivot:overviewtab&quot;&gt;NuGet Package Explorer&lt;/a&gt; but this time select &lt;strong&gt;“Open a package from online feed”&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink5.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Search your package:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink6.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And if you have followed all the previous steps correctly, your package should be valid and reflect the last commit to your repo:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink7.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;configuring-visual-studio-2019-to-use-source-link&quot;&gt;Configuring Visual Studio 2019 to use Source Link&lt;/h2&gt;
+
+&lt;p&gt;By default NuGet Symbols server are disabled. Visual Studio 2019 needs to be able to download these sources in order to works properly with &lt;a href=&quot;https://github.com/dotnet/sourcelink&quot;&gt;Source Link&lt;/a&gt;. Go to &lt;strong&gt;Tools -&amp;gt; Options -&amp;gt; Debugging -&amp;gt; Symbols&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink10.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Go to &lt;strong&gt;Tools -&amp;gt; Options -&amp;gt; Debugging -&amp;gt; General&lt;/strong&gt; settings window and disable &lt;strong&gt;“Enable Just My Code”&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink8.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;By default &lt;a href=&quot;https://github.com/dotnet/sourcelink&quot;&gt;Source Link&lt;/a&gt; is enable in Visual Studio 2019 but Source Server support not:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink9.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Fallback to Git Credential Manager…&lt;/strong&gt; allows tools that use Git Credential Manager to use Source Link in private repositories.&lt;/p&gt;
+
+&lt;h2 id=&quot;step-into-third-party-code&quot;&gt;Step into third party code&lt;/h2&gt;
+
+&lt;p&gt;In my case, I’ve created a simple WebApi application and I’ve added Balea’s packages:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink14.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Run the web application and click &lt;strong&gt;F11&lt;/strong&gt; to Step Into:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink15.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A new popup window appears for the first time if Source Link won’t download the source code.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink12.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Once the source code was downloaded by Source Link, we can step into the source code:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2020/sourcelink13.png&quot; alt=&quot;SourceLink&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If you want to see a full example of this post, I recommend you to take a look at this &lt;a href=&quot;https://github.com/Xabaril/Balea&quot;&gt;repo&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post I’ve try to show you how to configure &lt;a href=&quot;https://github.com/dotnet/sourcelink&quot;&gt;Source Link&lt;/a&gt; in .NET projects and how to use into the Visual Studio.&lt;/p&gt;
+</description>
+        <pubDate>Sun, 17 May 2020 00:00:00 +0200</pubDate>
+        <link>http://localhost:4000/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it</link>
+        <guid isPermaLink="true">http://localhost:4000/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it</guid>
+        
+        <category>netcore</category>
+        
+        <category>debugging</category>
+        
+        <category>sourcelink</category>
+        
+        <category>visualstudio</category>
+        
+        <category>pdb</category>
+        
+        
+      </item>
     
       <item>
         <title>ASP.NET CORE API security guidelines: Be careful with your predictable id's</title>
@@ -225,8 +421,8 @@
 &lt;p&gt;Of course, any feedback is welcome, and I would to know your experiences with this in order to learn alternative ways to do this.&lt;/p&gt;
 </description>
         <pubDate>Sun, 10 May 2020 00:00:00 +0200</pubDate>
-        <link>/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s</link>
-        <guid isPermaLink="true">/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s</guid>
+        <link>http://localhost:4000/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s</link>
+        <guid isPermaLink="true">http://localhost:4000/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s</guid>
         
         <category>aspnetcore</category>
         
@@ -386,8 +582,8 @@
 &lt;p&gt;In this post I’ve tried to show how straightforward is to add Authorization code flow + PKCE in Swashbuckle Asp.Net Core. If you are using Implivit code flow, yI recommend you to change all your browser-based applications such us SPAs (Single Page Applications) in favor to the Authorization code flow + PKCE.&lt;/p&gt;
 </description>
         <pubDate>Mon, 20 Apr 2020 00:00:00 +0200</pubDate>
-        <link>/swagger-ui-with-pkce-using-swashbuckle-asp-net-core</link>
-        <guid isPermaLink="true">/swagger-ui-with-pkce-using-swashbuckle-asp-net-core</guid>
+        <link>http://localhost:4000/swagger-ui-with-pkce-using-swashbuckle-asp-net-core</link>
+        <guid isPermaLink="true">http://localhost:4000/swagger-ui-with-pkce-using-swashbuckle-asp-net-core</guid>
         
         <category>openapi</category>
         
@@ -693,8 +889,8 @@
 &lt;p&gt;In this post I’ve tried to show how straightforward is to added routes in our React applications with React router library.&lt;/p&gt;
 </description>
         <pubDate>Thu, 09 Apr 2020 00:00:00 +0200</pubDate>
-        <link>/react-router</link>
-        <guid isPermaLink="true">/react-router</guid>
+        <link>http://localhost:4000/react-router</link>
+        <guid isPermaLink="true">http://localhost:4000/react-router</guid>
         
         <category>react</category>
         
@@ -833,8 +1029,8 @@
 &lt;p&gt;In this post I’ve tried to show you how we can add additional API Endpoints to the IdentityServer and protect them using tokens.&lt;/p&gt;
 </description>
         <pubDate>Thu, 16 Jan 2020 00:00:00 +0100</pubDate>
-        <link>/aditional-api-endpoints-to-identityserver4</link>
-        <guid isPermaLink="true">/aditional-api-endpoints-to-identityserver4</guid>
+        <link>http://localhost:4000/aditional-api-endpoints-to-identityserver4</link>
+        <guid isPermaLink="true">http://localhost:4000/aditional-api-endpoints-to-identityserver4</guid>
         
         <category>identityserver</category>
         
@@ -1014,8 +1210,8 @@
 &lt;p&gt;In this post I’ve tried to show you how to tackling cross-cutting concerns in our applications using the pipeline behaviors in MadiatR. We can create a lot of behaviors, for example an Unit of Work behavior to make our commands and events transactional.&lt;/p&gt;
 </description>
         <pubDate>Wed, 23 Oct 2019 00:00:00 +0200</pubDate>
-        <link>/cross-cutting-concerns-in-asp-net-core-with-meaditr</link>
-        <guid isPermaLink="true">/cross-cutting-concerns-in-asp-net-core-with-meaditr</guid>
+        <link>http://localhost:4000/cross-cutting-concerns-in-asp-net-core-with-meaditr</link>
+        <guid isPermaLink="true">http://localhost:4000/cross-cutting-concerns-in-asp-net-core-with-meaditr</guid>
         
         <category>madiatr</category>
         
@@ -1127,8 +1323,8 @@ Install-Package FluentAssertions -Version 5.6.0
 &lt;p&gt;In this post I’ve tried to show you how to make integration tests with AspNetCore SignalR.&lt;/p&gt;
 </description>
         <pubDate>Tue, 02 Apr 2019 00:00:00 +0200</pubDate>
-        <link>/integration-tests-in-aspnet-core-signalr</link>
-        <guid isPermaLink="true">/integration-tests-in-aspnet-core-signalr</guid>
+        <link>http://localhost:4000/integration-tests-in-aspnet-core-signalr</link>
+        <guid isPermaLink="true">http://localhost:4000/integration-tests-in-aspnet-core-signalr</guid>
         
         <category>tests</category>
         
@@ -1362,8 +1558,8 @@ Install-Package FluentAssertions -Version 5.6.0
 &lt;/ul&gt;
 </description>
         <pubDate>Wed, 06 Mar 2019 00:00:00 +0100</pubDate>
-        <link>/connecting-zendesk-and-identityserver-4-saml2p-identity-provider</link>
-        <guid isPermaLink="true">/connecting-zendesk-and-identityserver-4-saml2p-identity-provider</guid>
+        <link>http://localhost:4000/connecting-zendesk-and-identityserver-4-saml2p-identity-provider</link>
+        <guid isPermaLink="true">http://localhost:4000/connecting-zendesk-and-identityserver-4-saml2p-identity-provider</guid>
         
         <category>saml</category>
         
@@ -1638,8 +1834,8 @@ Install-Package FluentAssertions -Version 5.6.0
 &lt;p&gt;&lt;a href=&quot;https://github.com/khellang/Middleware&quot;&gt;Github Hellang.Middleware.ProblemDetails&lt;/a&gt;&lt;/p&gt;
 </description>
         <pubDate>Mon, 25 Feb 2019 00:00:00 +0100</pubDate>
-        <link>/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core</link>
-        <guid isPermaLink="true">/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core</guid>
+        <link>http://localhost:4000/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core</link>
+        <guid isPermaLink="true">http://localhost:4000/problem-details-an-standard-way-for-specifying-errors-in-http-api-responses-asp.net-core</guid>
         
         <category>apis</category>
         
@@ -1716,154 +1912,12 @@ Install-Package FluentAssertions -Version 5.6.0
 &lt;p&gt;My two cents.&lt;/p&gt;
 </description>
         <pubDate>Fri, 01 Feb 2019 00:00:00 +0100</pubDate>
-        <link>/an-opinionated-approach-of-using-an-async-suffix-in-methods</link>
-        <guid isPermaLink="true">/an-opinionated-approach-of-using-an-async-suffix-in-methods</guid>
+        <link>http://localhost:4000/an-opinionated-approach-of-using-an-async-suffix-in-methods</link>
+        <guid isPermaLink="true">http://localhost:4000/an-opinionated-approach-of-using-an-async-suffix-in-methods</guid>
         
         <category>C#</category>
         
         <category>async</category>
-        
-        
-      </item>
-    
-      <item>
-        <title>How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)</title>
-        <description>&lt;p&gt;&lt;strong&gt;DISCLAIMER&lt;/strong&gt;: I’m assuming you are familiar with Kubernetes, well in this post we are not going to explain it. So if you are not familiar, I recommend you to visit the official &lt;a href=&quot;https://kubernetes.io/&quot;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;If you have read my previous &lt;a href=&quot;https://lurumad.github.io/set-output-variables-in-azuredevops-pipelines-tasks&quot;&gt;post&lt;/a&gt; you’ll know that currently I’m building a microservices architecture using &lt;a href=&quot;https://azure.microsoft.com/en-us/services/kubernetes-service/&quot;&gt;Azure Kubernetes Service (AKS)&lt;/a&gt;. The context here is that we have a set of microservices that exposes API endpoints and we need a solution for publishing APIs to external and internal customers and clients applications, so we don´t want customers and client applications access directly to these microservices. We are talking to production ready API, so we have to take some considerations:&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Single entry point (Gateway)&lt;/li&gt;
-  &lt;li&gt;Usage&lt;/li&gt;
-  &lt;li&gt;Analytics&lt;/li&gt;
-  &lt;li&gt;Monitoring&lt;/li&gt;
-  &lt;li&gt;Cache&lt;/li&gt;
-  &lt;li&gt;Throttling&lt;/li&gt;
-  &lt;li&gt;Authorization&lt;/li&gt;
-  &lt;li&gt;And much more…&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;For these reasons we have decided to use &lt;a href=&quot;https://azure.microsoft.com/en-us/services/api-management/&quot;&gt;Azure Api Management&lt;/a&gt;. Api Management provides us a way to expose all APIs behind a single static IP and domain using a suscription key.&lt;/p&gt;
-
-&lt;h1 id=&quot;accessing-services-running-on-the-cluster&quot;&gt;Accessing services running on the cluster&lt;/h1&gt;
-
-&lt;p&gt;To use a REST service that is deployed on Kubernetes, you need to define a &lt;a href=&quot;https://kubernetes.io/docs/concepts/services-networking/service/&quot;&gt;service&lt;/a&gt;. There are several kinds of services:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;ClusterIP&lt;/li&gt;
-  &lt;li&gt;NodePort&lt;/li&gt;
-  &lt;li&gt;LoadBalacer&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;clusterip&quot;&gt;ClusterIP&lt;/h3&gt;
-
-&lt;p&gt;A ClusterIP is the default service in Kubernetes. Expose the service on a cluster-internal IP, so if you choose this kind of service it will be only reachable within the Kubernetes cluster so Azure API Management won’t be able to access.&lt;/p&gt;
-
-&lt;h3 id=&quot;nodeport&quot;&gt;NodePort&lt;/h3&gt;
-
-&lt;p&gt;Another option is to use a NodePort, Kubernetes will open a static port on each node (VM) of the cluster so you’ll be able to contact the NodePort outside the cluster using NodeIP:NodePort. The problem when using NodePort is that you are accesing directly to the node (VM), so if your Node/VM IP changed, you’ll need to deal with it. &lt;strong&gt;It’s not the recommended way to expose services in production&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;loadbalancer&quot;&gt;LoadBalancer&lt;/h3&gt;
-
-&lt;p&gt;This is the standard way to expose your services to the outside world from a Kubernetes cluster. This service type will leverage the cloud provider to provision and configure the load balancer. In Azure, this will provision an &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/load-balancer/&quot;&gt;Azure Load Balancer&lt;/a&gt; configuring all the things related with it.&lt;/p&gt;
-
-&lt;p&gt;The problem with this type of service is by default provision a Public Azure Load Balancer and we don’t want to expose our APIs publicly, we want to expose them through Azure Api Management. However we can also provision an &lt;a href=&quot;https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/internal-lb.md&quot;&gt;Internal Load Balancer&lt;/a&gt; to expose our APIs internally in Azure, so it seems to fit with our requirements not to expose our services publicly.&lt;/p&gt;
-
-&lt;p&gt;To create an Internal Load Balancer, create a service manifest with the service type &lt;em&gt;LoadBalancer&lt;/em&gt; and the &lt;em&gt;azure-load-balancer-internal annotation&lt;/em&gt; as shown in the following code:&lt;/p&gt;
-
-&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Service&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;todo-app-service&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;annotations&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;service.beta.kubernetes.io/azure-load-balancer-internal&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;true&quot;&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;LoadBalancer&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;80&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;todo-app&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Once we have applied the manifest in our AKS cluster, we should see EXTERNAL-IP that belongs to same subnet of the cluster nodes:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-txt&quot;&gt;kubectl get services
-NAME               TYPE           CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
-todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id=&quot;connect-azure-api-management-to-your-aks-cluster&quot;&gt;Connect Azure Api Management to your AKS cluster&lt;/h1&gt;
-
-&lt;p&gt;When we create an AKS cluster in Azure, the process creates another resource group as shown in the following image:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks1.png&quot; alt=&quot;Resource group create by Azure&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;This by design, this second resource group is a “cluster resource group” and is used to represent all the resources that belong to the cluster: VMs, Virtual Network…&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks2.png&quot; alt=&quot;Resource group&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Within the virtual network there are a number of VMs (Nodes) usually one master and a few agents (depends on the size of your cluster). We can connect Azure Api Management to this subnet in order to be able to consume the services within the cluster. To connect our Azure Api Management to our AKS cluster we need to create a subnet within this virtual network:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks4.png&quot; alt=&quot;Virtual Network 1&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;You can use a small range of IPs (In our case 3 directions is enough)&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks3.png&quot; alt=&quot;Virtual Network 2&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks5.png&quot; alt=&quot;Virtual Network 3&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Once we have created our subnet, go to your Azure Api Management instance in the Azure portal and configure the virtual network. Mark the Virtual network as External.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks6.png&quot; alt=&quot;Virtual Network APIM 1&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Select your AKS virtual network and the subnet that we have created previously:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks7.png&quot; alt=&quot;Virtual Network APIM 2&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Save your changes, take it easy and relax because Azure Api Management will take 15/30 minutes to apply these changes :)&lt;/p&gt;
-
-&lt;h1 id=&quot;import-and-publish-our-services-in-azure-api-management&quot;&gt;Import and publish our services in Azure Api Management&lt;/h1&gt;
-
-&lt;p&gt;Now that we have to service listening within the virtual network, it’s time to &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/api-management/import-and-publish&quot;&gt;import and publish&lt;/a&gt; in our Azure Api Management. In my case, I’ve configured my API to generate an OpenApi  specification using a library called &lt;a href=&quot;https://github.com/domaindrivendev/Swashbuckle&quot;&gt;Swashbuckle&lt;/a&gt;. It analyzes your API and generates an OpenApi specification that allows us to import from the Azure Portal using the next url:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-txt&quot;&gt;http://EXTERNAL-IP/swagger/v1/swagger.json
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks8.png&quot; alt=&quot;APIM 1&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;But Azure Api Management can’t reach our service beceause is not a public url and therefore can’t be imported:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks9.png&quot; alt=&quot;APIM 2&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The right way to resolve it is using a CD pipeline as I wrote in this &lt;a href=&quot;https://lurumad.github.io/continous-delivery-to-azure-api-management-using-azure-devops-pipelines&quot;&gt;post&lt;/a&gt;. Once you have created your CD pipeline, create a new release and the API should be imported:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks11.png&quot; alt=&quot;APIM CD 1&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks12.png&quot; alt=&quot;APIM CD 2&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks10.png&quot; alt=&quot;APIM CD 3&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Now we can test it:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;./assets/images/posts/2019/apimaks13.png&quot; alt=&quot;APIM&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;The purpose of the post is to show you how to connect Azure services such as Azure Api Management to your AKS cluster in order to manage the access to your services in a more convinient way and take advantage of all the benefits of using an Api Management in your microservices architecture.&lt;/p&gt;
-</description>
-        <pubDate>Mon, 21 Jan 2019 00:00:00 +0100</pubDate>
-        <link>/how-to-connect-azure-api-management-to-your-azure-kubernetes-service</link>
-        <guid isPermaLink="true">/how-to-connect-azure-api-management-to-your-azure-kubernetes-service</guid>
-        
-        <category>Azure</category>
-        
-        <category>apim</category>
-        
-        <category>k8s</category>
-        
-        <category>aks</category>
         
         
       </item>

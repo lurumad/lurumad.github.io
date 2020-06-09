@@ -64,17 +64,17 @@
                     src="assets/images/posts/2020/marci-angeles-H_pOAqtNVEg-unsplash.jpg" alt="Generating release notes using Github Actions"></div>
             
             <div class="post-content">
-                <p>Release notes are documents that we distribute to our clients, customers, consumers, etc everytime we release a new version of our product or open source project and are crucial to detail the new features, corrections and changes made to them.</p>
+                <p>Release notes are documents that we distribute to our clients, customers, etc everytime we release a new version of our product or open source project and are crucial to detail the new features, corrections and changes made on them.</p>
 
-<p>As a maintainers of some Open Source projects in <a href="https://github.com/Xabaril">Xabaril</a> we were looking a way to automatize the creation of the release notes for some of our projects in <a href="https://github.com">Github</a> and we found a great solution using some existing <a href="https://github.com/actions">Actions</a>.</p>
+<p>As a maintainers of some Open Source projects in <a href="https://github.com/Xabaril">Xabaril</a> we were looking for a way to automatize the creation of the release notes for some of our projects in <a href="https://github.com">Github</a> and we found a great solution using some existing <a href="https://github.com/actions">Actions</a>.</p>
 
-<p>Before showing you how to automatize the process, it’s important to talk about <a href="https://help.github.com/en/github/managing-your-work-on-github/about-milestones">Milestones</a>. We can use milestones ir order to track the progress of our products or open source projects using issues and pull requests in our repositories.</p>
+<p>Before showing you how to automatize the process, it’s important to talk about <a href="https://help.github.com/en/github/managing-your-work-on-github/about-milestones">Milestones</a>. We can use milestones in order to track the progress of our products or open source projects using issues and pull requests in our repositories.</p>
 
 <!--more-->
 
 <h2 id="working-with-milestones">Working with milestones</h2>
 
-<p>You can associate every issue and pull request with your current milestone as you can see in the next picture:</p>
+<p>You can associate every issue and pull request with your current milestone, as you can see in the next picture:</p>
 
 <p><img src="./assets/images/posts/2020/releasenotes1.png" alt="Milestones" /></p>
 
@@ -82,7 +82,7 @@
 
 <h2 id="using-github-actions-to-generate-the-release-notes">Using Github Actions to generate the release notes</h2>
 
-<p>The first <a href="https://github.com/actions">Action</a> we need to use is <a href="https://github.com/Decathlon/release-notes-generator-action">Release Note Generator GitHub Action</a>. Kudos to the <a href="https://github.com/Decathlon">Decathlon Team</a> to build such amazings <a href="https://github.com/actions">Action</a>.</p>
+<p>The first <a href="https://github.com/actions">Action</a> we have to use is <a href="https://github.com/Decathlon/release-notes-generator-action">Release Note Generator GitHub Action</a>. Kudos to the <a href="https://github.com/Decathlon">Decathlon Team</a> to build such amazings <a href="https://github.com/actions">Actions</a>.</p>
 
 <p>Create a new yaml file in root directory <strong>.github/workflows/release-notes.yml</strong> and copy this content:</p>
 
@@ -108,7 +108,7 @@
 
 <h2 id="using-github-actions-to-generate-the-wiki-pages">Using Github Actions to generate the wiki pages</h2>
 
-<p>The second <a href="https://github.com/actions">Action</a> we need to use is <a href="https://github.com/Decathlon/wiki-page-creator-action">Wiki Page Creator GitHub Action</a>.</p>
+<p>The second <a href="https://github.com/actions">Action</a> we have to use is <a href="https://github.com/Decathlon/wiki-page-creator-action">Wiki Page Creator GitHub Action</a>.</p>
 
 <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Upload Release Notes to Wiki</span>
   <span class="na">uses</span><span class="pi">:</span> <span class="s">docker://decathlon/wiki-page-creator-action:latest</span>
@@ -132,7 +132,7 @@
 
 <p><img src="./assets/images/posts/2020/releasenotes10.png" alt="Milestones" /></p>
 
-<p>To use your token to access milestones/issuess from the <a href="https://github.com/actions">Action</a>, select <strong>repo</strong>:</p>
+<p>To use your token for accessing milestones/issues from the <a href="https://github.com/actions">Action</a>, select <strong>repo</strong>:</p>
 
 <p><img src="./assets/images/posts/2020/releasenotes11.png" alt="Milestones" /></p>
 
@@ -140,7 +140,7 @@
 
 <p><img src="./assets/images/posts/2020/releasenotes12.png" alt="Milestones" /></p>
 
-<p>Go to your repository settings and click on <strong>Secrets</strong> and then click on <strong>New sectet</strong> button:</p>
+<p>Go to your repository settings and click on <strong>Secrets</strong> and then click on <strong>New secret</strong> button:</p>
 
 <p><img src="./assets/images/posts/2020/releasenotes13.png" alt="Milestones" /></p>
 
@@ -148,7 +148,7 @@
 
 <h2 id="testing-our-workflow">Testing our workflow</h2>
 
-<p>Once we have all the previous steps completed, go to your milestone if you want to view a full detail of what new features, corrections and changes were made:</p>
+<p>Once we have completed all the previous steps, go to your milestone for viewing a full detail of what new features, corrections and changes were made:</p>
 
 <p><img src="./assets/images/posts/2020/releasenotes2.png" alt="Milestones" /></p>
 
@@ -176,7 +176,7 @@
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>In this post I’ve try to show you how straightforward is to automatize the release notes of your projects using Github <a href="https://github.com/actions">Actions</a> and how you can deliver to your customers or users what new features, corrections and changes were made in a very nice visual way.</p>
+<p>In this post I’ve tried to show how straightforward is to automatize the release notes of your projects using Github <a href="https://github.com/actions">Actions</a> and how you can deliver to your customers or users what new features, corrections and changes were made in a very nice visual way.</p>
 
             </div>
             <footer class="post-footer">

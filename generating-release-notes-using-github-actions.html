@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <!-- Page Info -->
+    <title>Generating release notes using Github Actions | Luru</title>
+    
+    <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Site Favicon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/png" />
+
+    <!-- Font Embed Code -->
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
+
+    <!-- CSS Styles -->
+    <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+
+<body class="layout-post">
+    <div id="page" class="site">
+
+        
+        <header id="masthead" class="site-header outer">
+    <div class="site-header-inside">
+        <div class="site-branding">
+            
+                <p class="site-logo"><a href="/" rel="home"><img src="/assets/images/logo.png" alt="Luru" /></a></p>
+                <h1 class="site-title screen-reader-text"><a href="" rel="home"></a></h1>
+            
+        </div><!-- .site-branding -->
+        <nav id="main-navigation" class="site-navigation" aria-label="Primary Navigation">
+            <ul class="menu">
+            
+                <li class="menu-item"><a href="/about.html">About</a></li>
+            
+                <li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+            
+            </ul>
+            <button id="sidebar-show" class="sidebar-toggle"><span class="screen-reader-text">Open Sidebar</span><span class="icon-more" aria-hidden="true"></span></button>
+        </nav><!-- .site-navigation -->
+    </div><!-- .site-header-inside -->
+</header><!-- .site-header -->
+        
+
+        <div id="content" class="site-content fadeInDown delay_075s">
+    <main id="main" class="site-main outer">
+        <article class="post-full inner">
+            <header class="post-header">
+                <div class="post-meta">
+                    <time class="post-date" datetime="2020-06-07">June 7,
+                        2020</time>
+                </div><!-- .post-meta -->
+                <h1 class="posttitle">Generating release notes using Github Actions</h1>
+            </header><!-- .post-header -->
+            
+            <div class="post-thumbnail"><img class="featured-image img-fluid"
+                    src="assets/images/posts/2020/marci-angeles-H_pOAqtNVEg-unsplash.jpg" alt="Generating release notes using Github Actions"></div>
+            
+            <div class="post-content">
+                <p>Release notes are documents that we distribute to our clients, customers, consumers, etc everytime we release a new version of our product or open source project and are crucial to detail the new features, corrections and changes made to them.</p>
+
+<p>As a maintainers of some Open Source projects in <a href="https://github.com/Xabaril">Xabaril</a> we were looking a way to automatize the creation of the release notes for some of our projects in <a href="https://github.com">Github</a> and we found a great solution using some existing <a href="https://github.com/actions">Actions</a>.</p>
+
+<p>Before showing you how to automatize the process, it’s important to talk about <a href="https://help.github.com/en/github/managing-your-work-on-github/about-milestones">Milestones</a>. We can use milestones ir order to track the progress of our products or open source projects using issues and pull requests in our repositories. You can use the link above in order to create a milestone in your project.</p>
+
+<!--more-->
+
+<h2 id="working-with-milestones">Working with milestones</h2>
+
+<p>You can associate every issue and pull request with your current milestone as you can see in the next picture:</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes1.png" alt="Milestones" /></p>
+
+<p>It’s important to label every issue or pull request to generate it in the correct category such us features, bugs, documentation, etc.</p>
+
+<h2 id="using-github-actions-to-generate-the-release-notes">Using Github Actions to generate the release notes</h2>
+
+<p>The first <a href="https://github.com/actions">Action</a> we need to use is <a href="https://github.com/Decathlon/release-notes-generator-action">Release Note Generator GitHub Action</a>. Kudos to the <a href="https://github.com/Decathlon">Decathlon Team</a> to build such amazings <a href="https://github.com/actions">Action</a>.</p>
+
+<p>Create a new yaml file in root directory <strong>.github/workflows/release-notes.yml</strong> and copy this content:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Trigger the workflow on milestone events</span>
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">milestone</span><span class="pi">:</span>
+    <span class="na">types</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">closed</span><span class="pi">]</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">Milestone Closure</span>
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">create-release-notes</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@master</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create Release Notes</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">docker://decathlon/release-notes-generator-action:2.0.1</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">GITHUB_TOKEN</span><span class="pi">:</span> <span class="s2">"</span><span class="s">$"</span>
+          <span class="na">OUTPUT_FOLDER</span><span class="pi">:</span> <span class="s">temp_release_notes</span>
+          <span class="na">USE_MILESTONE_TITLE</span><span class="pi">:</span> <span class="s2">"</span><span class="s">true"</span>
+</code></pre></div></div>
+
+<p>This action <a href="https://github.com/actions">Action</a> will create our release notes file. You have to specify a <a href="https://help.github.com/en/actions/configuring-and-managing-workflows/authenticating-with-the-github_token">GITHUB_TOKEN</a>, an output folder and in our case use the milestone title.</p>
+
+<h2 id="using-github-actions-to-generate-the-wiki-pages">Using Github Actions to generate the wiki pages</h2>
+
+<p>The second <a href="https://github.com/actions">Action</a> we need to use is <a href="https://github.com/Decathlon/wiki-page-creator-action">Wiki Page Creator GitHub Action</a>.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Upload Release Notes to Wiki</span>
+  <span class="na">uses</span><span class="pi">:</span> <span class="s">docker://decathlon/wiki-page-creator-action:latest</span>
+  <span class="na">env</span><span class="pi">:</span>
+    <span class="na">ACTION_MAIL</span><span class="pi">:</span> <span class="s">YOUR_EMAIL</span>
+    <span class="na">ACTION_NAME</span><span class="pi">:</span> <span class="s">NAME_OF_THE_USER_WHO_PUBLISH</span>
+    <span class="na">GH_PAT</span><span class="pi">:</span> <span class="s">$</span>
+    <span class="na">MD_FOLDER</span><span class="pi">:</span> <span class="s">temp_release_notes</span>
+    <span class="na">OWNER</span><span class="pi">:</span> <span class="s">Xabaril</span>
+    <span class="na">REPO_NAME</span><span class="pi">:</span> <span class="s">balea</span>
+    <span class="na">SKIP_MD</span><span class="pi">:</span> <span class="s">README.md</span>
+</code></pre></div></div>
+
+<p>We need to specify a personal access token. You can create it clicking on this <a href="https://github.com/settings/tokens/new?scopes=repo&amp;description=wiki%20page%20creator%20token">link</a> or following the next instructions:</p>
+
+<p>To create a personal access token go to your profile and click on <strong>Settings</strong></p>
+
+<p><img src="./assets/images/posts/2020/releasenotes9.png" alt="PAT" /></p>
+
+<p>Click on <strong>Generate new token</strong> button:</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes10.png" alt="Milestones" /></p>
+
+<p>To use your token to access milestones/issuess from the <a href="https://github.com/actions">Action</a>, select <strong>repo</strong>:</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes11.png" alt="Milestones" /></p>
+
+<p>Copy the token:</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes12.png" alt="Milestones" /></p>
+
+<p>Go to your repository settings and click on <strong>Secrets</strong> and then click on <strong>New sectet</strong> button:</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes13.png" alt="Milestones" /></p>
+
+<p>In this <a href="https://github.com/Xabaril/Balea/blob/master/.github/workflows/release-notes.yml">link</a> you have a full example of the workflow.</p>
+
+<h2 id="testing-our-workflow">Testing our workflow</h2>
+
+<p>Once we have all the previous steps completed, go to your milestone if you want to view a full detail of what new features, corrections and changes were made:</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes2.png" alt="Milestones" /></p>
+
+<p><img src="./assets/images/posts/2020/releasenotes3.png" alt="Milestones" /></p>
+
+<p>Close your milestone:</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes4.png" alt="Milestones" /></p>
+
+<p>Go to the actions and check if the workflow it’s running:</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes5.png" alt="Milestones" /></p>
+
+<p>If there are not problems, the workflow should be finished ok:</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes6.png" alt="Milestones" /></p>
+
+<p>Go the <strong>wiki</strong> in your repository and check it the wiki has been published correctly:</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes7.png" alt="Milestones" /></p>
+
+<p>Choose the version in order to view the release notes and enjoy!</p>
+
+<p><img src="./assets/images/posts/2020/releasenotes8.png" alt="Milestones" /></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post I’ve try to show you how straightforward is to automatize the release notes of your projects using Github <a href="https://github.com/actions">Actions</a> and how you can deliver to your customers or users what new features, corrections and changes were made in a very nice visual way.</p>
+
+            </div>
+            <footer class="post-footer">
+                
+                <p class="post-tags">
+                     
+                    <a href='tag/github/'>github</a>
+                    
+                     
+                    <a href='tag/actions/'>actions</a>
+                    
+                     
+                    <a href='tag/releases/'>releases</a>
+                    
+                     
+                    <a href='tag/milestones/'>milestones</a>
+                    
+                    
+                </p>
+                
+                <div class="post-share">
+                    <span class="post-share-title">Share:</span>
+                    <a target="_blank"
+                        href="https://twitter.com/share?text=Generating+release+notes+using+Github+Actions&amp;url=https://lurumad.github.io/generating-release-notes-using-github-actions">Twitter</a>
+                    <a target="_blank"
+                        href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/generating-release-notes-using-github-actions">Facebook</a>
+                </div><!-- .share-post -->
+            </footer>
+            <div class="author-box">
+                <div class="author-avatar"><img src="/assets/images/01-luis-ruiz-pavon.png"
+                        alt="Luis Ruiz Pavon's Picture" class="avatar">
+                </div>
+                <div class="author-details">
+                    <h2 class="author-title">About Luis Ruiz Pavon</h2>
+                    <p class="author-description">Luis is a husband, father of two, developer, gamer, speaker, author of book about ASP.NET Core and the co-founder MsCoders Madrid Meetup.</p>
+                    <div>
+                        <a href="https://www.buymeacoffee.com/Rth3vqI" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+                    </div>
+                </div>
+            </div>
+            
+<section id="comments-area" class="comments-area">
+    <h2 class="comments-title">Comments</h2>
+    <div class="comments-inside">
+        <div id="disqus_thread"></div>
+    </div><!-- .comments-inside -->
+    <div id="comments-overlay" class="comments-overlay">
+        <a href="#" id="comments-show" class="comments-show">Show comments</a>
+    </div><!-- .comments-overlay -->
+    <script type="text/javascript">
+        var disqus_shortname = 'lurumad';
+        var disqus_developer = 0;
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+        </article>
+        
+        <section class="read-next inner">
+            <h2 class="read-next-title">Read Next</h2>
+            
+            <article class="post">
+                <header class="post-header">
+                    <div class="post-meta">
+                        <time class="published" datetime="May 17, 2020">May 17, 2020</time>
+                    </div>
+                    <h3 class="post-title"><a href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">Using Source Link in .NET projects and how to configure Visual Studio to use it.</a>
+                    </h3>
+                    <p class="post-tags">
+                        
+                        
+                        
+                        <a href='/tag/netcore/'>Netcore</a>
+                        
+                        
+                        
+                        <a href='/tag/debugging/'>Debugging</a>
+                        
+                        
+                        
+                        <a href='/tag/sourcelink/'>Sourcelink</a>
+                        
+                        
+                        
+                        <a href='/tag/visualstudio/'>Visualstudio</a>
+                        
+                        
+                        
+                        <a href='/tag/pdb/'>Pdb</a>
+                        
+                        
+                        
+                    </p>
+                </header>
+                
+                <a href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it" class="post-thumbnail">
+                    <img src="assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash_thumbnail.jpg" alt="Using Source Link in .NET projects and how to configure Visual Studio to use it." />
+                </a>
+                
+            </article>
+            
+            
+        </section><!-- .read-next -->
+    </main><!-- .site-main -->
+</div><!-- .site-content -->
+
+        
+
+        
+
+        <footer id="colophon" class="site-footer outer">
+            <div class="site-footer-inside">
+                <p class="social-links">
+    
+    <a href="https://twitter.com/luisruizpavon" target="_blank">
+        <span class="fa-twitter fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Twitter</span>
+    </a>
+    
+    
+    
+    <a href="https://github.com/lurumad" target="_blank">
+        <span class="fa-github fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">GitHub</span>
+    </a>
+    
+    
+    
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/luisruizpavon" target="_blank">
+        <span class="fa-linkedin fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Linkedin</span>
+    </a>
+    
+    
+</p>
+                <p class="site-info">
+                    <a href="#">Luru</a> &copy; 2020 . Horace theme by
+                    <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
+                    Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
+                </p>
+                <p class="back-to-top">
+                    <a id="top-button" class="top-button" href="#page">
+                        <span class="icon-arrow-up" aria-hidden="true"></span>
+                        <span class="screen-reader-text">Back to top</span>
+                    </a>
+                </p>
+            </div><!-- .site-footer-inside -->
+        </footer><!-- .site-footer -->
+    </div><!-- .site -->
+    <div id="site-overlay" class="site-overlay"></div>
+    <aside id="sidebar" class="sidebar">
+	<div class="sidebar-scrollable">
+		<div class="sidebar-inside">
+			<button id="sidebar-hide" class="sidebar-toggle"><span class="screen-reader-text">Close Sidebar</span><span
+				    aria-hidden="true" class="icon-close"></span></button>
+			<nav id="sidebar-navigation" class="widget site-navigation">
+				<h2 class="widget-title">Explore Site</h2>
+				<ul class="menu">
+					
+						<li class="menu-item"><a href="/about.html">About</a></li>
+					
+						<li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+					
+				</ul>
+			</nav>
+			
+<section class="widget widget-text">
+    <h2 class="widget-title">About Luru</h2>
+    <p>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</p>
+</section>
+
+
+<section class="widget widget-recent-posts">
+    <h2 class="widget-title">Recent Articles</h2>
+    <ul>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">June 7, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/generating-release-notes-using-github-actions">Generating release notes using Github Actions</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/generating-release-notes-using-github-actions">
+                <img src="/assets/images/posts/2020/marci-angeles-H_pOAqtNVEg-unsplash_thumbnail.jpg"
+                    alt="Generating release notes using Github Actions">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">May 17, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">Using Source Link in .NET projects and how to configure Visual Studio to use it.</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">
+                <img src="/assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash_thumbnail.jpg"
+                    alt="Using Source Link in .NET projects and how to configure Visual Studio to use it.">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">May 10, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">ASP.NET CORE API security guidelines: Be careful with your predictable id's</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/asp-net-core-api-security-guidelines-be-careful-with-your-predictable-id-s">
+                <img src="/assets/images/posts/2020/markus-spiske-gcgves5H_Ac-unsplash_thumbnail.jpg"
+                    alt="ASP.NET CORE API security guidelines: Be careful with your predictable id's">
+            </a>
+            
+        </li>
+        
+    </ul>
+</section>
+
+<!-- Create a sorted array of tags -->
+ 
+<section class="widget widget-tagcloud">
+    <h2 class="widget-title">Tags</h2>
+    <div class="tagcloud">
+        
+        <a href='https://lurumad.github.io/tag/azure/'>Azure</a>
+        
+        <a href='https://lurumad.github.io/tag/blog/'>Blog</a>
+        
+        <a href='https://lurumad.github.io/tag/c#/'>C#</a>
+        
+        <a href='https://lurumad.github.io/tag/career/'>Career</a>
+        
+        <a href='https://lurumad.github.io/tag/devops/'>DevOps</a>
+        
+        <a href='https://lurumad.github.io/tag/pipelines/'>Pipelines</a>
+        
+        <a href='https://lurumad.github.io/tag/self/'>Self</a>
+        
+        <a href='https://lurumad.github.io/tag/actions/'>actions</a>
+        
+        <a href='https://lurumad.github.io/tag/aks/'>aks</a>
+        
+        <a href='https://lurumad.github.io/tag/api/'>api</a>
+        
+        <a href='https://lurumad.github.io/tag/apim/'>apim</a>
+        
+        <a href='https://lurumad.github.io/tag/apis/'>apis</a>
+        
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
+        <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
+        
+        <a href='https://lurumad.github.io/tag/async/'>async</a>
+        
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
+        <a href='https://lurumad.github.io/tag/debugging/'>debugging</a>
+        
+        <a href='https://lurumad.github.io/tag/github/'>github</a>
+        
+        <a href='https://lurumad.github.io/tag/hashids/'>hashids</a>
+        
+        <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
+        
+        <a href='https://lurumad.github.io/tag/javascript/'>javascript</a>
+        
+        <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
+        
+        <a href='https://lurumad.github.io/tag/milestones/'>milestones</a>
+        
+        <a href='https://lurumad.github.io/tag/netcore/'>netcore</a>
+        
+        <a href='https://lurumad.github.io/tag/oauth2/'>oauth2</a>
+        
+        <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
+        
+        <a href='https://lurumad.github.io/tag/openapi/'>openapi</a>
+        
+        <a href='https://lurumad.github.io/tag/pdb/'>pdb</a>
+        
+        <a href='https://lurumad.github.io/tag/pkce/'>pkce</a>
+        
+        <a href='https://lurumad.github.io/tag/react/'>react</a>
+        
+        <a href='https://lurumad.github.io/tag/releases/'>releases</a>
+        
+        <a href='https://lurumad.github.io/tag/rest/'>rest</a>
+        
+        <a href='https://lurumad.github.io/tag/router/'>router</a>
+        
+        <a href='https://lurumad.github.io/tag/saml/'>saml</a>
+        
+        <a href='https://lurumad.github.io/tag/security/'>security</a>
+        
+        <a href='https://lurumad.github.io/tag/signalr/'>signalr</a>
+        
+        <a href='https://lurumad.github.io/tag/sourcelink/'>sourcelink</a>
+        
+        <a href='https://lurumad.github.io/tag/swagger/'>swagger</a>
+        
+        <a href='https://lurumad.github.io/tag/swagger-ui/'>swagger-ui</a>
+        
+        <a href='https://lurumad.github.io/tag/tests/'>tests</a>
+        
+        <a href='https://lurumad.github.io/tag/visualstudio/'>visualstudio</a>
+        
+    </div>
+</section>
+
+
+		</div><!-- .sidebar-inside -->
+	</div><!-- .sidebar-scrollable -->
+</aside><!-- .sidebar -->
+    
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131316164-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-131316164-1', { 'anonymize_ip': true });
+  </script>
+
+    <!-- Javascript Assets -->
+    <script src="/assets/js/jquery-3.3.1.min.js"></script>
+    <script src="/assets/js/plugins.js"></script>
+    <script src="/assets/js/custom.js"></script>
+
+</body>
+
+</html>

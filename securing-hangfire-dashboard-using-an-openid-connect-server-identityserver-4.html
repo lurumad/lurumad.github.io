@@ -66,9 +66,9 @@
             <div class="post-content">
                 <p><strong>DISCLAIMER</strong>: I’m assuming you are familiar with ASP.NET Core Authentication and Authorization, well in this post we are not going to explain it. So if you are not familiar, I recommend you to visit the official <a href="https://docs.microsoft.com/en-us/aspnet/core/security/?view=aspnetcore-3.1">documentation</a>.</p>
 
-<p>Last week a co-worker asked me about how they could securing the <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html">Hangfire Dashboard</a> using an existing OpenID Connect Server, to be exact, using an <a href="https://identityserver.io/">IdentityServer4</a>. Looking into the documentation, I found how to <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html#configuring-authorization">configure authorization</a> in order to securing the access to the dashboard to avoid exposes sensitive information about your jobs, serialized arguments, etc. but it wasn’t anough, because they needed to authenticated in their <a href="https://identityserver.io/">IdentityServer4</a>.</p>
+<p>Last week a co-worker asked me about how they could securing the <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html">Hangfire Dashboard</a> using an existing OpenID Connect Server, to be exact, using an <a href="https://identityserver.io/">IdentityServer4</a>. Looking into the documentation, I found how to <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html#configuring-authorization">configure authorization</a> in order to securing the access to the dashboard to avoid exposes sensitive information about your jobs, serialized arguments, etc. but it wasn’t enough, because they needed to authenticated with <a href="https://identityserver.io/">IdentityServer4</a>.</p>
 
-<p>Remember that authentication and authorization might sound similar but both are distinct security process. While the authentication is the act of verifying oneself, authorization is the process of verifying what you have access to.</p>
+<p>Remember that authentication and authorization might sound similar but both are distinct security process. While the authentication is the act of verifying oneself, authorization is the process of verifying what you have access to. So first we need autenticated our users with <a href="https://identityserver.io/">IdentityServer4</a> and then we can do the authorization process based on roles, cliams, etc.</p>
 
 <p>Once we have more clear the diferrences betwwen authentication and authorization it’s time to solve the issue.</p>
 
@@ -76,13 +76,13 @@
 
 <h2 id="using-dashboardauthorizationfilter--middleware-old-school">Using DashboardAuthorizationFilter + Middleware (Old School)</h2>
 
-<p>In this point, we are going to configure <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html">Hangfire Dashboard</a> in the previous way of <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1">Endpoint Routing</a> a feature have added in ASP.NET Core 3.0. In the next point you’ll see the benefits of use this approach instead the old school way.</p>
+<p>We are going to configure <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html">Hangfire Dashboard</a> in the previous way of <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1">Endpoint Routing</a>, a feature have added in ASP.NET Core 3.0 that it’s very powerfull and usefull. In the next point you’ll see the benefits of use this approach instead the old school way.</p>
 
 <p>We going to start configuring the autentication. In our example we need to use two authentication schemes:</p>
 
 <ul>
-  <li><strong>Cookies:</strong> A cookie authentication scheme constructing the user’s identity from cookies.</li>
-  <li><strong>OpenIdConnect:</strong> An authentication challenge is invoked by Authorization when an unauthenticated user requests an endpoint that requires authentication.</li>
+  <li><strong>Cookies:</strong> A cookie authentication scheme constructing the user’s identity from cookies. (Hangfire Dashboard will use this)</li>
+  <li><strong>OpenIdConnect:</strong> An authentication challenge is invoked by Authorization when an unauthenticated user requests an endpoint that requires authentication. (IdentityServer4)</li>
 </ul>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">services</span>
@@ -188,7 +188,7 @@
 <span class="p">});</span>
 </code></pre></div></div>
 
-<p>As you can see, we are using Endpoint Routing to configure the dashboard. The cool thing is the use of <strong>RequireAuthorization</strong> method that we have applied to this particular endpoint. We don’t need to implement <strong>IDashboardAuthorizationFilter</strong> interface and so on and we can use the policy that we have previously created using the ASP.NET Core authorization framework. This example is very basic but we can complicated the authorization as much as we want.</p>
+<p>As you can see, we are using Endpoint Routing to configure the dashboard. The cool thing is the use of <strong>RequireAuthorization</strong> method that we have applied to this particular endpoint. We don’t need to implement <strong>IDashboardAuthorizationFilter</strong> interface and we can use the policy that we have previously created using the ASP.NET Core authorization framework. This example is very basic but we can complicated the authorization as much as we want.</p>
 
 <p>You can see the complete example in this <a href="https://github.com/lurumad/Hangfire.Dashboard.Authentication/tree/master/EndpointRouting">link</a></p>
 

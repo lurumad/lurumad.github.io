@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <!-- Page Info -->
+    <title>Securing Hangfire Dashboard using an OpenID Connect server (IdentityServer 4) | Luru</title>
+    
+    <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Site Favicon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/png" />
+
+    <!-- Font Embed Code -->
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,400i,700,700i" rel="stylesheet" />
+
+    <!-- CSS Styles -->
+    <link href="/assets/css/style.css" rel="stylesheet">
+</head>
+
+
+
+<body class="layout-post">
+    <div id="page" class="site">
+
+        
+        <header id="masthead" class="site-header outer">
+    <div class="site-header-inside">
+        <div class="site-branding">
+            
+                <p class="site-logo"><a href="/" rel="home"><img src="/assets/images/logo.png" alt="Luru" /></a></p>
+                <h1 class="site-title screen-reader-text"><a href="" rel="home"></a></h1>
+            
+        </div><!-- .site-branding -->
+        <nav id="main-navigation" class="site-navigation" aria-label="Primary Navigation">
+            <ul class="menu">
+            
+                <li class="menu-item"><a href="/about.html">About</a></li>
+            
+                <li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+            
+            </ul>
+            <button id="sidebar-show" class="sidebar-toggle"><span class="screen-reader-text">Open Sidebar</span><span class="icon-more" aria-hidden="true"></span></button>
+        </nav><!-- .site-navigation -->
+    </div><!-- .site-header-inside -->
+</header><!-- .site-header -->
+        
+
+        <div id="content" class="site-content fadeInDown delay_075s">
+    <main id="main" class="site-main outer">
+        <article class="post-full inner">
+            <header class="post-header">
+                <div class="post-meta">
+                    <time class="post-date" datetime="2020-07-14">July 14,
+                        2020</time>
+                </div><!-- .post-meta -->
+                <h1 class="posttitle">Securing Hangfire Dashboard using an OpenID Connect server (IdentityServer 4)</h1>
+            </header><!-- .post-header -->
+            
+            <div class="post-thumbnail"><img class="featured-image img-fluid"
+                    src="assets/images/posts/2020/liam-tucker-cVMaxt672ss-unsplash.jpg" alt="Securing Hangfire Dashboard using an OpenID Connect server (IdentityServer 4)"></div>
+            
+            <div class="post-content">
+                <p><strong>DISCLAIMER</strong>: I’m assuming you are familiar with ASP.NET Core Authentication and Authorization, well in this post we are not going to explain it. So if you are not familiar, I recommend you to visit the official <a href="https://docs.microsoft.com/en-us/aspnet/core/security/?view=aspnetcore-3.1">documentation</a>.</p>
+
+<p>Last week a co-worker asked me about how they could securing the <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html">Hangfire Dashboard</a> using an existing OpenID Connect Server, to be exact, using an <a href="https://identityserver.io/">IdentityServer4</a>. Looking into the documentation, I found how to <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html#configuring-authorization">configure authorization</a> in order to securing the access to the dashboard to avoid exposes sensitive information about your jobs, serialized arguments, etc. but it wasn’t anough, because they needed to authenticated in their <a href="https://identityserver.io/">IdentityServer4</a>.</p>
+
+<p>Remember that authentication and authorization might sound similar but both are distinct security process. While the authentication is the act of verifying oneself, authorization is the process of verifying what you have access to.</p>
+
+<p>Once we have more clear the diferrences betwwen authentication and authorization it’s time to solve the issue.</p>
+
+<!--more-->
+
+<h2 id="using-dashboardauthorizationfilter--middleware-old-school">Using DashboardAuthorizationFilter + Middleware (Old School)</h2>
+
+<p>In this point, we are going to configure <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html">Hangfire Dashboard</a> in the previous way of <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1">Endpoint Routing</a> a feature have added in ASP.NET Core 3.0. In the next point you’ll see the benefits of use this approach instead the old school way.</p>
+
+<p>We going to start configuring the autentication. In our example we need to use two authentication schemes:</p>
+
+<ul>
+  <li><strong>Cookies:</strong> A cookie authentication scheme constructing the user’s identity from cookies.</li>
+  <li><strong>OpenIdConnect:</strong> An authentication challenge is invoked by Authorization when an unauthenticated user requests an endpoint that requires authentication.</li>
+</ul>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">services</span>
+    <span class="p">.</span><span class="nf">AddAuthentication</span><span class="p">(</span><span class="n">cfg</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="n">cfg</span><span class="p">.</span><span class="n">DefaultScheme</span> <span class="p">=</span> <span class="n">CookieAuthenticationDefaults</span><span class="p">.</span><span class="n">AuthenticationScheme</span><span class="p">;</span>
+        <span class="n">cfg</span><span class="p">.</span><span class="n">DefaultChallengeScheme</span> <span class="p">=</span> <span class="n">OpenIdConnectDefaults</span><span class="p">.</span><span class="n">AuthenticationScheme</span><span class="p">;</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nf">AddCookie</span><span class="p">()</span>
+    <span class="p">.</span><span class="nf">AddOpenIdConnect</span><span class="p">(</span><span class="n">cfg</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="n">cfg</span><span class="p">.</span><span class="n">Authority</span> <span class="p">=</span> <span class="s">"https://demo.identityserver.io"</span><span class="p">;</span>
+        <span class="n">cfg</span><span class="p">.</span><span class="n">ClientId</span> <span class="p">=</span> <span class="s">"interactive.confidential"</span><span class="p">;</span>
+        <span class="n">cfg</span><span class="p">.</span><span class="n">ClientSecret</span> <span class="p">=</span> <span class="s">"secret"</span><span class="p">;</span>
+        <span class="n">cfg</span><span class="p">.</span><span class="n">ResponseType</span> <span class="p">=</span> <span class="s">"code"</span><span class="p">;</span>
+        <span class="n">cfg</span><span class="p">.</span><span class="n">UsePkce</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+
+        <span class="n">cfg</span><span class="p">.</span><span class="n">Scope</span><span class="p">.</span><span class="nf">Clear</span><span class="p">();</span>
+        <span class="n">cfg</span><span class="p">.</span><span class="n">Scope</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="s">"openid"</span><span class="p">);</span>
+        <span class="n">cfg</span><span class="p">.</span><span class="n">Scope</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="s">"profile"</span><span class="p">);</span>
+    <span class="p">});</span>
+</code></pre></div></div>
+
+<p>As you can see, I’m using <a href="https://demo.identityserver.io">IdentityServer 4 demo</a> totally recommended for scenarios like <strong>demos</strong> or <strong>testing</strong> to avoid waste time.</p>
+
+<p>Once we have configured the autentication, it’s time to securing our dashboard. The first thing we have to do is to add the authentication middleware. In the <strong>Configure</strong> method of our <strong>Startup</strong> class we need to use authentication:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">UseAuthentication</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>Next, we have to check if the user who access the <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html">Hangfire Dashboard</a> have been previously authenticated (In our case using <a href="https://identityserver.io/">IdentityServer4</a>). The most straighforward approach is using a middleware to check if the path belongs to the Hangfire Dashboard and if the user is authenticated:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">Use</span><span class="p">(</span><span class="k">async</span> <span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">next</span><span class="p">)</span> <span class="p">=&gt;</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Path</span><span class="p">.</span><span class="nf">Equals</span><span class="p">(</span><span class="s">"/hangfire"</span><span class="p">,</span> <span class="n">StringComparison</span><span class="p">.</span><span class="n">OrdinalIgnoreCase</span><span class="p">)</span>
+        <span class="p">&amp;&amp;</span> <span class="p">!</span><span class="n">context</span><span class="p">.</span><span class="n">User</span><span class="p">.</span><span class="n">Identity</span><span class="p">.</span><span class="n">IsAuthenticated</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">ChallengeAsync</span><span class="p">();</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">await</span> <span class="nf">next</span><span class="p">();</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>Finally, we need to configure the authorization in Hangfire Dashboard. We can change the behavior by passing our own implementation of <strong>IDashboardAuthorizationFilter</strong> interface:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">UseHangfireDashboard</span><span class="p">(</span><span class="n">HangfireDashboardPath</span><span class="p">,</span> <span class="k">new</span> <span class="n">DashboardOptions</span>
+<span class="p">{</span>
+    <span class="n">Authorization</span> <span class="p">=</span> <span class="k">new</span> <span class="n">IDashboardAuthorizationFilter</span><span class="p">[]</span>
+    <span class="p">{</span>
+        <span class="k">new</span> <span class="nf">DashboardAuthorizationFilter</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>In our <strong>DashboardAuthorizationFilter</strong> only we are checking if the user is authenticated, but we can check many things as roles, claims, etc.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">DashboardAuthorizationFilter</span> <span class="p">:</span> <span class="n">IDashboardAuthorizationFilter</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">Authorize</span><span class="p">([</span><span class="n">NotNull</span><span class="p">]</span> <span class="n">DashboardContext</span> <span class="n">context</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="n">context</span><span class="p">.</span><span class="nf">GetHttpContext</span><span class="p">().</span><span class="n">User</span><span class="p">.</span><span class="n">Identity</span><span class="p">.</span><span class="n">IsAuthenticated</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>You can check the results running the web application and navigating to the <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html">Hangfire Dashboard</a>:</p>
+
+<p><img src="./assets/images/posts/2020/authenticationoldschool.gif" alt="Authentication" /></p>
+
+<p>You can see the complete example in this <a href="https://github.com/lurumad/Hangfire.Dashboard.Authentication/tree/master/Middlewares%20(Old%20School)">link</a></p>
+
+<h2 id="using-endpointrouting--middleware">Using EndpointRouting + Middleware</h2>
+
+<p>As you can see in the previous example, we have authorized the access to the dashboard using an implementation of <strong>IDashboardAuthorizationFilter</strong> interface. In ASP.NET Core we have available a new authorization framework based on policies. This new approach decouple the authorization from the application logic and provides us flexible, extensible and reusable security model. If you want to know more about this model I recommend you to read the official <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authorization/introduction?view=aspnetcore-3.1">documentation</a></p>
+
+<p>This example it’s very similar to the previous one but we are going to change the <strong>Configure</strong> method to use Endpoint Routing.</p>
+
+<p>We need to add authorization services. In the <strong>ConfigureServices</strong> method of our <strong>Startup</strong> class add this code:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">services</span>
+    <span class="p">.</span><span class="nf">AddAuthorization</span><span class="p">(</span><span class="n">cfg</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="n">cfg</span><span class="p">.</span><span class="nf">AddPolicy</span><span class="p">(</span><span class="s">"Hangfire"</span><span class="p">,</span> <span class="n">cfgPolicy</span> <span class="p">=&gt;</span>
+        <span class="p">{</span>
+            <span class="n">cfgPolicy</span><span class="p">.</span><span class="nf">AddRequirements</span><span class="p">().</span><span class="nf">RequireAuthenticatedUser</span><span class="p">();</span>
+            <span class="n">cfgPolicy</span><span class="p">.</span><span class="nf">AddAuthenticationSchemes</span><span class="p">(</span><span class="n">CookieAuthenticationDefaults</span><span class="p">.</span><span class="n">AuthenticationScheme</span><span class="p">);</span>
+        <span class="p">});</span>
+    <span class="p">})</span>
+    <span class="p">...</span> <span class="n">Omitted</span> <span class="k">for</span> <span class="n">brevity</span>
+</code></pre></div></div>
+
+<p>We added a new policy with one requirement (User must be authenticated) and the cookies authentication scheme.</p>
+
+<p>In the <strong>Configure</strong> method in our <strong>Startup</strong> class we should add this code at the end:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">UseRouting</span><span class="p">();</span>
+<span class="n">app</span><span class="p">.</span><span class="nf">UseAuthorization</span><span class="p">();</span>
+<span class="n">app</span><span class="p">.</span><span class="nf">UseEndpoints</span><span class="p">(</span><span class="n">endpoints</span> <span class="p">=&gt;</span>
+<span class="p">{</span>
+    <span class="n">endpoints</span><span class="p">.</span><span class="nf">MapHangfireDashboard</span><span class="p">().</span><span class="nf">RequireAuthorization</span><span class="p">(</span><span class="s">"Hangfire"</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>As you can see, we are using Endpoint Routing to configure the dashboard. The cool thing is the use of <strong>RequireAuthorization</strong> method that we have applied to this particular endpoint. We don’t need to implement <strong>IDashboardAuthorizationFilter</strong> interface and so on and we can use the policy that we have previously created using the ASP.NET Core authorization framework. This example is very basic but we can complicated the authorization as much as we want.</p>
+
+<p>You can see the complete example in this <a href="https://github.com/lurumad/Hangfire.Dashboard.Authentication/tree/master/EndpointRouting">link</a></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post I’ve tried to show how straightforward is to securing <a href="https://docs.hangfire.io/en/latest/configuration/using-dashboard.html">Hangfire Dashboard</a> with an OpenIdConnect Sever like <a href="https://identityserver.io/">IdentityServer4</a> using ASP.NET Core authentication and authorization and also how powerfull is the new Endpoint Routing feature introduced in ASP.NET Core 3.0.</p>
+
+            </div>
+            <footer class="post-footer">
+                
+                <p class="post-tags">
+                     
+                    <a href='tag/oidc/'>oidc</a>
+                    
+                     
+                    <a href='tag/oauth2/'>oauth2</a>
+                    
+                     
+                    <a href='tag/aspnetcore/'>aspnetcore</a>
+                    
+                     
+                    <a href='tag/hangfire/'>hangfire</a>
+                    
+                    
+                </p>
+                
+                <div class="post-share">
+                    <span class="post-share-title">Share:</span>
+                    <a target="_blank"
+                        href="https://twitter.com/share?text=Securing+Hangfire+Dashboard+using+an+OpenID+Connect+server+%28IdentityServer+4%29&amp;url=https://lurumad.github.io/securing-hangfire-dashboard-using-an-openid-connect-server-identityserver-4">Twitter</a>
+                    <a target="_blank"
+                        href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/securing-hangfire-dashboard-using-an-openid-connect-server-identityserver-4">Facebook</a>
+                </div><!-- .share-post -->
+            </footer>
+            <div class="author-box">
+                <div class="author-avatar"><img src="/assets/images/01-luis-ruiz-pavon.png"
+                        alt="Luis Ruiz Pavon's Picture" class="avatar">
+                </div>
+                <div class="author-details">
+                    <h2 class="author-title">About Luis Ruiz Pavon</h2>
+                    <p class="author-description">Luis is a husband, father of two, developer, gamer, speaker, author of book about ASP.NET Core and the co-founder MsCoders Madrid Meetup.</p>
+                    <div>
+                        <a href="https://www.buymeacoffee.com/Rth3vqI" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+                    </div>
+                </div>
+            </div>
+            
+<section id="comments-area" class="comments-area">
+    <h2 class="comments-title">Comments</h2>
+    <div class="comments-inside">
+        <div id="disqus_thread"></div>
+    </div><!-- .comments-inside -->
+    <div id="comments-overlay" class="comments-overlay">
+        <a href="#" id="comments-show" class="comments-show">Show comments</a>
+    </div><!-- .comments-overlay -->
+    <script type="text/javascript">
+        var disqus_shortname = 'lurumad';
+        var disqus_developer = 0;
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+        </article>
+        
+        <section class="read-next inner">
+            <h2 class="read-next-title">Read Next</h2>
+            
+            <article class="post">
+                <header class="post-header">
+                    <div class="post-meta">
+                        <time class="published" datetime="June 9, 2020">June 9, 2020</time>
+                    </div>
+                    <h3 class="post-title"><a href="/generating-release-notes-using-github-actions">Generating release notes using Github Actions</a>
+                    </h3>
+                    <p class="post-tags">
+                        
+                        
+                        
+                        <a href='/tag/github/'>Github</a>
+                        
+                        
+                        
+                        <a href='/tag/actions/'>Actions</a>
+                        
+                        
+                        
+                        <a href='/tag/releases/'>Releases</a>
+                        
+                        
+                        
+                        <a href='/tag/milestones/'>Milestones</a>
+                        
+                        
+                        
+                    </p>
+                </header>
+                
+                <a href="/generating-release-notes-using-github-actions" class="post-thumbnail">
+                    <img src="assets/images/posts/2020/marci-angeles-H_pOAqtNVEg-unsplash_thumbnail.jpg" alt="Generating release notes using Github Actions" />
+                </a>
+                
+            </article>
+            
+            
+        </section><!-- .read-next -->
+    </main><!-- .site-main -->
+</div><!-- .site-content -->
+
+        
+
+        
+
+        <footer id="colophon" class="site-footer outer">
+            <div class="site-footer-inside">
+                <p class="social-links">
+    
+    <a href="https://twitter.com/luisruizpavon" target="_blank">
+        <span class="fa-twitter fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Twitter</span>
+    </a>
+    
+    
+    
+    <a href="https://github.com/lurumad" target="_blank">
+        <span class="fa-github fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">GitHub</span>
+    </a>
+    
+    
+    
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/luisruizpavon" target="_blank">
+        <span class="fa-linkedin fa" aria-hidden="true"></span>
+        <span class="screen-reader-text">Linkedin</span>
+    </a>
+    
+    
+</p>
+                <p class="site-info">
+                    <a href="#">Luru</a> &copy; 2020 . Horace theme by
+                    <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
+                    Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
+                </p>
+                <p class="back-to-top">
+                    <a id="top-button" class="top-button" href="#page">
+                        <span class="icon-arrow-up" aria-hidden="true"></span>
+                        <span class="screen-reader-text">Back to top</span>
+                    </a>
+                </p>
+            </div><!-- .site-footer-inside -->
+        </footer><!-- .site-footer -->
+    </div><!-- .site -->
+    <div id="site-overlay" class="site-overlay"></div>
+    <aside id="sidebar" class="sidebar">
+	<div class="sidebar-scrollable">
+		<div class="sidebar-inside">
+			<button id="sidebar-hide" class="sidebar-toggle"><span class="screen-reader-text">Close Sidebar</span><span
+				    aria-hidden="true" class="icon-close"></span></button>
+			<nav id="sidebar-navigation" class="widget site-navigation">
+				<h2 class="widget-title">Explore Site</h2>
+				<ul class="menu">
+					
+						<li class="menu-item"><a href="/about.html">About</a></li>
+					
+						<li class="menu-item"><a href="/contact.html">Contact Me</a></li>
+					
+				</ul>
+			</nav>
+			
+<section class="widget widget-text">
+    <h2 class="widget-title">About Luru</h2>
+    <p>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</p>
+</section>
+
+
+<section class="widget widget-recent-posts">
+    <h2 class="widget-title">Recent Articles</h2>
+    <ul>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">July 14, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/securing-hangfire-dashboard-using-an-openid-connect-server-identityserver-4">Securing Hangfire Dashboard using an OpenID Connect server (IdentityServer 4)</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/securing-hangfire-dashboard-using-an-openid-connect-server-identityserver-4">
+                <img src="/assets/images/posts/2020/liam-tucker-cVMaxt672ss-unsplash_thumbnail.jpg"
+                    alt="Securing Hangfire Dashboard using an OpenID Connect server (IdentityServer 4)">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">June 9, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/generating-release-notes-using-github-actions">Generating release notes using Github Actions</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/generating-release-notes-using-github-actions">
+                <img src="/assets/images/posts/2020/marci-angeles-H_pOAqtNVEg-unsplash_thumbnail.jpg"
+                    alt="Generating release notes using Github Actions">
+            </a>
+            
+        </li>
+        
+        <li>
+            <div class="post-header">
+                <div class="post-meta">
+                    <time class="published" datetime="??">May 17, 2020</time>
+                </div>
+                <div class="post-title">
+                    <a href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">Using Source Link in .NET projects and how to configure Visual Studio to use it.</a>
+                </div>
+            </div>
+            
+            <a class="post-thumbnail" href="/using-source-link-in-net-projects-and-how-to-configure-visual-studio-to-use-it">
+                <img src="/assets/images/posts/2020/markus-spiske-xekxE_VR0Ec-unsplash_thumbnail.jpg"
+                    alt="Using Source Link in .NET projects and how to configure Visual Studio to use it.">
+            </a>
+            
+        </li>
+        
+    </ul>
+</section>
+
+<!-- Create a sorted array of tags -->
+ 
+<section class="widget widget-tagcloud">
+    <h2 class="widget-title">Tags</h2>
+    <div class="tagcloud">
+        
+        <a href='https://lurumad.github.io/tag/azure/'>Azure</a>
+        
+        <a href='https://lurumad.github.io/tag/blog/'>Blog</a>
+        
+        <a href='https://lurumad.github.io/tag/c#/'>C#</a>
+        
+        <a href='https://lurumad.github.io/tag/career/'>Career</a>
+        
+        <a href='https://lurumad.github.io/tag/devops/'>DevOps</a>
+        
+        <a href='https://lurumad.github.io/tag/pipelines/'>Pipelines</a>
+        
+        <a href='https://lurumad.github.io/tag/self/'>Self</a>
+        
+        <a href='https://lurumad.github.io/tag/actions/'>actions</a>
+        
+        <a href='https://lurumad.github.io/tag/aks/'>aks</a>
+        
+        <a href='https://lurumad.github.io/tag/api/'>api</a>
+        
+        <a href='https://lurumad.github.io/tag/apim/'>apim</a>
+        
+        <a href='https://lurumad.github.io/tag/apis/'>apis</a>
+        
+        <a href='https://lurumad.github.io/tag/architecture/'>architecture</a>
+        
+        <a href='https://lurumad.github.io/tag/aspnetcore/'>aspnetcore</a>
+        
+        <a href='https://lurumad.github.io/tag/async/'>async</a>
+        
+        <a href='https://lurumad.github.io/tag/cross-cutting/'>cross-cutting</a>
+        
+        <a href='https://lurumad.github.io/tag/debugging/'>debugging</a>
+        
+        <a href='https://lurumad.github.io/tag/github/'>github</a>
+        
+        <a href='https://lurumad.github.io/tag/hangfire/'>hangfire</a>
+        
+        <a href='https://lurumad.github.io/tag/hashids/'>hashids</a>
+        
+        <a href='https://lurumad.github.io/tag/identityserver/'>identityserver</a>
+        
+        <a href='https://lurumad.github.io/tag/javascript/'>javascript</a>
+        
+        <a href='https://lurumad.github.io/tag/k8s/'>k8s</a>
+        
+        <a href='https://lurumad.github.io/tag/madiatr/'>madiatr</a>
+        
+        <a href='https://lurumad.github.io/tag/milestones/'>milestones</a>
+        
+        <a href='https://lurumad.github.io/tag/netcore/'>netcore</a>
+        
+        <a href='https://lurumad.github.io/tag/oauth2/'>oauth2</a>
+        
+        <a href='https://lurumad.github.io/tag/oidc/'>oidc</a>
+        
+        <a href='https://lurumad.github.io/tag/openapi/'>openapi</a>
+        
+        <a href='https://lurumad.github.io/tag/pdb/'>pdb</a>
+        
+        <a href='https://lurumad.github.io/tag/pkce/'>pkce</a>
+        
+        <a href='https://lurumad.github.io/tag/react/'>react</a>
+        
+        <a href='https://lurumad.github.io/tag/releases/'>releases</a>
+        
+        <a href='https://lurumad.github.io/tag/rest/'>rest</a>
+        
+        <a href='https://lurumad.github.io/tag/router/'>router</a>
+        
+        <a href='https://lurumad.github.io/tag/saml/'>saml</a>
+        
+        <a href='https://lurumad.github.io/tag/security/'>security</a>
+        
+        <a href='https://lurumad.github.io/tag/signalr/'>signalr</a>
+        
+        <a href='https://lurumad.github.io/tag/sourcelink/'>sourcelink</a>
+        
+        <a href='https://lurumad.github.io/tag/swagger/'>swagger</a>
+        
+        <a href='https://lurumad.github.io/tag/swagger-ui/'>swagger-ui</a>
+        
+        <a href='https://lurumad.github.io/tag/tests/'>tests</a>
+        
+        <a href='https://lurumad.github.io/tag/visualstudio/'>visualstudio</a>
+        
+    </div>
+</section>
+
+
+		</div><!-- .sidebar-inside -->
+	</div><!-- .sidebar-scrollable -->
+</aside><!-- .sidebar -->
+    
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131316164-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-131316164-1', { 'anonymize_ip': true });
+  </script>
+
+    <!-- Javascript Assets -->
+    <script src="/assets/js/jquery-3.3.1.min.js"></script>
+    <script src="/assets/js/plugins.js"></script>
+    <script src="/assets/js/custom.js"></script>
+
+</body>
+
+</html>

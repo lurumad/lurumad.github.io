@@ -70,7 +70,7 @@
 
 <p>Remember that authentication and authorization might sound similar but both are distinct security process. While the authentication is the act of verifying oneself, authorization is the process of verifying what you have access to. So first we need autenticated our users with <a href="https://identityserver.io/">IdentityServer4</a> and then we can do the authorization process based on roles, cliams, etc.</p>
 
-<p>Once we have more clear the diferrences betwwen authentication and authorization it’s time to solve the issue.</p>
+<p>Once we have more clear the differences betwwen authentication and authorization it’s time to solve the challenge.</p>
 
 <!--more-->
 
@@ -170,17 +170,18 @@
         <span class="n">cfg</span><span class="p">.</span><span class="nf">AddPolicy</span><span class="p">(</span><span class="s">"Hangfire"</span><span class="p">,</span> <span class="n">cfgPolicy</span> <span class="p">=&gt;</span>
         <span class="p">{</span>
             <span class="n">cfgPolicy</span><span class="p">.</span><span class="nf">AddRequirements</span><span class="p">().</span><span class="nf">RequireAuthenticatedUser</span><span class="p">();</span>
-            <span class="n">cfgPolicy</span><span class="p">.</span><span class="nf">AddAuthenticationSchemes</span><span class="p">(</span><span class="n">CookieAuthenticationDefaults</span><span class="p">.</span><span class="n">AuthenticationScheme</span><span class="p">);</span>
+            <span class="n">cfgPolicy</span><span class="p">.</span><span class="nf">AddAuthenticationSchemes</span><span class="p">(</span><span class="n">OpenIdConnectDefaults</span><span class="p">.</span><span class="n">AuthenticationScheme</span><span class="p">);</span>
         <span class="p">});</span>
     <span class="p">})</span>
     <span class="p">...</span> <span class="n">Omitted</span> <span class="k">for</span> <span class="n">brevity</span>
 </code></pre></div></div>
 
-<p>We added a new policy with one requirement (User must be authenticated) and the cookies authentication scheme.</p>
+<p>We added a new policy with one requirement (User must be authenticated) and the OpenIdConnect authentication scheme.</p>
 
 <p>In the <strong>Configure</strong> method in our <strong>Startup</strong> class we should add this code at the end:</p>
 
-<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">UseRouting</span><span class="p">();</span>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">UseAuthentication</span><span class="p">();</span>
+<span class="n">app</span><span class="p">.</span><span class="nf">UseRouting</span><span class="p">();</span>
 <span class="n">app</span><span class="p">.</span><span class="nf">UseAuthorization</span><span class="p">();</span>
 <span class="n">app</span><span class="p">.</span><span class="nf">UseEndpoints</span><span class="p">(</span><span class="n">endpoints</span> <span class="p">=&gt;</span>
 <span class="p">{</span>
@@ -188,7 +189,7 @@
 <span class="p">});</span>
 </code></pre></div></div>
 
-<p>As you can see, we are using Endpoint Routing to configure the dashboard. The cool thing is the use of <strong>RequireAuthorization</strong> method that we have applied to this particular endpoint. We don’t need to implement <strong>IDashboardAuthorizationFilter</strong> interface and we can use the policy that we have previously created using the ASP.NET Core authorization framework. This example is very basic but we can complicated the authorization as much as we want.</p>
+<p>As you can see, we are using Endpoint Routing to configure the dashboard. The cool thing is the use of <strong>RequireAuthorization</strong> method that we have applied to this particular endpoint. We don’t need to implement <strong>IDashboardAuthorizationFilter</strong> interface and we can use the policy that we have previously created using the ASP.NET Core authorization framework. This example is very basic but we can complicated the authorization as much as we want. When the user try to access the Hangfire Dashboard and is not authenticathed, ASP.NET Core Authorization framework use the <strong>DefaultChallengeScheme</strong> and the user will be redirected to our OpenIdConnect server (In our case IdentityServer4) and we don’t anymore our middleware to check if the user is authenticated and managed the challenge.</p>
 
 <p>You can see the complete example in this <a href="https://github.com/lurumad/Hangfire.Dashboard.Authentication/tree/master/EndpointRouting">link</a></p>
 

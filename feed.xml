@@ -5,13 +5,13 @@
     <description>My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.</description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 26 Nov 2020 10:29:18 +0100</pubDate>
-    <lastBuildDate>Thu, 26 Nov 2020 10:29:18 +0100</lastBuildDate>
+    <pubDate>Thu, 26 Nov 2020 12:32:03 +0100</pubDate>
+    <lastBuildDate>Thu, 26 Nov 2020 12:32:03 +0100</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
     
       <item>
         <title>Sharing variables between Stages with deployment jobs in Azure DevOps</title>
-        <description>&lt;p&gt;Last week I was delivering a workshop about &lt;em&gt;“.NET Modernization In a Day”&lt;/em&gt; and I created a multistage pipeline like this:&lt;/p&gt;
+        <description>&lt;p&gt;Last week I was delivering a workshop about &lt;em&gt;“.NET Modernization In a Day”&lt;/em&gt; to show how to move from on-premise to the cloud. In order to show how to automate deployments to Azure using AzureDevops using WebApps slots to implement Blue-Green Deployment scenarios, I decided to create a multistage pipeline like this:&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;Build the solution (.NET Core Web Application)&lt;/li&gt;

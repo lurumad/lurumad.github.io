@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <!-- Page Info -->
-    <title>How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS) | Luru</title>
+    <title>Sharing variables between Stages with deployment jobs in Azure DevOps | Luru</title>
     
     <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
     
@@ -54,156 +54,170 @@
         <article class="post-full inner">
             <header class="post-header">
                 <div class="post-meta">
-                    <time class="post-date" datetime="2019-01-21">January 21,
-                        2019</time>
+                    <time class="post-date" datetime="2020-11-26">November 26,
+                        2020</time>
                 </div><!-- .post-meta -->
-                <h1 class="posttitle">How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)</h1>
+                <h1 class="posttitle">Sharing variables between Stages with deployment jobs in Azure DevOps</h1>
             </header><!-- .post-header -->
             
             <div class="post-thumbnail"><img class="featured-image img-fluid"
-                    src="assets/images/posts/2019/thomas-jensen-596085-unsplash.jpg" alt="How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)"></div>
+                    src="assets/images/posts/2020/elaine-casap_thumbnail.jpg" alt="Sharing variables between Stages with deployment jobs in Azure DevOps"></div>
             
             <div class="post-content">
-                <p><strong>DISCLAIMER</strong>: I’m assuming you are familiar with Kubernetes, well in this post we are not going to explain it. So if you are not familiar, I recommend you to visit the official <a href="https://kubernetes.io/">documentation</a>.</p>
+                <p>Last week I was delivering a workshop about <em>“.NET Modernization In a Day”</em> and I created a multistage pipeline like this:</p>
 
-<p>If you have read my previous <a href="https://lurumad.github.io/set-output-variables-in-azuredevops-pipelines-tasks">post</a> you’ll know that currently I’m building a microservices architecture using <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">Azure Kubernetes Service (AKS)</a>. The context here is that we have a set of microservices that exposes API endpoints and we need a solution for publishing APIs to external and internal customers and clients applications, so we don´t want customers and client applications access directly to these microservices. We are talking to production ready API, so we have to take some considerations:</p>
+<ul>
+  <li>Build the solution (.NET Core Web Application)</li>
+  <li>Stage a web app deployment</li>
+  <li>Swap to production slot</li>
+</ul>
+
+<p>In the second stage, I use the <a href="https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-resource-group-deployment?view=azure-devops">ARM template task</a> to deploy the infrastructure in Azure before deploy the web application to the staging slot, but the name of the Web App wasn’t available until the execution of the ARM task and also I’d like to use the name of the WebApp in the stage to swap to production.</p>
+
+<p>If you want to use the output variables from the ARM template as a pipeline variables, you can use the next Powershell script:</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">param</span><span class="w"> </span><span class="p">(</span><span class="w">
+    </span><span class="p">[</span><span class="kt">Parameter</span><span class="p">(</span><span class="kt">Mandatory</span><span class="o">=</span><span class="bp">$true</span><span class="p">)]</span><span class="w">
+    </span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="w">
+    </span><span class="nv">$armOutputString</span><span class="w">
+</span><span class="p">)</span><span class="w">
+
+</span><span class="nf">Write-Host</span><span class="w"> </span><span class="nv">$armOutputString</span><span class="w">
+</span><span class="nv">$armOutputObj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">$armOutputString</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">convertfrom-json</span><span class="w">
+</span><span class="nf">Write-Host</span><span class="w"> </span><span class="nv">$armOutputObj</span><span class="w">
+
+</span><span class="nv">$armOutputObj</span><span class="o">.</span><span class="nf">PSObject</span><span class="o">.</span><span class="nf">Properties</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nx">ForEach-Object</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nv">$type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="bp">$_</span><span class="o">.</span><span class="nf">value</span><span class="o">.</span><span class="nf">type</span><span class="p">)</span><span class="o">.</span><span class="nf">ToLower</span><span class="p">()</span><span class="w">
+    </span><span class="nv">$key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">$_</span><span class="o">.</span><span class="nf">name</span><span class="w">
+    </span><span class="nv">$value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">$_</span><span class="o">.</span><span class="nf">value</span><span class="o">.</span><span class="nf">value</span><span class="w">
+
+    </span><span class="nx">if</span><span class="w"> </span><span class="p">(</span><span class="nv">$type</span><span class="w"> </span><span class="o">-eq</span><span class="w"> </span><span class="s2">"securestring"</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nf">Write-Host</span><span class="w"> </span><span class="s2">"##vso[task.setvariable variable=</span><span class="nv">$key</span><span class="s2">;issecret=true]</span><span class="nv">$value</span><span class="s2">"</span><span class="w">
+        </span><span class="nf">Write-Host</span><span class="w"> </span><span class="s2">"Create VSTS variable with key '</span><span class="nv">$key</span><span class="s2">' and value '</span><span class="nv">$value</span><span class="s2">' of type '</span><span class="nv">$type</span><span class="s2">'!"</span><span class="w">
+    </span><span class="p">}</span><span class="w"> </span><span class="kr">elseif</span><span class="w"> </span><span class="p">(</span><span class="nv">$type</span><span class="w"> </span><span class="o">-eq</span><span class="w"> </span><span class="s2">"string"</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nf">Write-Host</span><span class="w"> </span><span class="s2">"##vso[task.setvariable variable=</span><span class="nv">$key</span><span class="s2">]</span><span class="nv">$value</span><span class="s2">"</span><span class="w">
+        </span><span class="nf">Write-Host</span><span class="w"> </span><span class="s2">"Create VSTS variable with key '</span><span class="nv">$key</span><span class="s2">' and value '</span><span class="nv">$value</span><span class="s2">' of type '</span><span class="nv">$type</span><span class="s2">'!"</span><span class="w">
+    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="kr">Throw</span><span class="w"> </span><span class="s2">"Type '</span><span class="nv">$type</span><span class="s2">' not supported!"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>In the ARM task use the property <strong>deploymentOutputs</strong>:</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">task</span><span class="pi">:</span> <span class="s">AzureResourceManagerTemplateDeployment@3</span>
+    <span class="s">displayName</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Deploy</span><span class="nv"> </span><span class="s">ARM"</span> 
+    <span class="na">inputs</span><span class="pi">:</span>
+      <span class="s">...</span>
+      <span class="s">deploymentOutputs</span><span class="pi">:</span> <span class="s">ArmDeploymentOutputs</span>
+</code></pre></div></div>
+
+<p>And finally use the Powershell:</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">task</span><span class="pi">:</span> <span class="s">PowerShell@2</span>
+    <span class="s">displayName</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Set</span><span class="nv"> </span><span class="s">Arm</span><span class="nv"> </span><span class="s">outputs</span><span class="nv"> </span><span class="s">as</span><span class="nv"> </span><span class="s">variables"</span>
+    <span class="na">inputs</span><span class="pi">:</span>
+      <span class="na">targetType</span><span class="pi">:</span> <span class="s">filePath</span>
+      <span class="na">filePath</span><span class="pi">:</span> <span class="s2">"</span><span class="s">$(Pipeline.Workspace)/Arm/ArmOutput.ps1"</span>
+      <span class="na">arguments</span><span class="pi">:</span> <span class="s2">"</span><span class="s">-armOutputString</span><span class="nv"> </span><span class="s">'$(ArmDeploymentOutputs)'"</span>
+      <span class="na">timeoutInMinutes</span><span class="pi">:</span> <span class="m">5</span>
+</code></pre></div></div>
+
+<p>So now in my pipeline I can use the output variables in other tasks:</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">task</span><span class="pi">:</span> <span class="s">AzureRmWebAppDeployment@4</span>
+    <span class="s">inputs</span><span class="pi">:</span>
+      <span class="s">...</span>
+      <span class="s">WebAppName</span><span class="pi">:</span> <span class="s">$(webApp)</span>
+</code></pre></div></div>
 
 <!--more-->
 
-<ul>
-  <li>Single entry point (Gateway)</li>
-  <li>Usage</li>
-  <li>Analytics</li>
-  <li>Monitoring</li>
-  <li>Cache</li>
-  <li>Throttling</li>
-  <li>Authorization</li>
-  <li>And much more…</li>
-</ul>
+<h2 id="setting-a-variable-from-one-stage-to-another">Setting a variable from one stage to another</h2>
 
-<p>For these reasons we have decided to use <a href="https://azure.microsoft.com/en-us/services/api-management/">Azure Api Management</a>. Api Management provides us a way to expose all APIs behind a single static IP and domain using a suscription key.</p>
+<p>Now that we have ready the output variables from the ARM task, we are going to create a multistage pipeline to show you how to share a variable from one stage to another in deployment jobs:</p>
 
-<h1 id="accessing-services-running-on-the-cluster">Accessing services running on the cluster</h1>
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">trigger</span><span class="pi">:</span>
+<span class="pi">-</span> <span class="s">master</span>
 
-<p>To use a REST service that is deployed on Kubernetes, you need to define a <a href="https://kubernetes.io/docs/concepts/services-networking/service/">service</a>. There are several kinds of services:</p>
+<span class="na">pool</span><span class="pi">:</span>
+  <span class="na">vmImage</span><span class="pi">:</span> <span class="s1">'</span><span class="s">ubuntu-latest'</span>
 
-<ul>
-  <li>ClusterIP</li>
-  <li>NodePort</li>
-  <li>LoadBalacer</li>
-</ul>
+<span class="na">stages</span><span class="pi">:</span>
+<span class="pi">-</span> <span class="na">stage</span><span class="pi">:</span> <span class="s">Stage</span>
+  <span class="na">jobs</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">deployment</span><span class="pi">:</span> <span class="s">Staging</span>
+    <span class="na">displayName</span><span class="pi">:</span> <span class="s">Stage the WebApp</span>
+    <span class="na">environment</span><span class="pi">:</span> <span class="s">Staging</span>
+    <span class="na">strategy</span><span class="pi">:</span>
+      <span class="na">runOnce</span><span class="pi">:</span>
+        <span class="na">deploy</span><span class="pi">:</span>
+          <span class="na">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">bash</span><span class="pi">:</span> <span class="s">echo "##vso[task.setvariable variable=myStageOutputVar;isOutput=true]$myVar"</span>
+            <span class="na">env</span><span class="pi">:</span>
+              <span class="na">myVar</span><span class="pi">:</span> <span class="s1">'</span><span class="s">this</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">stage</span><span class="nv"> </span><span class="s">output</span><span class="nv"> </span><span class="s">var'</span>
+            <span class="na">name</span><span class="pi">:</span> <span class="s">printvar</span>
 
-<h3 id="clusterip">ClusterIP</h3>
+<span class="pi">-</span> <span class="na">stage</span><span class="pi">:</span> <span class="s">Swap</span>
+  <span class="na">dependsOn</span><span class="pi">:</span> <span class="s">Stage</span>
+  <span class="na">variables</span><span class="pi">:</span>
+    <span class="na">myVarfromStage</span><span class="pi">:</span> <span class="s">$[ stageDependencies.Stage.Staging.outputs['Staging.printvar.myStageOutputVar'] ]</span>
+  <span class="na">jobs</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">deployment</span><span class="pi">:</span> <span class="s">Production</span>
+    <span class="na">displayName</span><span class="pi">:</span> <span class="s">Swap to production</span>
+    <span class="na">environment</span><span class="pi">:</span> <span class="s">Production</span>
+    <span class="na">strategy</span><span class="pi">:</span>
+      <span class="na">runOnce</span><span class="pi">:</span>
+        <span class="na">deploy</span><span class="pi">:</span>
+          <span class="na">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">script</span><span class="pi">:</span> <span class="s">echo $(myVarfromStage)</span>
 
-<p>A ClusterIP is the default service in Kubernetes. Expose the service on a cluster-internal IP, so if you choose this kind of service it will be only reachable within the Kubernetes cluster so Azure API Management won’t be able to access.</p>
-
-<h3 id="nodeport">NodePort</h3>
-
-<p>Another option is to use a NodePort, Kubernetes will open a static port on each node (VM) of the cluster so you’ll be able to contact the NodePort outside the cluster using NodeIP:NodePort. The problem when using NodePort is that you are accesing directly to the node (VM), so if your Node/VM IP changed, you’ll need to deal with it. <strong>It’s not the recommended way to expose services in production</strong>.</p>
-
-<h3 id="loadbalancer">LoadBalancer</h3>
-
-<p>This is the standard way to expose your services to the outside world from a Kubernetes cluster. This service type will leverage the cloud provider to provision and configure the load balancer. In Azure, this will provision an <a href="https://docs.microsoft.com/en-us/azure/load-balancer/">Azure Load Balancer</a> configuring all the things related with it.</p>
-
-<p>The problem with this type of service is by default provision a Public Azure Load Balancer and we don’t want to expose our APIs publicly, we want to expose them through Azure Api Management. However we can also provision an <a href="https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/internal-lb.md">Internal Load Balancer</a> to expose our APIs internally in Azure, so it seems to fit with our requirements not to expose our services publicly.</p>
-
-<p>To create an Internal Load Balancer, create a service manifest with the service type <em>LoadBalancer</em> and the <em>azure-load-balancer-internal annotation</em> as shown in the following code:</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">todo-app-service</span>
-  <span class="na">annotations</span><span class="pi">:</span>
-    <span class="s">service.beta.kubernetes.io/azure-load-balancer-internal</span><span class="pi">:</span> <span class="s2">"</span><span class="s">true"</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">todo-app</span>
 </code></pre></div></div>
 
-<p>Once we have applied the manifest in our AKS cluster, we should see EXTERNAL-IP that belongs to same subnet of the cluster nodes:</p>
+<p>In the second stage (first deployment job), we define a new variable called <strong>myStageOutputVar</strong></p>
 
-<pre><code class="language-txt">kubectl get services
-NAME               TYPE           CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
-todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"##vso[task.setvariable variable=myStageOutputVar;isOutput=true]</span><span class="nv">$myVar</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<p>The key point is the <strong>isOutput=true</strong> instruction if you want to make this variable available to future stages.</p>
+
+<blockquote>
+  <p>Thanks to <a href="https://twitter.com/lfraile">Luis Fraile</a> who helped me to show how to pass variables to the Bash task using <strong>env</strong> prop.</p>
+</blockquote>
+
+<p>Once we have defined the variable we need to use in the next stage (when we swap to production) because we need the name of the WebApp that ARM task created before. To use the varaible between stages we need to use <strong>stageDependencies</strong> property. To access the variable we need to reference in this way:</p>
+
+<pre><code class="language-txt">stageDependencies.stage.deployment.outputs['environment.taskName.variableName']
 </code></pre>
 
-<h1 id="connect-azure-api-management-to-your-aks-cluster">Connect Azure Api Management to your AKS cluster</h1>
+<p>I our case:</p>
 
-<p>When we create an AKS cluster in Azure, the process creates another resource group as shown in the following image:</p>
-
-<p><img src="./assets/images/posts/2019/apimaks1.png" alt="Resource group create by Azure" /></p>
-
-<p>This by design, this second resource group is a “cluster resource group” and is used to represent all the resources that belong to the cluster: VMs, Virtual Network…</p>
-
-<p><img src="./assets/images/posts/2019/apimaks2.png" alt="Resource group" /></p>
-
-<p>Within the virtual network there are a number of VMs (Nodes) usually one master and a few agents (depends on the size of your cluster). We can connect Azure Api Management to this subnet in order to be able to consume the services within the cluster. To connect our Azure Api Management to our AKS cluster we need to create a subnet within this virtual network:</p>
-
-<p><img src="./assets/images/posts/2019/apimaks4.png" alt="Virtual Network 1" /></p>
-
-<p>You can use a small range of IPs (In our case 3 directions is enough)</p>
-
-<p><img src="./assets/images/posts/2019/apimaks3.png" alt="Virtual Network 2" /></p>
-
-<p><img src="./assets/images/posts/2019/apimaks5.png" alt="Virtual Network 3" /></p>
-
-<p>Once we have created our subnet, go to your Azure Api Management instance in the Azure portal and configure the virtual network. Mark the Virtual network as External.</p>
-
-<p><img src="./assets/images/posts/2019/apimaks6.png" alt="Virtual Network APIM 1" /></p>
-
-<p>Select your AKS virtual network and the subnet that we have created previously:</p>
-
-<p><img src="./assets/images/posts/2019/apimaks7.png" alt="Virtual Network APIM 2" /></p>
-
-<p>Save your changes, take it easy and relax because Azure Api Management will take 15/30 minutes to apply these changes :)</p>
-
-<h1 id="import-and-publish-our-services-in-azure-api-management">Import and publish our services in Azure Api Management</h1>
-
-<p>Now that we have to service listening within the virtual network, it’s time to <a href="https://docs.microsoft.com/en-us/azure/api-management/import-and-publish">import and publish</a> in our Azure Api Management. In my case, I’ve configured my API to generate an OpenApi specification using a library called <a href="https://github.com/domaindrivendev/Swashbuckle">Swashbuckle</a>. It analyzes your API and generates an OpenApi specification that allows us to import from the Azure Portal using the next url:</p>
-
-<pre><code class="language-txt">http://EXTERNAL-IP/swagger/v1/swagger.json
+<pre><code class="language-txt">stageDependencies.Stage.Staging.outputs['Staging.printvar.myStageOutputVar']
 </code></pre>
 
-<p><img src="./assets/images/posts/2019/apimaks8.png" alt="APIM 1" /></p>
+<p>If you run the pipeline, you should see the output correctly:</p>
 
-<p>But Azure Api Management can’t reach our service beceause is not a public url and therefore can’t be imported:</p>
+<p><img src="./assets/images/posts/2020/stages2.png" alt="Stage" /></p>
 
-<p><img src="./assets/images/posts/2019/apimaks9.png" alt="APIM 2" /></p>
+<h2 id="conclusion">Conclusion</h2>
 
-<p>The right way to resolve it is using a CD pipeline as I wrote in this <a href="https://lurumad.github.io/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">post</a>. Once you have created your CD pipeline, create a new release and the API should be imported:</p>
-
-<p><img src="./assets/images/posts/2019/apimaks11.png" alt="APIM CD 1" /></p>
-
-<p><img src="./assets/images/posts/2019/apimaks12.png" alt="APIM CD 2" /></p>
-
-<p><img src="./assets/images/posts/2019/apimaks10.png" alt="APIM CD 3" /></p>
-
-<p>Now we can test it:</p>
-
-<p><img src="./assets/images/posts/2019/apimaks13.png" alt="APIM" /></p>
-
-<h1 id="conclusion">Conclusion</h1>
-
-<p>The purpose of the post is to show you how to connect Azure services such as Azure Api Management to your AKS cluster in order to manage the access to your services in a more convinient way and take advantage of all the benefits of using an Api Management in your microservices architecture.</p>
+<p>In this post I’ve tried to show how to share variables between stages with deployment jobs and also how to setting pipelines variables from ARM task outputs.</p>
 
             </div>
             <footer class="post-footer">
                 
                 <p class="post-tags">
                      
-                    <a href='tag/azure/'>Azure</a>
+                    <a href='tag/azuredevops/'>azuredevops</a>
                     
                      
-                    <a href='tag/apim/'>apim</a>
+                    <a href='tag/stages/'>stages</a>
                     
                      
-                    <a href='tag/k8s/'>k8s</a>
+                    <a href='tag/jobs/'>jobs</a>
                     
                      
-                    <a href='tag/aks/'>aks</a>
+                    <a href='tag/deployment/'>deployment</a>
                     
                     
                 </p>
@@ -211,9 +225,9 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
                 <div class="post-share">
                     <span class="post-share-title">Share:</span>
                     <a target="_blank"
-                        href="https://twitter.com/share?text=How+to+connect+Azure+Api+Management+%28APIM%29+to+your+Azure+Kubernetes+Service+%28AKS%29&amp;url=https://lurumad.github.io/how-to-connect-azure-api-management-to-your-azure-kubernetes-service">Twitter</a>
+                        href="https://twitter.com/share?text=Sharing+variables+between+Stages+with+deployment+jobs+in+Azure+DevOps&amp;url=https://lurumad.github.io/sharing-variables-between-stages-with-deployment-jobs-in-azure-devops">Twitter</a>
                     <a target="_blank"
-                        href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/how-to-connect-azure-api-management-to-your-azure-kubernetes-service">Facebook</a>
+                        href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/sharing-variables-between-stages-with-deployment-jobs-in-azure-devops">Facebook</a>
                 </div><!-- .share-post -->
             </footer>
             <div class="author-box">
@@ -262,62 +276,43 @@ todo-app-service   LoadBalancer   10.0.190.54   10.240.0.6    80:31269/TCP   4d
             <article class="post">
                 <header class="post-header">
                     <div class="post-meta">
-                        <time class="published" datetime="January 13, 2019">January 13, 2019</time>
+                        <time class="published" datetime="July 28, 2020">July 28, 2020</time>
                     </div>
-                    <h3 class="post-title"><a href="/set-output-variables-in-azuredevops-pipelines-tasks">Set output variables in Azure DevOps pipelines tasks</a>
+                    <h3 class="post-title"><a href="/identityserver4-retrieving-an-user-s-email-from-twitter-external-login-account-copy-2">IdentityServer4: Retrieving an User's email from Twitter external authentication</a>
                     </h3>
                     <p class="post-tags">
                         
                         
                         
-                        <a href='/tag/azure/'>Azure</a>
+                        <a href='/tag/oidc/'>Oidc</a>
                         
                         
                         
-                        <a href='/tag/devops/'>Devops</a>
+                        <a href='/tag/oauth2/'>Oauth2</a>
                         
                         
                         
-                        <a href='/tag/pipelines/'>Pipelines</a>
+                        <a href='/tag/aspnetcore/'>Aspnetcore</a>
                         
                         
                         
-                    </p>
-                </header>
-                
-                <a href="/set-output-variables-in-azuredevops-pipelines-tasks" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/input-cable_thumbnail.jpg" alt="Set output variables in Azure DevOps pipelines tasks" />
-                </a>
-                
-            </article>
-            
-            
-            <article class="post">
-                <header class="post-header">
-                    <div class="post-meta">
-                        <time class="published" datetime="February 1, 2019">February 1, 2019</time>
-                    </div>
-                    <h3 class="post-title"><a href="/an-opinionated-approach-of-using-an-async-suffix-in-methods">An opinionated approach of using an async suffix in methods</a></h3>
-                    <p class="post-tags">
+                        <a href='/tag/twitter/'>Twitter</a>
                         
                         
                         
-                        <a href='/tag/c#/'>C#</a>
-                        
-                        
-                        
-                        <a href='/tag/async/'>Async</a>
+                        <a href='/tag/federation/'>Federation</a>
                         
                         
                         
                     </p>
                 </header>
                 
-                <a href="/an-opinionated-approach-of-using-an-async-suffix-in-methods" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/bird-wing-sky-fly-aircraft-formation-640571-pxhere.com_thumbnail.jpg" alt="An opinionated approach of using an async suffix in methods" />
+                <a href="/identityserver4-retrieving-an-user-s-email-from-twitter-external-login-account-copy-2" class="post-thumbnail">
+                    <img src="assets/images/posts/2020/moran-8cMPxOqkLE8-unsplash_thumbnail.jpg" alt="IdentityServer4: Retrieving an User's email from Twitter external authentication" />
                 </a>
                 
             </article>
+            
             
         </section><!-- .read-next -->
     </main><!-- .site-main -->

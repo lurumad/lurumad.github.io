@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <!-- Page Info -->
-    <title>Set output variables in Azure DevOps pipelines tasks | Luru</title>
+    <title>Using a custom name for the AKS additional resource group in ARM | Luru</title>
     
     <meta name="description" content="My name is Luis Ruiz. I'm a Technical Lead Developer at Plain Concepts, author and speaker based in Madrid, Spain.">
     
@@ -54,59 +54,111 @@
         <article class="post-full inner">
             <header class="post-header">
                 <div class="post-meta">
-                    <time class="post-date" datetime="2019-01-13">January 13,
-                        2019</time>
+                    <time class="post-date" datetime="2020-12-08">December 8,
+                        2020</time>
                 </div><!-- .post-meta -->
-                <h1 class="posttitle">Set output variables in Azure DevOps pipelines tasks</h1>
+                <h1 class="posttitle">Using a custom name for the AKS additional resource group in ARM</h1>
             </header><!-- .post-header -->
             
             <div class="post-thumbnail"><img class="featured-image img-fluid"
-                    src="assets/images/posts/2019/input-cable.jpg" alt="Set output variables in Azure DevOps pipelines tasks"></div>
+                    src="assets/images/posts/2020/ross-findon.jpg" alt="Using a custom name for the AKS additional resource group in ARM"></div>
             
             <div class="post-content">
-                <p>Currently I am building a pipeline that deploys a microservices solution in <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">Azure Kubernetes Service (AKS)</a>. For example, I need to parse a kubectl output in a task to extract the cluster service ip dinamically in order to <a href="https://docs.microsoft.com/en-us/azure/aks/ingress-static-ip#configure-a-dns-name">configure a DNS name</a> for an nginx ingress controller. I want to return this cluster service ip back into a variable, so I can use in another task.</p>
+                <p>If you have come across this post, you are wondering why when you create a AKS cluster in Azure an additional resource group is created with a lot of resources, right?</p>
 
-<h1 id="configuring-our-build-or-release-pipeline-to-test-it">Configuring our Build or Release pipeline to test it</h1>
+<p>The answer is easy: <strong>by design</strong>.</p>
 
-<p>Add two bash script tasks to your build or release pipeline:</p>
+<p>When you create an AKS cluster in Azure, by design the name of the cluster follows the next convention:</p>
 
-<p><img src="./assets/images/posts/2019/setoutputvariable.png" alt="Add two bash script tasks" /></p>
+<pre><code class="language-txt">MC_[resource group name]_[aks name]_[location]
+</code></pre>
 
-<p>Configure the first bash script task as shown in the image below:</p>
+<p>Something like this:</p>
 
-<p><img src="./assets/images/posts/2019/setoutputvariable1.png" alt="Set output variable in bash" /></p>
+<pre><code class="language-txt">MC_survey-rg_aks-oslvgax27o442_westeurope
+</code></pre>
 
-<p>Look at the following command:</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"##vso[task.setvariable variable=AKS_Cluster_Service_Ip;]</span><span class="nv">$ip</span><span class="s2">"</span>
-</code></pre></div></div>
-
-<p>This will make the variable <strong>AKS_Cluster_Service_Ip</strong> to be consumed in the next bash script taks via the <strong>$(AKS_Cluster_Service_Ip)</strong> sintax:</p>
-
-<p><img src="./assets/images/posts/2019/setoutputvariable2.png" alt="Consume the output variable in bash" /></p>
-
-<p>Run your build or create a new release depend what you choosen in the first step, and you should see in the logs the value of the output variable:</p>
-
-<p><img src="./assets/images/posts/2019/setoutputvariable3.png" alt="Consume the output variable in bash" /></p>
-
-<h1 id="links">Links</h1>
+<p>This resource group contains all the infrastructure associated with the AKS cluster and it’s commonly called <strong>The node resource group</strong> and contains all of these resources:</p>
 
 <ul>
-  <li><a href="https://github.com/Microsoft/azure-pipelines-tasks/blob/master/docs/authoring/commands.md">Azure Pipeline tasks</a></li>
+  <li>Master and node VMs</li>
+  <li>Networking</li>
+  <li>Storage</li>
 </ul>
+
+<p><img src="./assets/images/posts/2020/aks.png" alt="AKS" /></p>
+
+<!--more-->
+
+<h2 id="using-our-custom-name">Using our custom name</h2>
+
+<p>In our ARM template we can change the name of the resource group in order to complaint with our naming conventions, normally guide by a governance plan, critical when we want to manage efficiently our clouds environments.</p>
+
+<p>If you look inside the ARM documentation for the type <a href="Microsoft.ContainerService/managedClusters">Microsoft.ContainerService/managedClusters</a>, there is a property called <strong>nodeResourceGroup</strong> so we can use to change the default name. In the next template, we are using a namming conventions guide by the governance plan of our customer:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"resources"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Microsoft.ContainerService/managedClusters"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"tags"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"displayName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AKS"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"env"</span><span class="p">:</span><span class="w"> </span><span class="s2">"dev"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"monitoring"</span><span class="p">:</span><span class="w"> </span><span class="s2">"no"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"apiVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2020-03-01"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('clusterName')]"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"location"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('location')]"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"properties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"nodeResourceGroup"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[concat(resourceGroup().name, '.aux')]"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"dnsPrefix"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('dnsPrefix')]"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"agentPoolProfiles"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"agentpool"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"osDiskSizeGB"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('osDiskSizeGB')]"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"count"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('agentCount')]"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"vmSize"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('agentVMSize')]"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"osType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('osType')]"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"storageProfile"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ManagedDisks"</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="nl">"linuxProfile"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"adminUsername"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('linuxAdminUsername')]"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"ssh"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"publicKeys"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nl">"keyData"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('sshRSAPublicKey')]"</span><span class="w">
+              </span><span class="p">}</span><span class="w">
+            </span><span class="p">]</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"servicePrincipalProfile"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"clientId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('servicePrincipalClientId')]"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"Secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[parameters('servicePrincipalClientSecret')]"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span></code></pre></div></div>
+<p>As you’ve seen, it’s quite easy to change the name of the resource group.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post I’ve tried to show how easy it’s to change the name of the additional resource group created by the AKS cluster.</p>
 
             </div>
             <footer class="post-footer">
                 
                 <p class="post-tags">
                      
-                    <a href='tag/azure/'>Azure</a>
+                    <a href='tag/aks/'>aks</a>
                     
                      
-                    <a href='tag/devops/'>DevOps</a>
+                    <a href='tag/arm/'>arm</a>
                     
                      
-                    <a href='tag/pipelines/'>Pipelines</a>
+                    <a href='tag/resourcegroup/'>resourcegroup</a>
+                    
+                     
+                    <a href='tag/cluster/'>cluster</a>
                     
                     
                 </p>
@@ -114,9 +166,9 @@
                 <div class="post-share">
                     <span class="post-share-title">Share:</span>
                     <a target="_blank"
-                        href="https://twitter.com/share?text=Set+output+variables+in+Azure+DevOps+pipelines+tasks&amp;url=https://lurumad.github.io/set-output-variables-in-azuredevops-pipelines-tasks">Twitter</a>
+                        href="https://twitter.com/share?text=Using+a+custom+name+for+the+AKS+additional+resource+group+in+ARM&amp;url=https://lurumad.github.io/using-a-custom-name-for-the-aks-additional-resource-group-in-arm">Twitter</a>
                     <a target="_blank"
-                        href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/set-output-variables-in-azuredevops-pipelines-tasks">Facebook</a>
+                        href="https://www.facebook.com/sharer/sharer.php?u=https://lurumad.github.io/using-a-custom-name-for-the-aks-additional-resource-group-in-arm">Facebook</a>
                 </div><!-- .share-post -->
             </footer>
             <div class="author-box">
@@ -165,70 +217,39 @@
             <article class="post">
                 <header class="post-header">
                     <div class="post-meta">
-                        <time class="published" datetime="January 8, 2019">January 8, 2019</time>
+                        <time class="published" datetime="November 26, 2020">November 26, 2020</time>
                     </div>
-                    <h3 class="post-title"><a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines">Continous delivery to Azure API Management using Azure DevOps pipelines</a>
+                    <h3 class="post-title"><a href="/sharing-variables-between-stages-with-deployment-jobs-in-azure-devops-copy">Sharing variables between Stages with deployment jobs in Azure DevOps</a>
                     </h3>
                     <p class="post-tags">
                         
                         
                         
-                        <a href='/tag/azure/'>Azure</a>
+                        <a href='/tag/azuredevops/'>Azuredevops</a>
                         
                         
                         
-                        <a href='/tag/devops/'>Devops</a>
+                        <a href='/tag/stages/'>Stages</a>
                         
                         
                         
-                        <a href='/tag/apim/'>Apim</a>
+                        <a href='/tag/jobs/'>Jobs</a>
                         
                         
                         
-                    </p>
-                </header>
-                
-                <a href="/continous-delivery-to-azure-api-management-using-azure-devops-pipelines" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/cd_thumbnail.jpg" alt="Continous delivery to Azure API Management using Azure DevOps pipelines" />
-                </a>
-                
-            </article>
-            
-            
-            <article class="post">
-                <header class="post-header">
-                    <div class="post-meta">
-                        <time class="published" datetime="January 21, 2019">January 21, 2019</time>
-                    </div>
-                    <h3 class="post-title"><a href="/how-to-connect-azure-api-management-to-your-azure-kubernetes-service">How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)</a></h3>
-                    <p class="post-tags">
-                        
-                        
-                        
-                        <a href='/tag/azure/'>Azure</a>
-                        
-                        
-                        
-                        <a href='/tag/apim/'>Apim</a>
-                        
-                        
-                        
-                        <a href='/tag/k8s/'>K8s</a>
-                        
-                        
-                        
-                        <a href='/tag/aks/'>Aks</a>
+                        <a href='/tag/deployment/'>Deployment</a>
                         
                         
                         
                     </p>
                 </header>
                 
-                <a href="/how-to-connect-azure-api-management-to-your-azure-kubernetes-service" class="post-thumbnail">
-                    <img src="assets/images/posts/2019/thomas-jensen-596085-unsplash_thumbnail.jpg" alt="How to connect Azure Api Management (APIM) to your Azure Kubernetes Service (AKS)" />
+                <a href="/sharing-variables-between-stages-with-deployment-jobs-in-azure-devops-copy" class="post-thumbnail">
+                    <img src="assets/images/posts/2020/elaine-casap_thumbnail.jpg" alt="Sharing variables between Stages with deployment jobs in Azure DevOps" />
                 </a>
                 
             </article>
+            
             
         </section><!-- .read-next -->
     </main><!-- .site-main -->

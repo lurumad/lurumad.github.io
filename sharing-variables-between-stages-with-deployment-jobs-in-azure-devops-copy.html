@@ -77,26 +77,26 @@
 <p>If you want to use the output variables from the ARM template as a pipeline variables, you can use the next Powershell script:</p>
 
 <div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">param</span><span class="w"> </span><span class="p">(</span><span class="w">
-    </span><span class="p">[</span><span class="kt">Parameter</span><span class="p">(</span><span class="kt">Mandatory</span><span class="o">=</span><span class="bp">$true</span><span class="p">)]</span><span class="w">
-    </span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="w">
+    </span><span class="p">[</span><span class="n">Parameter</span><span class="p">(</span><span class="n">Mandatory</span><span class="o">=</span><span class="bp">$true</span><span class="p">)]</span><span class="w">
+    </span><span class="p">[</span><span class="n">string</span><span class="p">]</span><span class="w">
     </span><span class="nv">$armOutputString</span><span class="w">
 </span><span class="p">)</span><span class="w">
 
-</span><span class="nf">Write-Host</span><span class="w"> </span><span class="nv">$armOutputString</span><span class="w">
-</span><span class="nv">$armOutputObj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">$armOutputString</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">convertfrom-json</span><span class="w">
-</span><span class="nf">Write-Host</span><span class="w"> </span><span class="nv">$armOutputObj</span><span class="w">
+</span><span class="n">Write-Host</span><span class="w"> </span><span class="nv">$armOutputString</span><span class="w">
+</span><span class="nv">$armOutputObj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">$armOutputString</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">convertfrom-json</span><span class="w">
+</span><span class="nx">Write-Host</span><span class="w"> </span><span class="nv">$armOutputObj</span><span class="w">
 
-</span><span class="nv">$armOutputObj</span><span class="o">.</span><span class="nf">PSObject</span><span class="o">.</span><span class="nf">Properties</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nx">ForEach-Object</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="nv">$armOutputObj</span><span class="o">.</span><span class="nf">PSObject</span><span class="o">.</span><span class="nf">Properties</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">ForEach-Object</span><span class="w"> </span><span class="p">{</span><span class="w">
     </span><span class="nv">$type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="bp">$_</span><span class="o">.</span><span class="nf">value</span><span class="o">.</span><span class="nf">type</span><span class="p">)</span><span class="o">.</span><span class="nf">ToLower</span><span class="p">()</span><span class="w">
     </span><span class="nv">$key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">$_</span><span class="o">.</span><span class="nf">name</span><span class="w">
     </span><span class="nv">$value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">$_</span><span class="o">.</span><span class="nf">value</span><span class="o">.</span><span class="nf">value</span><span class="w">
 
-    </span><span class="nx">if</span><span class="w"> </span><span class="p">(</span><span class="nv">$type</span><span class="w"> </span><span class="o">-eq</span><span class="w"> </span><span class="s2">"securestring"</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nf">Write-Host</span><span class="w"> </span><span class="s2">"##vso[task.setvariable variable=</span><span class="nv">$key</span><span class="s2">;issecret=true]</span><span class="nv">$value</span><span class="s2">"</span><span class="w">
-        </span><span class="nf">Write-Host</span><span class="w"> </span><span class="s2">"Create VSTS variable with key '</span><span class="nv">$key</span><span class="s2">' and value '</span><span class="nv">$value</span><span class="s2">' of type '</span><span class="nv">$type</span><span class="s2">'!"</span><span class="w">
+    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nv">$type</span><span class="w"> </span><span class="o">-eq</span><span class="w"> </span><span class="s2">"securestring"</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="n">Write-Host</span><span class="w"> </span><span class="s2">"##vso[task.setvariable variable=</span><span class="nv">$key</span><span class="s2">;issecret=true]</span><span class="nv">$value</span><span class="s2">"</span><span class="w">
+        </span><span class="n">Write-Host</span><span class="w"> </span><span class="s2">"Create VSTS variable with key '</span><span class="nv">$key</span><span class="s2">' and value '</span><span class="nv">$value</span><span class="s2">' of type '</span><span class="nv">$type</span><span class="s2">'!"</span><span class="w">
     </span><span class="p">}</span><span class="w"> </span><span class="kr">elseif</span><span class="w"> </span><span class="p">(</span><span class="nv">$type</span><span class="w"> </span><span class="o">-eq</span><span class="w"> </span><span class="s2">"string"</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nf">Write-Host</span><span class="w"> </span><span class="s2">"##vso[task.setvariable variable=</span><span class="nv">$key</span><span class="s2">]</span><span class="nv">$value</span><span class="s2">"</span><span class="w">
-        </span><span class="nf">Write-Host</span><span class="w"> </span><span class="s2">"Create VSTS variable with key '</span><span class="nv">$key</span><span class="s2">' and value '</span><span class="nv">$value</span><span class="s2">' of type '</span><span class="nv">$type</span><span class="s2">'!"</span><span class="w">
+        </span><span class="n">Write-Host</span><span class="w"> </span><span class="s2">"##vso[task.setvariable variable=</span><span class="nv">$key</span><span class="s2">]</span><span class="nv">$value</span><span class="s2">"</span><span class="w">
+        </span><span class="n">Write-Host</span><span class="w"> </span><span class="s2">"Create VSTS variable with key '</span><span class="nv">$key</span><span class="s2">' and value '</span><span class="nv">$value</span><span class="s2">' of type '</span><span class="nv">$type</span><span class="s2">'!"</span><span class="w">
     </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span><span class="w">
         </span><span class="kr">Throw</span><span class="w"> </span><span class="s2">"Type '</span><span class="nv">$type</span><span class="s2">' not supported!"</span><span class="w">
     </span><span class="p">}</span><span class="w">
@@ -387,7 +387,7 @@
     
 </p>
                 <p class="site-info">
-                    <a href="#">Luru</a> &copy; 2020 . Horace theme by
+                    <a href="#">Luru</a> &copy; 2021 . Horace theme by
                     <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
                     Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
                 </p>

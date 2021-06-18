@@ -124,10 +124,10 @@
 
 <p><strong>NOTE</strong> You can’t use <em>AddTemporarySigningCredential</em>. The pluging needs a full X509 certificate. If you are developing or testing the component, you can create your own self signed certificate using makecert, OpenSSL, or PowerShell:</p>
 
-<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$todaydt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">Get-Date</span><span class="w">
-</span><span class="nv">$3years</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">$todaydt</span><span class="o">.</span><span class="nf">AddYears</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w">
-</span><span class="nv">$CertPassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">ConvertTo-SecureString</span><span class="w"> </span><span class="nt">-String</span><span class="w"> </span><span class="s2">"mypassword"</span><span class="w"> </span><span class="nt">-Force</span><span class="w"> </span><span class="err">–</span><span class="nx">AsPlainText</span><span class="w">
-</span><span class="nf">New-SelfSignedCertificate</span><span class="w"> </span><span class="nt">-dnsname</span><span class="w"> </span><span class="nx">saml.zenddesk.com</span><span class="w"> </span><span class="nt">-notafter</span><span class="w"> </span><span class="nv">$3years</span><span class="w"> </span><span class="nt">-CertStoreLocation</span><span class="w"> </span><span class="nx">cert:\LocalMachine\My</span><span class="w"> </span><span class="nt">-KeyUsage</span><span class="w"> </span><span class="nx">DigitalSignature</span><span class="w">
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$todaydt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Get-Date</span><span class="w">
+</span><span class="nv">$3years</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">$todaydt</span><span class="o">.</span><span class="nf">AddYears</span><span class="p">(</span><span class="nx">3</span><span class="p">)</span><span class="w">
+</span><span class="nv">$CertPassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ConvertTo-SecureString</span><span class="w"> </span><span class="nt">-String</span><span class="w"> </span><span class="s2">"mypassword"</span><span class="w"> </span><span class="nt">-Force</span><span class="w"> </span><span class="err">–</span><span class="nx">AsPlainText</span><span class="w">
+</span><span class="n">New-SelfSignedCertificate</span><span class="w"> </span><span class="nt">-dnsname</span><span class="w"> </span><span class="nx">saml.zenddesk.com</span><span class="w"> </span><span class="nt">-notafter</span><span class="w"> </span><span class="nv">$3years</span><span class="w"> </span><span class="nt">-CertStoreLocation</span><span class="w"> </span><span class="nx">cert:\LocalMachine\My</span><span class="w"> </span><span class="nt">-KeyUsage</span><span class="w"> </span><span class="nx">DigitalSignature</span><span class="w">
 </span></code></pre></div></div>
 <p>You should see the following output:</p>
 
@@ -453,7 +453,7 @@
     
 </p>
                 <p class="site-info">
-                    <a href="#">Luru</a> &copy; 2020 . Horace theme by
+                    <a href="#">Luru</a> &copy; 2021 . Horace theme by
                     <a target="_blank" href="https://justgoodthemes.com/">JustGoodThemes</a>. <br />
                     Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>.
                 </p>
